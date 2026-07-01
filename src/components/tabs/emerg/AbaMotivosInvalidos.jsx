@@ -11,6 +11,7 @@ import {
   aplicarFiltrosEmerg, FILTROS_VAZIOS_EMERG, evolucaoMotivosPorMes, fmtMesAno, STATUS_COLOR, STATUS_PADRAO,
 } from '../../../lib/emergencias.js'
 import ChartTooltip from '../../charts/ChartTooltip.jsx'
+import { usePaginadorGrafico, ControlePaginacao } from '../../charts/PaginadorGrafico.jsx'
 import { KpiCard, PaginacaoBusca } from './shared.jsx'
 import BotaoExportarGrafico from '../../BotaoExportarGrafico.jsx'
 
@@ -196,28 +197,27 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
     return n
   }, [grupos, permitidosSet, emergMap, dentroData])
 
-  // Top permissionária (NORCREST consolidada) entre os inválidos filtrados.
-  const topPermissionaria = useMemo(() => {
-    const m = new Map()
-    for (const p of processos) {
-      const nome = consolidarNorcrest(p._permissionaria) || '—'
-      m.set(nome, (m.get(nome) || 0) + 1)
-    }
-    let melhor = null
-    for (const [nome, qtd] of m) if (!melhor || qtd > melhor.qtd) melhor = { nome, qtd }
-    return melhor
-  }, [processos])
+  // Drill-down NORCREST: quando TODOS os inválidos filtrados são NORCREST, quebra por
+  // unidade (NORCREST/MLG…) em vez de consolidar — igual às outras abas.
+  const norcrestDrill = useMemo(
+    () => processos.length > 0 && processos.every((p) => String(p._permissionaria || '').toUpperCase().startsWith('NORCREST')),
+    [processos]
+  )
 
   // Séries dos gráficos (sobre os inválidos filtrados).
   const serieTempo = useMemo(() => evolucaoMotivosPorMes(processos).map((x) => ({ ...x, label: fmtMesAno(x.mes) })), [processos])
   const topPerms = useMemo(() => {
     const m = new Map()
     for (const p of processos) {
-      const nome = consolidarNorcrest(p._permissionaria) || '—'
+      const nome = norcrestDrill ? (p._permissionaria || '—') : (consolidarNorcrest(p._permissionaria) || '—')
       m.set(nome, (m.get(nome) || 0) + 1)
     }
-    return [...m.entries()].map(([nome, qtd]) => ({ nome, qtd })).sort((a, b) => b.qtd - a.qtd).slice(0, 10)
-  }, [processos])
+    const arr = [...m.entries()].map(([nome, qtd]) => ({ nome, qtd })).sort((a, b) => b.qtd - a.qtd)
+    return norcrestDrill ? arr : arr.slice(0, 10)
+  }, [processos, norcrestDrill])
+  const topPermissionaria = topPerms[0] || null
+  // Paginação do gráfico só no drill-down da NORCREST (8 unidades por vez).
+  const pagPerm = usePaginadorGrafico(topPerms, { tamanho: 8, ativo: norcrestDrill })
   const porStatus = useMemo(() => {
     const m = new Map()
     for (const p of processos) { const s = p.status || 'Sem status'; m.set(s, (m.get(s) || 0) + 1) }
@@ -398,23 +398,26 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Top permissionárias */}
+            {/* Top permissionárias (com drill-down por unidade da NORCREST) */}
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-bold text-navy uppercase tracking-wide">Permissionárias com mais inválidos</h3>
+                <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
+                  {norcrestDrill ? 'NORCREST — inválidos por unidade' : 'Permissionárias com mais inválidos'}
+                </h3>
                 <BotaoExportarGrafico dados={topPerms} colunas={[{ key: 'nome', label: 'Permissionária' }, { key: 'qtd', label: 'Inválidos' }]} titulo="motivos-top-permissionarias" modulo="emergencias" />
               </div>
-              <ResponsiveContainer width="100%" height={Math.max(220, topPerms.length * 26)}>
-                <BarChart data={topPerms} layout="vertical" margin={{ top: 4, right: 40, bottom: 4, left: 4 }}>
+              <ResponsiveContainer width="100%" height={Math.max(200, pagPerm.itens.length * 26)}>
+                <BarChart data={pagPerm.itens} layout="vertical" margin={{ top: 4, right: 40, bottom: 4, left: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#eee" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 10 }} allowDecimals={false} />
-                  <YAxis type="category" dataKey="nome" width={110} tick={{ fontSize: 10 }} />
+                  <YAxis type="category" dataKey="nome" width={120} tick={{ fontSize: 10 }} />
                   <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
                   <Bar dataKey="qtd" name="Inválidos" fill="#C00000" radius={[0, 3, 3, 0]}>
                     <LabelList dataKey="qtd" position="right" style={{ fontSize: 10, fill: '#6B7280' }} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+              {pagPerm.ligado && <ControlePaginacao {...pagPerm} />}
             </div>
 
             {/* Por status (donut) */}
