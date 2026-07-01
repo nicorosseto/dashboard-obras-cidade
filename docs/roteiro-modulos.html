@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roteiro Detalhado — Próximos Módulos</title>
+<style>
+  :root{--navy:#1F3864;--navy-light:#2E4F7F;--red:#C00000;--grey-bg:#F2F2F2;
+    --line:#dfe3e8;--ink:#1a1a1a;--muted:#5b6470;--ok:#1f7a4d;--okbg:#e8f5ee;
+    --warn:#9a6700;--warnbg:#fff8e1;--info:#243b59;--infobg:#eef3fb;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);
+    background:var(--grey-bg);line-height:1.65;font-size:15px}
+  header.hero{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:#fff;
+    padding:42px 24px;text-align:center}
+  header.hero h1{font-size:26px;margin-bottom:8px}
+  header.hero p{opacity:.85;max-width:680px;margin:0 auto;font-size:14.5px}
+  main{max-width:920px;margin:0 auto;padding:30px 18px 80px}
+  section.modulo{background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:28px;margin-bottom:28px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .mhead{display:flex;align-items:center;gap:14px;margin-bottom:14px;
+    padding-bottom:14px;border-bottom:1px solid var(--line)}
+  .mnum{background:var(--navy);color:#fff;width:42px;height:42px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+  .mhead h2{color:var(--navy);font-size:22px;margin-bottom:2px}
+  .mhead .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  h3{color:var(--navy);font-size:16px;margin:22px 0 10px}
+  h4{color:var(--navy);font-size:14.5px;margin:16px 0 8px}
+  p{margin-bottom:12px}
+  ul,ol{margin-left:22px;margin-bottom:12px}
+  li{margin-bottom:6px}
+  code,.url{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;
+    background:var(--grey-bg);padding:2px 6px;border-radius:4px}
+  pre{background:#1e2430;color:#d6deeb;padding:14px 16px;border-radius:8px;overflow-x:auto;
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.6;margin:10px 0}
+  pre .c{color:#7e8aa3}
+  pre .k{color:#c792ea}
+  pre .s{color:#c3e88d}
+  .box{border-radius:8px;padding:14px 16px;font-size:13.5px;margin:14px 0;border:1px solid}
+  .box.ok{background:var(--okbg);border-color:#bfe3cd;color:#155}
+  .box.warn{background:var(--warnbg);border-color:#f0e2a8;color:#6b4f00}
+  .box.info{background:var(--infobg);border-color:#cdddf5;color:var(--info)}
+  .box b{display:block;margin-bottom:4px;font-size:13.5px}
+  /* Comparação ANTES x DEPOIS */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+  .col{border:1px solid var(--line);border-radius:10px;padding:14px;font-size:13px}
+  .col .ctitle{font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.5px;
+    color:#fff;padding:4px 10px;border-radius:12px;display:inline-block;margin-bottom:10px}
+  .col.bad .ctitle{background:var(--red)}
+  .col.good .ctitle{background:var(--ok)}
+  .col ul{margin-left:18px}
+  .col li{font-size:12.5px;margin-bottom:4px}
+  .col code{font-size:11.5px;background:var(--grey-bg);padding:1px 5px}
+  /* Fluxograma */
+  .flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;
+    margin:18px 0;padding:18px;background:#fcfcfd;border:1px solid var(--line);border-radius:10px}
+  .fnode{background:#fff;border:2px solid var(--navy);border-radius:10px;padding:10px 12px;
+    text-align:center;min-width:110px;font-size:12.5px;font-weight:600;color:var(--navy)}
+  .fnode .ic{font-size:20px;display:block;margin-bottom:2px}
+  .farrow{color:var(--navy);font-size:18px;font-weight:bold}
+  /* Tabela */
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--navy);color:#fff;font-size:12px}
+  td code{font-size:12px}
+  /* Passos numerados */
+  .steps{counter-reset:step;margin:14px 0}
+  .stepitem{display:flex;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
+  .stepitem:last-child{border:0}
+  .stepitem::before{counter-increment:step;content:counter(step);background:var(--navy);
+    color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px}
+  .stepitem .body{flex:1;font-size:13.5px}
+  .stepitem .body b{color:var(--navy)}
+  .where{font-size:11px;background:var(--grey-bg);padding:2px 8px;border-radius:10px;
+    color:var(--navy);font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-left:6px}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+  @media(max-width:680px){.compare{grid-template-columns:1fr}.flow{flex-direction:column}.farrow{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+
+<div style="background:#fff8e1;border-bottom:2px solid #e0c860;padding:14px 18px;text-align:center;font-family:system-ui,sans-serif;font-size:14px;color:#6b4f00">
+  ⚠️ <strong>Documento de referência didática.</strong> O plano principal e atualizado está em
+  <code style="background:rgba(0,0,0,.06);padding:2px 6px;border-radius:4px">docs/plano-de-acao.html</code> —
+  use aquele como guia mestre.
+</div>
+<header class="hero">
+  <h1>📘 Roteiro Detalhado — Próximos Módulos</h1>
+  <p>Como cada etapa funciona, o que muda no seu projeto, e quanto custa em tempo.
+     Leia com calma. Quando quiser executar, é só me dizer.</p>
+</header>
+
+<main>
+
+<!-- MÓDULO 2 -->
+<section class="modulo">
+  <div class="mhead">
+    <div class="mnum">2</div>
+    <div><div class="label">Módulo</div><h2>Ambientes seguros (produção vs. testes)</h2></div>
+  </div>
+
+  <p><b>Problema que resolve:</b> hoje, quando você testa um upload de emergências,
+     o teste apaga e reinsere dados no banco <i>real</i>. Não tem volta. Profissional
+     resolve isso separando o "ambiente de produção" do "ambiente de teste".</p>
+
+  <h3>Como vai ficar</h3>
+  <div class="flow">
+    <div class="fnode" style="border-color:var(--ok)"><span class="ic">🟢</span>Produção<br><span style="font-weight:400;font-size:11px">Site real + Supabase real</span></div>
+    <div class="farrow">↔</div>
+    <div class="fnode" style="border-color:#9a6700"><span class="ic">🟡</span>Preview<br><span style="font-weight:400;font-size:11px">Site de teste + Supabase de teste</span></div>
+  </div>
+
+  <h3>Passo a passo (estimativa: 20 min)</h3>
+  <div class="steps">
+    <div class="stepitem"><div class="body"><b>Criar 2º projeto Supabase</b> <span class="where">supabase.com</span><br>
+      Acesse o painel → botão <code>New Project</code> → nome <code>obras-dev</code> (ou similar). Plano gratuito permite 2 projetos.</div></div>
+    <div class="stepitem"><div class="body"><b>Copiar a estrutura</b> <span class="where">SQL Editor</span><br>
+      Rodar os mesmos SQLs (que vamos organizar no Módulo 4) nesse banco novo, criando as mesmas tabelas vazias.</div></div>
+    <div class="stepitem"><div class="body"><b>Configurar variáveis no Vercel</b> <span class="where">vercel.com</span><br>
+      No projeto, em <i>Settings → Environment Variables</i>, adicionar as chaves do Supabase de teste marcando "Preview" (não "Production"). Assim previews usam o banco de teste; main usa o real. Automaticamente.</div></div>
+    <div class="stepitem"><div class="body"><b>Testar</b><br>
+      Cada PR seu vai gerar um link de preview que mexe só no banco de teste. Você confere e só depois faz merge para o real.</div></div>
+  </div>
+
+  <div class="box info"><b>💡 Você precisa fazer isso agora?</b>
+    Não. Funciona sem. Mas no dia em que você quiser testar com tranquilidade total, este é o caminho.</div>
+</section>
+
+<!-- MÓDULO 3 -->
+<section class="modulo">
+  <div class="mhead">
+    <div class="mnum">3</div>
+    <div><div class="label">Módulo</div><h2>Organização do código (front-end)</h2></div>
+  </div>
+
+  <p><b>Problema que resolve:</b> o projeto cresceu rápido e algumas convenções
+     se misturaram. Não é nada grave, mas dá pra deixar mais consistente — facilita
+     achar coisas e onboardar outras pessoas no futuro.</p>
+
+  <div class="compare">
+    <div class="col bad">
+      <span class="ctitle">Hoje</span>
+      <ul>
+        <li>Algumas páginas em <code>src/pages/</code>, outras em <code>src/components/pages/</code></li>
+        <li>Scripts Python na raiz misturados com o resto (<code>importar_dados.py</code>)</li>
+        <li><code>README.md</code> praticamente vazio (70 chars)</li>
+        <li>Nomes em português e inglês misturados</li>
+      </ul>
+    </div>
+    <div class="col good">
+      <span class="ctitle">Como ficará</span>
+      <ul>
+        <li>Convenção única: páginas todas em <code>src/pages/</code> (componentes "abas" em <code>src/components/pages/</code> renomeadas para <code>tabs/</code>)</li>
+        <li>Scripts Python isolados em <code>scripts/</code></li>
+        <li><code>README.md</code> profissional: o que é, como rodar, como contribuir</li>
+        <li>Padronização documentada no CLAUDE.md</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Passo a passo (estimativa: eu faço em ~15 min)</h3>
+  <div class="steps">
+    <div class="stepitem"><div class="body"><b>Eu reorganizo os arquivos</b><br>Renomeio pastas e ajusto todos os <code>import</code> automaticamente.</div></div>
+    <div class="stepitem"><div class="body"><b>Eu rodo <code>npm run build</code></b><br>Para garantir que nada quebrou.</div></div>
+    <div class="stepitem"><div class="body"><b>Eu escrevo um README decente</b><br>Capa do projeto no GitHub: descrição, stack, como rodar, links úteis.</div></div>
+    <div class="stepitem"><div class="body"><b>Você revisa o Pull Request</b> <span class="where">github.com</span><br>Confere e aprova o merge.</div></div>
+  </div>
+
+  <div class="box warn"><b>⚠️ Cuidado conhecido</b>
+    Renomear arquivos quebra coisas se algum import for esquecido. É por isso que eu rodo o build no final.</div>
+</section>
+
+<!-- MÓDULO 4 -->
+<section class="modulo">
+  <div class="mhead">
+    <div class="mnum">4</div>
+    <div><div class="label">Módulo (recomendado para começar)</div><h2>Organização do banco (Supabase)</h2></div>
+  </div>
+
+  <p><b>Problema que resolve:</b> esta é a maior bagunça hoje. Sua pasta
+     <code>supabase/</code> tem 10 arquivos SQL com nomes do tipo <code>fix-login.sql</code>,
+     <code>fix-recursion.sql</code> — são "remendos" soltos. Se um dia você precisar
+     recriar o banco do zero (ou criar o ambiente de teste do Módulo 2), <b>não tem
+     ordem clara de qual rodar primeiro</b>.</p>
+
+  <h3>O conceito: migrações numeradas</h3>
+  <p>Migração ("migration") é cada arquivo SQL que descreve <b>uma</b> mudança no banco.
+     Numerados em ordem, rodados em sequência, recriam o banco do zero de forma confiável.</p>
+
+  <div class="compare">
+    <div class="col bad">
+      <span class="ctitle">Hoje (10 arquivos sem ordem)</span>
+      <ul>
+        <li><code>schema.sql</code></li>
+        <li><code>auth-setup.sql</code></li>
+        <li><code>fix-login.sql</code></li>
+        <li><code>fix-recursion.sql</code></li>
+        <li><code>fix-emergencias-snapshots.sql</code></li>
+        <li><code>fix-sistema-geo-labels.sql</code></li>
+        <li><code>emergencias-schema.sql</code></li>
+        <li><code>sistema-geo-schema.sql</code></li>
+        <li><code>usuarios-internos.sql</code></li>
+        <li><code>seed-usuario-marina.sql</code></li>
+      </ul>
+    </div>
+    <div class="col good">
+      <span class="ctitle">Como ficará</span>
+      <ul>
+        <li><code>supabase/migrations/</code></li>
+        <li>&nbsp;&nbsp;<code>001_schema_inicial.sql</code></li>
+        <li>&nbsp;&nbsp;<code>002_auth_e_perfis.sql</code></li>
+        <li>&nbsp;&nbsp;<code>003_emergencias.sql</code></li>
+        <li>&nbsp;&nbsp;<code>004_sistemaGeo.sql</code></li>
+        <li>&nbsp;&nbsp;<code>005_usuarios_internos.sql</code></li>
+        <li>&nbsp;&nbsp;<code>006_timezone_brasil.sql</code></li>
+        <li><code>supabase/seeds/</code></li>
+        <li>&nbsp;&nbsp;<code>001_usuario_marina.sql</code></li>
+        <li><code>supabase/README.md</code> com instruções</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Como faço isso (estimativa: ~30 min)</h3>
+  <div class="steps">
+    <div class="stepitem"><div class="body"><b>Leio os 10 arquivos atuais</b><br>Para entender o que cada um faz e onde os "fixes" se aplicam.</div></div>
+    <div class="stepitem"><div class="body"><b>Consolido em arquivos limpos e numerados</b><br>Cada migração contém o estado FINAL daquela parte (sem precisar dos "fix" depois).</div></div>
+    <div class="stepitem"><div class="body"><b>Escrevo um <code>supabase/README.md</code></b><br>Explicando como rodar tudo do zero num banco novo.</div></div>
+    <div class="stepitem"><div class="body"><b>Eu NÃO mexo no seu banco em produção</b><br>O banco que está rodando continua intacto. Estes arquivos servem para <i>reconstruir</i> se precisar (ou criar o ambiente de teste do Módulo 2).</div></div>
+  </div>
+
+  <div class="box ok"><b>✅ Por que este módulo é o mais valioso</b>
+    Sem isso, seu banco é "caixa-preta": existe, funciona, mas ninguém sabe recriar.
+    Depois disso, qualquer banco novo (teste, backup, migração para outra conta) é só rodar os arquivos em ordem.</div>
+</section>
+
+<!-- MÓDULO 5 -->
+<section class="modulo">
+  <div class="mhead">
+    <div class="mnum">5</div>
+    <div><div class="label">Módulo</div><h2>Qualidade automática (ESLint + Prettier)</h2></div>
+  </div>
+
+  <p><b>Problema que resolve:</b> hoje, o estilo do código depende de quem escreveu.
+     Espaços, aspas, vírgulas: cada arquivo um pouco diferente. Profissional usa duas
+     ferramentas automáticas que padronizam tudo.</p>
+
+  <h3>O que cada ferramenta faz</h3>
+  <table>
+    <tr><th>Ferramenta</th><th>Função</th><th>Exemplo</th></tr>
+    <tr><td><b>ESLint</b></td><td>Detecta possíveis <i>erros</i> e más práticas (variável não usada, comparação suspeita...)</td><td>Avisa: "essa variável foi criada e nunca usada"</td></tr>
+    <tr><td><b>Prettier</b></td><td>Reformata o <i>visual</i> do código (espaços, aspas, quebras de linha)</td><td>Transforma <code>const a={x:1}</code> em <code>const a = { x: 1 }</code></td></tr>
+  </table>
+
+  <h3>O que muda no seu dia a dia</h3>
+  <ul>
+    <li>Salvar o arquivo formata automaticamente.</li>
+    <li>Antes de cada commit, ferramentas rodam sozinhas e bloqueiam código mal formatado.</li>
+    <li>Todo arquivo do projeto fica com o mesmo "sotaque".</li>
+  </ul>
+
+  <div class="box info"><b>💡 Custo</b>
+    Para você, zero — eu instalo e configuro. Para o projeto, adiciona ~2 dependências de desenvolvimento (não afetam o site final).</div>
+</section>
+
+<!-- MÓDULO 6 -->
+<section class="modulo">
+  <div class="mhead">
+    <div class="mnum">6</div>
+    <div><div class="label">Módulo</div><h2>Fluxo de trabalho profissional</h2></div>
+  </div>
+
+  <p><b>Problema que resolve:</b> "tô meio perdido em quando faço merge, quando crio
+     branch, o que escrever no commit". Aqui vira hábito.</p>
+
+  <h3>A regra de ouro (ciclo de uma mudança)</h3>
+  <div class="flow">
+    <div class="fnode"><span class="ic">1️⃣</span>Você pede algo</div>
+    <div class="farrow">→</div>
+    <div class="fnode"><span class="ic">2️⃣</span>Eu trabalho em branch</div>
+    <div class="farrow">→</div>
+    <div class="fnode"><span class="ic">3️⃣</span>Eu faço push</div>
+    <div class="farrow">→</div>
+    <div class="fnode"><span class="ic">4️⃣</span>Você revisa o PR</div>
+    <div class="farrow">→</div>
+    <div class="fnode"><span class="ic">5️⃣</span>Você faz merge</div>
+    <div class="farrow">→</div>
+    <div class="fnode" style="border-color:var(--ok)"><span class="ic">6️⃣</span>Vercel publica</div>
+  </div>
+
+  <h3>Convenção de mensagens de commit</h3>
+  <p>Pequena regra que profissionaliza o histórico: cada commit começa com um "tipo".</p>
+  <pre><span class="k">feat</span>: nova funcionalidade
+<span class="k">fix</span>: correção de bug
+<span class="k">docs</span>: só documentação
+<span class="k">refactor</span>: reorganiza código sem mudar comportamento
+<span class="k">style</span>: formatação, espaços, vírgulas (sem mudar lógica)
+<span class="k">chore</span>: tarefas de manutenção, dependências
+<span class="k">perf</span>: melhora de performance</pre>
+
+  <p>Olhe o histórico recente do seu projeto — eu já estou seguindo isso:</p>
+  <pre><span class="s">feat: pop-ups exigem confirmação manual (Ok) antes de fechar</span>
+<span class="s">fix: elimina re-download desnecessário após upload de emergências</span>
+<span class="s">docs: adiciona CLAUDE.md e guia visual interativo</span></pre>
+
+  <h3>Boas práticas de branch</h3>
+  <ul>
+    <li><b>Uma branch por tarefa</b> (não acumular mudanças sem relação).</li>
+    <li><b>Nome descritivo</b> (ex.: <code>refatora-banco</code>, <code>fix-upload-emergencias</code>).</li>
+    <li><b>Vida curta</b>: mergeie em poucos dias, não deixe galhos antigos esquecidos.</li>
+    <li><b>main intocada</b>: tudo passa por PR e merge.</li>
+  </ul>
+</section>
+
+<!-- COMO RECOMEÇAR -->
+<section class="modulo" style="background:linear-gradient(135deg,#fff,#fafbfd)">
+  <div class="mhead">
+    <div class="mnum" style="background:var(--ok)">✨</div>
+    <div><div class="label">Bônus</div><h2>Como abrir uma conversa nova sem perder nada</h2></div>
+  </div>
+
+  <p>Esta conversa está enorme. Recomeçar limpo deixa tudo mais rápido. Funciona assim:</p>
+
+  <div class="steps">
+    <div class="stepitem"><div class="body"><b>Faça o merge desta branch para o main</b> <span class="where">github.com</span><br>
+      Assim o <code>CLAUDE.md</code> e o guia entram no tronco. Sem isso, a conversa nova não enxerga a memória.
+      <br>(Os passos estão na resposta do chat, logo acima deste guia.)</div></div>
+    <div class="stepitem"><div class="body"><b>No Claude Code, abra uma sessão nova</b> <span class="where">claude.ai/code</span><br>
+      Selecione o mesmo repositório (<code>dashboard-obras-cidade</code>). Pronto: eu leio o <code>CLAUDE.md</code> automaticamente e sei do projeto.</div></div>
+    <div class="stepitem"><div class="body"><b>Comece a conversa com algo curto</b><br>
+      Sugestão: <i>"Quero começar pelo Módulo 4 do roteiro (organizar o banco). Pode me explicar o plano antes de mexer?"</i></div></div>
+  </div>
+
+  <div class="box info"><b>💡 Por que isto funciona</b>
+    Toda conversa nova do Claude Code lê o <code>CLAUDE.md</code> no início. Lá está o resumo do projeto,
+    suas regras (português, sem push direto no main, didática) e as decisões importantes.
+    A memória do projeto é o arquivo, não o chat.</div>
+</section>
+
+<footer>
+  Roteiro do curso · Sempre disponível em <code>docs/roteiro-modulos.html</code>
+</footer>
+
+</main>
+</body>
+</html>
