@@ -143,6 +143,34 @@
   do upload principal (`!previa && !mapPendente`) e **sumia** ao abrir a prévia da
   planilha de emergências. Desacoplado: agora só depende de `podeUpload` (tem o
   próprio controle `previaObras`/`mapPendenteObras`).
+- **Aba "Motivo Inválido" (v2, 30/06/2026):** mostra processos cujo **motivo de
+  natureza** (texto livre da empresa) é **incoerente com uma emergência** (manutenção,
+  recape, ampliação…). **Não tem upload próprio** — deriva da planilha de
+  **posicionamento já existente** (`emergencias_obras.natureza_obra`) e cruza com
+  `emergencias` (por `normProc`) para status/subpref/nome tratado. Permissão
+  `emerg.aba_motivo_invalido`. Componentes: `AbaMotivosInvalidos.jsx` (tabela/KPIs/card,
+  só dos inválidos) + `EditorMotivos.jsx` (classificação).
+  - **Agrupamento por termo (`classificarNatureza`/`agruparPorMotivo` em
+    `emergencias.js`):** "vocabulário de obra + automático" — procura a **ação** no texto
+    inteiro via `VOCABULARIO_MOTIVO` (manutenção, vazamento, reparo, troca, recape…),
+    ignorando logradouro/bairro/genéricos (`LOGRADOURO_GENERICO`). Isso resolve o caso
+    em que o texto **começa pelo endereço** (ex.: "RUA … VAZAMENTO" → grupo *Vazamento*,
+    não *Rua* — bug da v1). Termos fora do vocabulário viram grupo **descoberto**.
+  - **Heurística (1º palpite):** obra programada (`invalidoPadrao: true` no vocabulário —
+    manutenção, recape, ampliação, nivelamento, **remanejamento**) começa **inválida**; o
+    resto válida. O usuário ajusta e a escolha é **salva por termo** na tabela
+    `motivo_natureza_classificacao` (`supabase/schema/16-…`, rodar nos 2 bancos). Persiste
+    entre re-uploads: termos já classificados ficam; **termos novos viram pendência**.
+  - **Fluxo:** após o upload normal (emergências + posicionamento), se houver pendências,
+    um modal pergunta *"Ajustar agora?"* → abre o `EditorMotivos` (select Válido/Inválido
+    por grupo). Se adiar, a aba ganha um **badge âmbar** (Header) + botão "Ajustar motivos".
+    `App.jsx` carrega a classificação, computa `motivoGrupos`/`motivoPendentes` (passados
+    ao Header e à aba) e tem `salvarClassifMotivos` (upsert por `termo`).
+  - ⚠️ **Histórico:** a v1 subia uma **planilha separada** (tabela
+    `emergencias_motivo_invalido`) e agrupava pela 1ª palavra (caía em "Rua"). A v2
+    desativou esse upload (tabela mantida no banco, sem uso) — fonte agora é
+    `emergencias_obras`. Ao mexer aqui, ajustar o **vocabulário** (não recriar lista fixa
+    em outro lugar) e lembrar que a classificação é **por termo canônico**, não por texto.
 - **Aba "Prazo 48h" (regra das 48h / SLA — Fase 3, 22/06/2026):** aba do módulo
   Emergências (`AbaPrazo48h` em `PaginaEmergencias.jsx`) que cruza, **em memória**,
   `emergencias` × `emergencias_obras` por `normProc(num_processo)` ↔
