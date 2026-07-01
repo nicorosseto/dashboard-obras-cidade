@@ -489,6 +489,7 @@ export default function PaginaEmergencias({
             totalGeral={totalGeral}
             filtrosAtivos={filtrosAtivos}
             statusDisponiveis={statusDisponiveis}
+            bloqueados={abaAtiva === 'motivo_invalido' ? { data: true, possuiVistoria: true, statusVistoria: true } : {}}
           />
         )}
 
@@ -633,6 +634,7 @@ export default function PaginaEmergencias({
             <AbaMotivosInvalidos
               grupos={motivoGrupos}
               linhas={linhas}
+              filtros={filtros}
               podeUpload={podeUpload}
               pendentes={motivoPendentes}
               onAbrirEditor={() => setEditorMotivos(true)}
