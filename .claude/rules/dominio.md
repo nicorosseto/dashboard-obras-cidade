@@ -171,6 +171,23 @@
     desativou esse upload (tabela mantida no banco, sem uso) — fonte agora é
     `emergencias_obras`. Ao mexer aqui, ajustar o **vocabulário** (não recriar lista fixa
     em outro lugar) e lembrar que a classificação é **por termo canônico**, não por texto.
+  - **Editor v3 (grupos editáveis + override):** o `EditorMotivos.jsx` permite renomear,
+    marcar válido/inválido, editar **palavras-chave**, **fundir** (alias) e **excluir**
+    (arquivar) grupos, além de **mover um texto** específico para outro grupo (override).
+    Persistência: `motivo_natureza_classificacao` ganhou `palavras/arquivado/alias_de` e há
+    a tabela `motivo_natureza_override` (`chave`→`termo`; SQL `17-…`). A resolução em
+    `classificarMotivo` segue **override → palavras do usuário → vocabulário → descoberta**
+    e resolve alias/arquivado. ⚠️ **Perf:** o editor é **paginado** (20/grupo por página) e
+    os seletores de fundir/mover são **buscáveis sob demanda** — `<select>` com todas as
+    opções por linha travava com ~1337 grupos.
+  - **Filtros e gráficos da aba (v3.1):** filtros da barra lateral que se aplicam aqui:
+    **Permissionária** e **Status Sistema Geo** (reusam `aplicarFiltrosEmerg`); **Data de
+    Cadastro**, **Possui Vistoria** e **Status da Vistoria** ficam **bloqueadas/esmaecidas**
+    (`SidebarEmergencias` recebe `bloqueados`). A aba tem **filtro de data próprio por AIO**
+    (`data_inicio_obra`, senão `data_cadastro`). Gráficos: linha do tempo
+    (`evolucaoMotivosPorMes`), barra de permissionárias (NORCREST consolidada) e donut por
+    status. KPIs: Total, % inválidos, Motivos inválidos, Top permissionária, Motivo mais
+    recorrente, Período.
 - **Aba "Prazo 48h" (regra das 48h / SLA — Fase 3, 22/06/2026):** aba do módulo
   Emergências (`AbaPrazo48h` em `PaginaEmergencias.jsx`) que cruza, **em memória**,
   `emergencias` × `emergencias_obras` por `normProc(num_processo)` ↔

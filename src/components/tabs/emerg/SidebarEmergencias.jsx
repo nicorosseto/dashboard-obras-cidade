@@ -2,8 +2,19 @@ import { memo, useState, useMemo } from 'react'
 import { fmtNumero, fmtData } from '../../../lib/aggregations.js'
 import { STATUS_VISTORIA_OPTS, STATUS_FIXOS_EMERG } from '../../../lib/emergencias.js'
 
-function BlocoFiltro({ titulo, children, defaultOpen = false }) {
+function BlocoFiltro({ titulo, children, defaultOpen = false, bloqueado = false }) {
   const [open, setOpen] = useState(defaultOpen)
+  if (bloqueado) {
+    return (
+      <div className="opacity-50" title='Não se aplica na aba "Motivo Inválido"'>
+        <div className="w-full flex items-center justify-between text-[10px] uppercase tracking-wider text-gray-400 font-bold border-b border-grey-line pb-1 mb-1">
+          <span>{titulo}</span>
+          <span className="text-[9px]">🔒</span>
+        </div>
+        <p className="text-[9px] text-gray-400 italic mb-2">Não se aplica nesta aba.</p>
+      </div>
+    )
+  }
   return (
     <div>
       <button
@@ -133,6 +144,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
   totalGeral,
   filtrosAtivos,
   statusDisponiveis = [],
+  bloqueados = {},
 }) {
   const [busca, setBusca] = useState('')
   const [norcrestAberto, setNorcrestAberto] = useState(false)
@@ -216,7 +228,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
         </button>
       </div>
 
-      <BlocoFiltro titulo="Data de Cadastro">
+      <BlocoFiltro titulo="Data de Cadastro" bloqueado={!!bloqueados.data}>
         <div className="space-y-2">
           <div>
             <label className="text-[10px] text-gray-500 font-semibold uppercase">De</label>
@@ -302,7 +314,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
         />
       </BlocoFiltro>
 
-      <BlocoFiltro titulo="Possui Vistoria?">
+      <BlocoFiltro titulo="Possui Vistoria?" bloqueado={!!bloqueados.possuiVistoria}>
         <div className="flex rounded border border-grey-line overflow-hidden text-[11px]">
           {[['todas', 'Todas'], ['sim', 'Sim'], ['nao', 'Não']].map(([val, label], i) => (
             <button
@@ -324,7 +336,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
         </p>
       </BlocoFiltro>
 
-      <BlocoFiltro titulo="Status da Vistoria">
+      <BlocoFiltro titulo="Status da Vistoria" bloqueado={!!bloqueados.statusVistoria}>
         <div className="space-y-0.5 max-h-44 overflow-y-auto pr-1">
           <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
             <input
