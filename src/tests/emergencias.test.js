@@ -30,6 +30,7 @@ import {
   resolverDefs,
   classificarMotivo,
   agruparMotivos,
+  evolucaoMotivosPorMes,
   normNatureza,
   slugTermo,
   STATUS_FIXOS_EMERG,
@@ -730,5 +731,26 @@ describe('motivo v3 — override, palavras-chave, fundir, excluir', () => {
     const g = agruparMotivos(itens, { overrideMap: new Map(), defs, savedTermos: new Set(['vazamento']) })
     expect(g.find((x) => x.termo === 'vazamento').classificado).toBe(true)
     expect(g.find((x) => x.termo === 'manutencao').classificado).toBe(false)
+  })
+})
+
+// ── evolucaoMotivosPorMes ───────────────────────────────────────────────
+describe('evolucaoMotivosPorMes', () => {
+  it('agrupa por mês do _data_base em ordem cronológica', () => {
+    const proc = [
+      { _data_base: '2020-03-10' }, { _data_base: '2020-03-25' },
+      { _data_base: '2020-01-05' }, { _data_base: null },
+      { _data_base: '2021-12-31' },
+    ]
+    const r = evolucaoMotivosPorMes(proc)
+    expect(r).toEqual([
+      { mes: '2020-01', qtd: 1 },
+      { mes: '2020-03', qtd: 2 },
+      { mes: '2021-12', qtd: 1 },
+    ])
+  })
+  it('devolve vazio sem datas', () => {
+    expect(evolucaoMotivosPorMes([{ _data_base: null }])).toEqual([])
+    expect(evolucaoMotivosPorMes([])).toEqual([])
   })
 })
