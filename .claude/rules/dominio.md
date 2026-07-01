@@ -185,9 +185,10 @@
     Cadastro**, **Possui Vistoria** e **Status da Vistoria** ficam **bloqueadas/esmaecidas**
     (`SidebarEmergencias` recebe `bloqueados`). A aba tem **filtro de data próprio por AIO**
     (`data_inicio_obra`, senão `data_cadastro`). Gráficos: linha do tempo
-    (`evolucaoMotivosPorMes`), barra de permissionárias (NORCREST consolidada) e donut por
-    status. KPIs: Total, % inválidos, Motivos inválidos, Top permissionária, Motivo mais
-    recorrente, Período.
+    (`evolucaoMotivosPorMes`), barra de permissionárias (NORCREST consolidada; com
+    **drill-down por unidade** quando todos os inválidos filtrados são NORCREST — reusa
+    `usePaginadorGrafico`/`ControlePaginacao`, 8/página) e donut por status. KPIs: Total,
+    % inválidos, Motivos inválidos, Top permissionária, Motivo mais recorrente, Período.
 - **Aba "Prazo 48h" (regra das 48h / SLA — Fase 3, 22/06/2026):** aba do módulo
   Emergências (`AbaPrazo48h` em `PaginaEmergencias.jsx`) que cruza, **em memória**,
   `emergencias` × `emergencias_obras` por `normProc(num_processo)` ↔
