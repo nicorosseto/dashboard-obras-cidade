@@ -1,12 +1,16 @@
 // Editor de motivos v3 — grupos editáveis (nome, válido/inválido, palavras-chave,
 // fundir, excluir) + ver/mover os textos de natureza de cada grupo (override).
-// As alterações ficam locais e só são persistidas no "Salvar". Como recálculo
-// completo seria pesado, o efeito de mover/fundir aparece de fato no próximo abrir.
-import { useState, useMemo } from 'react'
+// As alterações ficam locais e só são persistidas no "Salvar".
+//
+// Performance: a lista é PAGINADA (20/página) e os seletores de grupo (fundir /
+// mover) são buscáveis e sob demanda — antes cada linha renderizava um <select>
+// com milhares de <option>, o que travava o modal com muitos grupos.
+import { useState, useMemo, useCallback } from 'react'
 import { normNatureza, slugTermo } from '../../../lib/emergencias.js'
 
+const PAGE = 20
+
 export default function EditorMotivos({ grupos = [], salvando = false, onSalvar, onClose }) {
-  // edições locais por termo: { rotulo, invalido, palavras, arquivado, alias_de }
   const [edits, setEdits] = useState({})
   const [novos, setNovos] = useState([]) // [{ termo, rotulo, invalido, palavras }]
   const [moves, setMoves] = useState({}) // chave(normNatureza) → termo
@@ -14,18 +18,15 @@ export default function EditorMotivos({ grupos = [], salvando = false, onSalvar,
   const [filtro, setFiltro] = useState('todos') // todos | pendentes | invalidos
   const [busca, setBusca] = useState('')
   const [novoNome, setNovoNome] = useState('')
+  const [pag, setPag] = useState(0)
 
   // valor efetivo de um grupo (base + edição local)
-  const ef = (g) => ({ ...g, ...(edits[g.termo] || {}) })
+  const ef = useCallback((g) => (g._novo ? g : { ...g, ...(edits[g.termo] || {}) }), [edits])
 
-  // todos os grupos exibíveis = base (não arquivados/fundidos localmente) + novos
   const todos = useMemo(() => {
     const base = grupos.map(ef).filter((g) => !g.arquivado && !g.alias_de)
     return [...base, ...novos]
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grupos, edits, novos])
-
-  const ativos = todos // alvos válidos para mover/fundir
+  }, [grupos, ef, novos])
 
   const lista = useMemo(() => {
     let arr = todos
@@ -38,13 +39,56 @@ export default function EditorMotivos({ grupos = [], salvando = false, onSalvar,
     return arr
   }, [todos, filtro, busca])
 
-  const pendentes = todos.filter((g) => !g.classificado).length
-  const invalidos = todos.filter((g) => g.invalido).length
+  const pendentes = useMemo(() => todos.filter((g) => !g.classificado).length, [todos])
+  const invalidos = useMemo(() => todos.filter((g) => g.invalido).length, [todos])
 
-  // ── ações ──────────────────────────────────────────────────────────
-  function setEdit(termo, patch) { setEdits((m) => ({ ...m, [termo]: { ...(m[termo] || {}), ...patch } })) }
-  function setNovo(termo, patch) { setNovos((arr) => arr.map((g) => (g.termo === termo ? { ...g, ...patch } : g))) }
-  function patchGrupo(g, patch) { (g._novo ? setNovo : setEdit)(g.termo, patch) }
+  // alvos para fundir/mover (termo + rótulo apenas) — lista leve
+  const alvos = useMemo(() => todos.map((g) => ({ termo: g.termo, rotulo: g.rotulo })), [todos])
+
+  const totalPags = Math.max(1, Math.ceil(lista.length / PAGE))
+  const pagAtual = Math.min(pag, totalPags - 1)
+  const visiveis = lista.slice(pagAtual * PAGE, (pagAtual + 1) * PAGE)
+
+  function trocarFiltro(f) { setFiltro(f); setPag(0) }
+  function trocarBusca(v) { setBusca(v); setPag(0) }
+
+  // ── ações (dispatcher estável) ─────────────────────────────────────
+  const setEdit = useCallback((termo, patch) => setEdits((m) => ({ ...m, [termo]: { ...(m[termo] || {}), ...patch } })), [])
+  const setNovo = useCallback((termo, patch) => setNovos((arr) => arr.map((g) => (g.termo === termo ? { ...g, ...patch } : g))), [])
+
+  const dispatch = useCallback((termo, novo, acao, payload) => {
+    const patch = (p) => (novo ? setNovo(termo, p) : setEdit(termo, p))
+    switch (acao) {
+      case 'rotulo': patch({ rotulo: payload }); break
+      case 'invalido': patch({ invalido: payload }); break
+      case 'addPalavra': {
+        const g = (novo ? novos : grupos).find((x) => x.termo === termo)
+        const cur = (novo ? g?.palavras : (edits[termo]?.palavras ?? g?.palavras)) || []
+        const p = String(payload || '').trim()
+        if (p && !cur.some((x) => x.toLowerCase() === p.toLowerCase())) patch({ palavras: [...cur, p] })
+        break
+      }
+      case 'rmPalavra': {
+        const g = (novo ? novos : grupos).find((x) => x.termo === termo)
+        const cur = (novo ? g?.palavras : (edits[termo]?.palavras ?? g?.palavras)) || []
+        patch({ palavras: cur.filter((x) => x !== payload) })
+        break
+      }
+      case 'excluir':
+        if (novo) setNovos((arr) => arr.filter((x) => x.termo !== termo))
+        else setEdit(termo, { arquivado: true })
+        break
+      case 'fundir':
+        if (!payload || payload === termo) break
+        if (novo) setNovos((arr) => arr.filter((x) => x.termo !== termo))
+        else setEdit(termo, { alias_de: payload })
+        break
+      case 'moverTexto':
+        setMoves((m) => ({ ...m, [normNatureza(payload.texto)]: payload.alvo }))
+        break
+      default: break
+    }
+  }, [setEdit, setNovo, grupos, novos, edits])
 
   function criarGrupo() {
     const nome = novoNome.trim()
@@ -55,32 +99,7 @@ export default function EditorMotivos({ grupos = [], salvando = false, onSalvar,
     setNovoNome('')
   }
 
-  function excluir(g) {
-    if (g._novo) setNovos((arr) => arr.filter((x) => x.termo !== g.termo))
-    else setEdit(g.termo, { arquivado: true })
-  }
-  function fundir(g, alvo) {
-    if (!alvo || alvo === g.termo) return
-    if (g._novo) setNovos((arr) => arr.filter((x) => x.termo !== g.termo))
-    else setEdit(g.termo, { alias_de: alvo })
-  }
-  function moverTexto(texto, alvo) {
-    setMoves((m) => ({ ...m, [normNatureza(texto)]: alvo }))
-  }
-
-  function addPalavra(g, palavra) {
-    const p = palavra.trim()
-    if (!p) return
-    const cur = ef(g).palavras || []
-    if (cur.some((x) => x.toLowerCase() === p.toLowerCase())) return
-    patchGrupo(g, { palavras: [...cur, p] })
-  }
-  function rmPalavra(g, palavra) {
-    patchGrupo(g, { palavras: (ef(g).palavras || []).filter((x) => x !== palavra) })
-  }
-
   function salvar() {
-    // defs: todos os grupos base (com edições) + novos. Inclui arquivados/fundidos.
     const defsPayload = [
       ...grupos.map((g) => {
         const e = ef(g)
@@ -92,7 +111,6 @@ export default function EditorMotivos({ grupos = [], salvando = false, onSalvar,
     onSalvar({ defs: defsPayload, overrides: overridesPayload })
   }
 
-  // ── render ─────────────────────────────────────────────────────────
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl my-8" onClick={(e) => e.stopPropagation()}>
@@ -112,57 +130,90 @@ export default function EditorMotivos({ grupos = [], salvando = false, onSalvar,
         {/* Filtros + busca + novo grupo */}
         <div className="flex items-center gap-2 px-5 py-2 border-b border-gray-50 text-[11px] flex-wrap">
           {[{ id: 'todos', label: `Todos (${todos.length})` }, { id: 'pendentes', label: `Pendentes (${pendentes})` }, { id: 'invalidos', label: `Inválidos (${invalidos})` }].map((f) => (
-            <button key={f.id} onClick={() => setFiltro(f.id)} className={`px-2 py-1 rounded font-semibold ${filtro === f.id ? 'bg-navy text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{f.label}</button>
+            <button key={f.id} onClick={() => trocarFiltro(f.id)} className={`px-2 py-1 rounded font-semibold ${filtro === f.id ? 'bg-navy text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{f.label}</button>
           ))}
-          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar grupo…" className="ml-auto border border-gray-200 rounded px-2 py-1 text-xs w-32" />
+          <input value={busca} onChange={(e) => trocarBusca(e.target.value)} placeholder="Buscar grupo…" className="ml-auto border border-gray-200 rounded px-2 py-1 text-xs w-32" />
           <div className="flex items-center gap-1">
             <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && criarGrupo()} placeholder="Novo grupo…" className="border border-gray-200 rounded px-2 py-1 text-xs w-28" />
             <button onClick={criarGrupo} className="px-2 py-1 rounded bg-green-600 text-white font-semibold hover:bg-green-700">+ Criar</button>
           </div>
         </div>
 
-        {/* Lista de grupos */}
+        {/* Lista de grupos (paginada) */}
         <div className="max-h-[60vh] overflow-y-auto divide-y divide-gray-50">
-          {lista.length === 0 && <p className="px-5 py-8 text-center text-sm text-gray-400">Nenhum grupo neste filtro.</p>}
-          {lista.map((g) => (
+          {visiveis.length === 0 && <p className="px-5 py-8 text-center text-sm text-gray-400">Nenhum grupo neste filtro.</p>}
+          {visiveis.map((g) => (
             <GrupoLinha
               key={g.termo}
               g={g}
               aberto={expandido === g.termo}
-              alvos={ativos.filter((a) => a.termo !== g.termo)}
+              alvos={alvos}
               moves={moves}
               onToggleAberto={() => setExpandido(expandido === g.termo ? null : g.termo)}
-              onRotulo={(v) => patchGrupo(g, { rotulo: v })}
-              onInvalido={(v) => patchGrupo(g, { invalido: v })}
-              onAddPalavra={(p) => addPalavra(g, p)}
-              onRmPalavra={(p) => rmPalavra(g, p)}
-              onFundir={(alvo) => fundir(g, alvo)}
-              onExcluir={() => excluir(g)}
-              onMoverTexto={(t, alvo) => moverTexto(t, alvo)}
+              dispatch={dispatch}
             />
           ))}
         </div>
 
-        {/* Rodapé */}
-        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-gray-100">
-          <button onClick={onClose} className="px-3 py-1.5 text-xs text-gray-600 border border-gray-200 rounded hover:bg-gray-50">Cancelar</button>
-          <button onClick={salvar} disabled={salvando} className="px-4 py-1.5 text-xs font-semibold text-white bg-navy rounded hover:bg-navy-light disabled:opacity-60">
-            {salvando ? 'Salvando…' : 'Salvar classificação'}
-          </button>
+        {/* Paginação + rodapé */}
+        <div className="flex items-center justify-between gap-2 px-5 py-2 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-[11px] text-gray-500">
+            {totalPags > 1 && (
+              <>
+                <button onClick={() => setPag((p) => Math.max(0, p - 1))} disabled={pagAtual === 0} className="px-2 py-1 rounded border border-gray-200 disabled:opacity-40">‹ Anterior</button>
+                <span>Pág. {pagAtual + 1}/{totalPags}</span>
+                <button onClick={() => setPag((p) => Math.min(totalPags - 1, p + 1))} disabled={pagAtual >= totalPags - 1} className="px-2 py-1 rounded border border-gray-200 disabled:opacity-40">Próxima ›</button>
+                <span className="text-gray-400">({lista.length.toLocaleString('pt-BR')} grupos)</span>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={onClose} className="px-3 py-1.5 text-xs text-gray-600 border border-gray-200 rounded hover:bg-gray-50">Cancelar</button>
+            <button onClick={salvar} disabled={salvando} className="px-4 py-1.5 text-xs font-semibold text-white bg-navy rounded hover:bg-navy-light disabled:opacity-60">
+              {salvando ? 'Salvando…' : 'Salvar classificação'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
+// ── Seletor de grupo buscável (sob demanda, no máx. 40 itens) ─────────
+function SeletorGrupo({ alvos, onPick, onCancel, placeholder = 'Buscar grupo…' }) {
+  const [q, setQ] = useState('')
+  const filtrados = useMemo(() => {
+    const b = q.trim().toLowerCase()
+    const arr = b ? alvos.filter((a) => a.rotulo.toLowerCase().includes(b)) : alvos
+    return arr.slice(0, 40)
+  }, [alvos, q])
+  return (
+    <div className="absolute right-0 z-20 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl w-60 p-1.5">
+      <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} className="w-full text-[11px] border border-gray-200 rounded px-2 py-1 mb-1" />
+      <div className="max-h-44 overflow-y-auto">
+        {filtrados.map((a) => (
+          <button key={a.termo} onClick={() => onPick(a.termo)} className="block w-full text-left text-[11px] px-2 py-1 hover:bg-amber-50 rounded truncate">{a.rotulo}</button>
+        ))}
+        {filtrados.length === 0 && <p className="text-[11px] text-gray-400 px-2 py-1">Nada encontrado.</p>}
+      </div>
+      <button onClick={onCancel} className="text-[10px] text-gray-400 px-2 py-0.5 mt-0.5 hover:text-gray-600">fechar</button>
+    </div>
+  )
+}
+
 // ── Linha de um grupo (expansível) ───────────────────────────────────
-function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, onRotulo, onInvalido, onAddPalavra, onRmPalavra, onFundir, onExcluir, onMoverTexto }) {
+function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, dispatch }) {
   const [editandoNome, setEditandoNome] = useState(false)
   const [nome, setNome] = useState(g.rotulo)
   const [novaPalavra, setNovaPalavra] = useState('')
   const [buscaTexto, setBuscaTexto] = useState('')
+  const [fundirAberto, setFundirAberto] = useState(false)
+  const [fundirAlvo, setFundirAlvo] = useState(null)   // pendente de confirmar
+  const [moverTextoAtivo, setMoverTextoAtivo] = useState(null)
 
-  // textos distintos do grupo (a partir dos itens), top 50 — só quando aberto
+  const outros = useMemo(() => alvos.filter((a) => a.termo !== g.termo), [alvos, g.termo])
+  const rotAlvo = (t) => alvos.find((a) => a.termo === t)?.rotulo || t
+
   const textos = useMemo(() => {
     if (!aberto) return []
     const m = new Map()
@@ -184,8 +235,8 @@ function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, onRotulo, onInval
           {editandoNome ? (
             <input
               autoFocus value={nome} onChange={(e) => setNome(e.target.value)}
-              onBlur={() => { onRotulo(nome.trim() || g.rotulo); setEditandoNome(false) }}
-              onKeyDown={(e) => { if (e.key === 'Enter') { onRotulo(nome.trim() || g.rotulo); setEditandoNome(false) } }}
+              onBlur={() => { dispatch(g.termo, g._novo, 'rotulo', nome.trim() || g.rotulo); setEditandoNome(false) }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { dispatch(g.termo, g._novo, 'rotulo', nome.trim() || g.rotulo); setEditandoNome(false) } }}
               className="text-xs font-semibold border border-amber-300 rounded px-1.5 py-0.5 w-full max-w-xs"
             />
           ) : (
@@ -197,18 +248,31 @@ function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, onRotulo, onInval
           {!g.classificado && <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded ml-1">NOVO</span>}
           {g._novo && <span className="text-[9px] font-bold text-green-700 bg-green-50 px-1.5 py-0.5 rounded ml-1">CRIADO</span>}
         </div>
+
         {/* toggle válido/inválido */}
         <div className="flex rounded-md overflow-hidden border border-gray-200 shrink-0">
-          <button onClick={() => onInvalido(false)} className={`px-2.5 py-1 text-[11px] font-semibold ${!g.invalido ? 'bg-green-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Válido</button>
-          <button onClick={() => onInvalido(true)} className={`px-2.5 py-1 text-[11px] font-semibold ${g.invalido ? 'bg-red text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Inválido</button>
+          <button onClick={() => dispatch(g.termo, g._novo, 'invalido', false)} className={`px-2.5 py-1 text-[11px] font-semibold ${!g.invalido ? 'bg-green-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Válido</button>
+          <button onClick={() => dispatch(g.termo, g._novo, 'invalido', true)} className={`px-2.5 py-1 text-[11px] font-semibold ${g.invalido ? 'bg-red text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Inválido</button>
         </div>
-        {/* fundir */}
-        <select defaultValue="" onChange={(e) => { onFundir(e.target.value); e.target.value = '' }} className="text-[10px] border border-gray-200 rounded px-1 py-1 text-gray-500 shrink-0" title="Fundir este grupo em outro">
-          <option value="">Fundir…</option>
-          {alvos.map((a) => <option key={a.termo} value={a.termo}>{a.rotulo}</option>)}
-        </select>
+
+        {/* fundir (seletor buscável + confirmação com ✓) */}
+        <div className="relative shrink-0">
+          {fundirAlvo ? (
+            <div className="flex items-center gap-1 text-[10px]">
+              <span className="text-gray-500 truncate max-w-[90px]" title={rotAlvo(fundirAlvo)}>→ {rotAlvo(fundirAlvo)}</span>
+              <button onClick={() => { dispatch(g.termo, g._novo, 'fundir', fundirAlvo); setFundirAlvo(null) }} className="w-5 h-5 rounded bg-green-600 text-white font-bold hover:bg-green-700" title="Confirmar fusão">✓</button>
+              <button onClick={() => setFundirAlvo(null)} className="w-5 h-5 rounded border border-gray-200 text-gray-400 hover:text-red" title="Cancelar">✕</button>
+            </div>
+          ) : (
+            <button onClick={() => setFundirAberto((v) => !v)} className="text-[10px] border border-gray-200 rounded px-1.5 py-1 text-gray-500 hover:bg-gray-50" title="Fundir este grupo em outro">Fundir…</button>
+          )}
+          {fundirAberto && !fundirAlvo && (
+            <SeletorGrupo alvos={outros} placeholder="Fundir em…" onPick={(alvo) => { setFundirAlvo(alvo); setFundirAberto(false) }} onCancel={() => setFundirAberto(false)} />
+          )}
+        </div>
+
         {/* excluir */}
-        <button onClick={onExcluir} className="text-[10px] text-red border border-red/30 rounded px-1.5 py-1 hover:bg-red/5 shrink-0" title="Excluir grupo">Excluir</button>
+        <button onClick={() => dispatch(g.termo, g._novo, 'excluir')} className="text-[10px] text-red border border-red/30 rounded px-1.5 py-1 hover:bg-red/5 shrink-0" title="Excluir grupo">Excluir</button>
       </div>
 
       {aberto && (
@@ -219,12 +283,12 @@ function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, onRotulo, onInval
             {(g.palavras || []).length === 0 && <span className="text-[10px] text-gray-300">(nenhuma — usa o vocabulário automático)</span>}
             {(g.palavras || []).map((p) => (
               <span key={p} className="text-[10px] bg-navy/10 text-navy rounded px-1.5 py-0.5 flex items-center gap-1">
-                {p}<button onClick={() => onRmPalavra(p)} className="text-navy/50 hover:text-red">×</button>
+                {p}<button onClick={() => dispatch(g.termo, g._novo, 'rmPalavra', p)} className="text-navy/50 hover:text-red">×</button>
               </span>
             ))}
             <input
               value={novaPalavra} onChange={(e) => setNovaPalavra(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { onAddPalavra(novaPalavra); setNovaPalavra('') } }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { dispatch(g.termo, g._novo, 'addPalavra', novaPalavra); setNovaPalavra('') } }}
               placeholder="+ palavra" className="text-[10px] border border-gray-200 rounded px-1.5 py-0.5 w-24"
             />
           </div>
@@ -235,17 +299,20 @@ function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, onRotulo, onInval
               {textos.length === 0 && <p className="px-2 py-3 text-center text-[11px] text-gray-400">Nenhum texto.</p>}
               {textos.map((t) => {
                 const movidoPara = moves[normNatureza(t.texto)]
+                const ativo = moverTextoAtivo === t.texto
                 return (
-                  <div key={t.texto} className="flex items-center gap-2 px-2 py-1">
+                  <div key={t.texto} className="flex items-center gap-2 px-2 py-1 relative">
                     <span className="flex-1 text-[11px] text-gray-600 truncate" title={t.texto}>{t.texto}</span>
                     <span className="text-[10px] text-gray-400 shrink-0">{t.qtd}×</span>
                     {movidoPara
-                      ? <span className="text-[10px] text-green-700 shrink-0">→ {alvos.find((a) => a.termo === movidoPara)?.rotulo || movidoPara}</span>
+                      ? <span className="text-[10px] text-green-700 shrink-0">→ {rotAlvo(movidoPara)}</span>
                       : (
-                        <select defaultValue="" onChange={(e) => { onMoverTexto(t.texto, e.target.value); e.target.value = '' }} className="text-[10px] border border-gray-200 rounded px-1 py-0.5 text-gray-500 shrink-0" title="Mover este texto para outro grupo">
-                          <option value="">mover →</option>
-                          {alvos.map((a) => <option key={a.termo} value={a.termo}>{a.rotulo}</option>)}
-                        </select>
+                        <div className="relative shrink-0">
+                          <button onClick={() => setMoverTextoAtivo(ativo ? null : t.texto)} className="text-[10px] border border-gray-200 rounded px-1 py-0.5 text-gray-500 hover:bg-gray-50" title="Mover este texto para outro grupo">mover →</button>
+                          {ativo && (
+                            <SeletorGrupo alvos={outros} placeholder="Mover para…" onPick={(alvo) => { dispatch(g.termo, g._novo, 'moverTexto', { texto: t.texto, alvo }); setMoverTextoAtivo(null) }} onCancel={() => setMoverTextoAtivo(null)} />
+                          )}
+                        </div>
                       )}
                   </div>
                 )
