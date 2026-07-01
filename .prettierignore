@@ -1,0 +1,13 @@
+# Build e dependências
+dist
+node_modules
+
+# Lockfile (gerado automaticamente)
+package-lock.json
+
+# Dado geográfico grande (não é código — não reformatar)
+src/data/subprefeituras-sp.geojson
+
+# Documentação escrita à mão em pt-br (tabelas/HTML não devem ser reflowados)
+*.md
+*.html

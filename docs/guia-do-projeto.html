@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia do Projeto — OBRAS Dashboard</title>
+<style>
+  :root{
+    --navy:#1F3864; --navy-light:#2E4F7F; --red:#C00000;
+    --grey-bg:#F2F2F2; --line:#dfe3e8; --ink:#1a1a1a; --muted:#5b6470;
+    --ok:#1f7a4d; --okbg:#e8f5ee; --warn:#9a6700; --warnbg:#fff8e1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    color:var(--ink);background:var(--grey-bg);line-height:1.6}
+  a{color:var(--navy)}
+  /* Cabeçalho */
+  header.hero{background:linear-gradient(135deg,var(--navy),var(--navy-light));
+    color:#fff;padding:48px 24px;text-align:center}
+  header.hero h1{font-size:30px;letter-spacing:.5px;margin-bottom:8px}
+  header.hero p{opacity:.85;max-width:680px;margin:0 auto;font-size:15px}
+  .badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+    padding:4px 12px;border-radius:20px;font-size:12px;margin-top:14px}
+  /* Navegação */
+  nav.toc{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);
+    padding:10px 16px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+  nav.toc a{font-size:12.5px;font-weight:600;text-decoration:none;color:var(--navy);
+    padding:6px 11px;border-radius:6px;transition:.15s}
+  nav.toc a:hover{background:var(--grey-bg)}
+  /* Container */
+  main{max-width:920px;margin:0 auto;padding:32px 20px 80px}
+  section{background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:28px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+  section h2{color:var(--navy);font-size:22px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+  section .sub{color:var(--muted);font-size:14px;margin-bottom:20px}
+  h3{color:var(--navy);font-size:16px;margin:22px 0 10px}
+  p{margin-bottom:12px}
+  .num{background:var(--navy);color:#fff;width:30px;height:30px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+  /* Diagrama de fluxo */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;justify-content:center;margin:20px 0}
+  .node{background:#fff;border:2px solid var(--navy);border-radius:10px;padding:14px 16px;
+    text-align:center;min-width:130px;max-width:160px}
+  .node .ic{font-size:26px}
+  .node .t{font-weight:700;color:var(--navy);font-size:14px;margin-top:4px}
+  .node .d{font-size:11px;color:var(--muted);margin-top:2px}
+  .arrow{display:flex;align-items:center;justify-content:center;color:var(--navy);
+    font-size:22px;font-weight:bold;padding:0 6px}
+  /* Cards de ferramentas */
+  .toolgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  .tool{border:1px solid var(--line);border-radius:10px;padding:18px;background:#fcfcfd}
+  .tool .head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .tool .ic{font-size:28px}
+  .tool h4{color:var(--navy);font-size:16px}
+  .tool .row{font-size:13px;margin-bottom:7px}
+  .tool .lbl{font-weight:700;color:var(--navy);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  .tool .url{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;
+    background:var(--grey-bg);padding:2px 6px;border-radius:4px;display:inline-block}
+  /* Accordion (glossário) */
+  .acc{border:1px solid var(--line);border-radius:8px;margin-bottom:8px;overflow:hidden}
+  .acc>button{width:100%;text-align:left;background:#fff;border:0;padding:13px 16px;
+    font-size:14px;font-weight:600;color:var(--navy);cursor:pointer;display:flex;
+    justify-content:space-between;align-items:center;gap:8px}
+  .acc>button:hover{background:var(--grey-bg)}
+  .acc .body{padding:0 16px;max-height:0;overflow:hidden;transition:.25s;font-size:13.5px;color:#333}
+  .acc.open .body{max-height:340px;padding:0 16px 14px}
+  .acc .chev{transition:.2s}
+  .acc.open .chev{transform:rotate(180deg)}
+  /* Árvore de arquivos */
+  .tree{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:#1e2430;
+    color:#d6deeb;border-radius:10px;padding:18px 20px;overflow-x:auto;line-height:1.7}
+  .tree .c{color:#7e8aa3}
+  .tree .f{color:#82aaff}
+  .tree .d{color:#c3e88d}
+  /* Caixas de destaque */
+  .box{border-radius:8px;padding:14px 16px;font-size:13.5px;margin:14px 0;border:1px solid}
+  .box.ok{background:var(--okbg);border-color:#bfe3cd;color:#155}
+  .box.warn{background:var(--warnbg);border-color:#f0e2a8;color:#6b4f00}
+  .box.info{background:#eef3fb;border-color:#cdddf5;color:#243b59}
+  .box b{display:block;margin-bottom:3px}
+  /* Roadmap */
+  .step{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line)}
+  .step:last-child{border-bottom:0}
+  .step .body h4{color:var(--navy);font-size:15px;margin-bottom:3px}
+  .step .body p{font-size:13px;color:var(--muted);margin:0}
+  .pill{font-size:10.5px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:10px;
+    background:var(--grey-bg);color:var(--navy);margin-left:8px;letter-spacing:.4px}
+  /* Branch diagram */
+  .branches{background:#fcfcfd;border:1px solid var(--line);border-radius:10px;padding:20px;margin:14px 0}
+  .branchline{display:flex;align-items:center;gap:8px;margin:10px 0;font-size:13px}
+  .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+  .commit{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted)}
+  table.mini{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+  table.mini th,table.mini td{border:1px solid var(--line);padding:8px 10px;text-align:left}
+  table.mini th{background:var(--navy);color:#fff;font-size:12px}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+  @media(max-width:680px){.toolgrid{grid-template-columns:1fr}.flow{flex-direction:column}.arrow{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+
+<div style="background:#fff8e1;border-bottom:2px solid #e0c860;padding:14px 18px;text-align:center;font-family:system-ui,sans-serif;font-size:14px;color:#6b4f00">
+  ⚠️ <strong>Documento de referência didática.</strong> O plano principal e atualizado está em
+  <code style="background:rgba(0,0,0,.06);padding:2px 6px;border-radius:4px">docs/plano-de-acao.html</code> —
+  use aquele como guia mestre.
+</div>
+<header class="hero">
+  <h1>🎓 Guia do Projeto — OBRAS Dashboard</h1>
+  <p>Seu manual visual para entender, organizar e profissionalizar o sistema.
+     Feito para quem está começando: sem pressa, explicando cada termo.</p>
+  <div class="badge">Curso guiado · Atualizado conforme o projeto evolui</div>
+</header>
+
+<nav class="toc">
+  <a href="#conexao">🔗 Como tudo se conecta</a>
+  <a href="#ferramentas">🧰 As 4 ferramentas</a>
+  <a href="#ambientes">🌐 Ambientes (cópia segura)</a>
+  <a href="#mapa">🗺️ Mapa do projeto</a>
+  <a href="#glossario">📖 Glossário</a>
+  <a href="#roadmap">🚀 Nosso roteiro</a>
+</nav>
+
+<main>
+
+<!-- ============ COMO TUDO SE CONECTA ============ -->
+<section id="conexao">
+  <h2>🔗 Como tudo se conecta</h2>
+  <p class="sub">A pergunta nº 1 de quem começa: "tem tanta ferramenta, qual faz o quê?"
+     Aqui está o caminho que uma mudança sua percorre, do início ao site no ar.</p>
+
+  <div class="flow">
+    <div class="node"><div class="ic">🤖</div><div class="t">Claude Code</div><div class="d">Escreve e altera o código</div></div>
+    <div class="arrow">→</div>
+    <div class="node"><div class="ic">🐙</div><div class="t">GitHub</div><div class="d">Guarda o código e o histórico</div></div>
+    <div class="arrow">→</div>
+    <div class="node"><div class="ic">▲</div><div class="t">Vercel</div><div class="d">Publica o site no ar</div></div>
+  </div>
+  <div class="flow" style="margin-top:0">
+    <div class="node" style="border-color:var(--red);max-width:520px"><div class="ic">🗄️</div>
+      <div class="t" style="color:var(--red)">Supabase</div>
+      <div class="d">O site publicado conversa com o banco de dados e o login a todo momento</div></div>
+  </div>
+
+  <div class="box info">
+    <b>Analogia simples</b>
+    Pense numa <b>cozinha de restaurante</b>: o <b>Claude Code</b> é o cozinheiro que prepara os pratos (código);
+    o <b>GitHub</b> é a despensa organizada que guarda todas as receitas e suas versões anteriores;
+    o <b>Vercel</b> é o salão onde os clientes são servidos (o site no ar);
+    e o <b>Supabase</b> é o estoque de ingredientes e a lista de reservas (os dados e os logins).
+  </div>
+
+  <h3>O ciclo de uma mudança (passo a passo)</h3>
+  <table class="mini">
+    <tr><th>#</th><th>O que acontece</th><th>Onde</th></tr>
+    <tr><td>1</td><td>Você pede uma alteração e eu escrevo o código</td><td>Claude Code</td></tr>
+    <tr><td>2</td><td>Eu faço um "commit" (salvo uma versão) e "push" (envio)</td><td>Claude Code → GitHub</td></tr>
+    <tr><td>3</td><td>Você revisa e faz o "merge" (aprova a mudança)</td><td>GitHub</td></tr>
+    <tr><td>4</td><td>O Vercel percebe a mudança e republica o site sozinho</td><td>Vercel (automático)</td></tr>
+    <tr><td>5</td><td>Usuários acessam o site novo, que lê dados do banco</td><td>Vercel ↔ Supabase</td></tr>
+  </table>
+</section>
+
+<!-- ============ AS 4 FERRAMENTAS ============ -->
+<section id="ferramentas">
+  <h2>🧰 As 4 ferramentas — o que são, onde acessar, por quê</h2>
+  <p class="sub">Tudo que você usa funciona pelo navegador. Aqui está cada uma em detalhe.</p>
+
+  <div class="toolgrid">
+
+    <div class="tool">
+      <div class="head"><span class="ic">🤖</span><h4>Claude Code</h4></div>
+      <div class="row"><span class="lbl">O que é</span><br>Eu! Um assistente que lê e escreve o código do seu projeto e executa comandos por você.</div>
+      <div class="row"><span class="lbl">Onde acessar</span><br><span class="url">claude.ai/code</span></div>
+      <div class="row"><span class="lbl">Por que usar</span><br>Para criar funcionalidades, corrigir erros e organizar o projeto conversando em português.</div>
+    </div>
+
+    <div class="tool">
+      <div class="head"><span class="ic">🐙</span><h4>GitHub</h4></div>
+      <div class="row"><span class="lbl">O que é</span><br>Um "cofre" na nuvem que guarda seu código e <b>todo</b> o histórico de versões (nada se perde).</div>
+      <div class="row"><span class="lbl">Onde acessar</span><br><span class="url">github.com/nicorosseto/dashboard-obras-cidade</span></div>
+      <div class="row"><span class="lbl">Por que usar</span><br>Para ter histórico, voltar atrás se algo der errado e revisar mudanças antes de publicar.</div>
+    </div>
+
+    <div class="tool">
+      <div class="head"><span class="ic">▲</span><h4>Vercel</h4></div>
+      <div class="row"><span class="lbl">O que é</span><br>O serviço que pega seu código do GitHub e transforma no site que as pessoas acessam.</div>
+      <div class="row"><span class="lbl">Onde acessar</span><br><span class="url">vercel.com/dashboard</span></div>
+      <div class="row"><span class="lbl">Por que usar</span><br>Publica o site automaticamente a cada mudança e cria endereços de teste (preview) de graça.</div>
+    </div>
+
+    <div class="tool">
+      <div class="head"><span class="ic">🗄️</span><h4>Supabase</h4></div>
+      <div class="row"><span class="lbl">O que é</span><br>O banco de dados (PostgreSQL) + sistema de login. É onde ficam os dados de verdade.</div>
+      <div class="row"><span class="lbl">Onde acessar</span><br><span class="url">supabase.com/dashboard</span></div>
+      <div class="row"><span class="lbl">Por que usar</span><br>Para armazenar fiscalizações, emergências, usuários e controlar quem pode ver o quê (RLS).</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ AMBIENTES ============ -->
+<section id="ambientes">
+  <h2>🌐 Ambientes — a "cópia segura" que você pediu</h2>
+  <p class="sub">Você quis fazer uma cópia para mexer sem medo. Boa notícia: você
+     <b>já tem isso</b>. Deixa eu explicar o conceito profissional.</p>
+
+  <h3>Os 3 tipos de ambiente</h3>
+  <table class="mini">
+    <tr><th>Ambiente</th><th>O que é</th><th>Quem usa</th></tr>
+    <tr><td>🟢 <b>Produção</b></td><td>O site real, no ar, estável</td><td>Os usuários de verdade</td></tr>
+    <tr><td>🟡 <b>Preview / Homologação</b></td><td>Uma cópia para testar antes de publicar</td><td>Você, para conferir</td></tr>
+    <tr><td>🔵 <b>Desenvolvimento</b></td><td>Onde a mudança está sendo construída</td><td>Você + Claude Code</td></tr>
+  </table>
+
+  <h3>Como isso já funciona no seu projeto (branches)</h3>
+  <p>Uma <b>branch</b> ("galho", em inglês) é uma linha paralela de trabalho.
+     É a sua cópia segura: você mexe no galho sem tocar no tronco principal.</p>
+
+  <div class="branches">
+    <div class="branchline">
+      <span class="dot" style="background:var(--ok)"></span>
+      <b>main</b> &nbsp;<span class="commit">← o tronco. É o que está em PRODUÇÃO (site no ar)</span>
+    </div>
+    <div class="branchline" style="padding-left:28px">
+      <span class="dot" style="background:var(--navy)"></span>
+      <b>claude/sleepy-mccarthy…</b> &nbsp;<span class="commit">← seu galho de trabalho. Mexemos aqui à vontade</span>
+    </div>
+    <div style="font-size:12.5px;color:var(--muted);margin-top:8px">
+      Quando o galho está pronto, você faz o <b>merge</b> (junta ao tronco) e só então a produção muda.
+    </div>
+  </div>
+
+  <div class="box ok">
+    <b>✅ O front-end (site) já está protegido</b>
+    O Vercel cria automaticamente um endereço de <b>Preview</b> para cada galho.
+    Ou seja: você consegue ver suas mudanças num link de teste antes de afetar o site real. Custo: zero.
+  </div>
+
+  <div class="box warn">
+    <b>⚠️ Atenção com o banco de dados (Supabase)</b>
+    O banco é <b>compartilhado</b>: tanto a produção quanto o preview falam com o MESMO Supabase.
+    Então um teste que apaga dados (como o upload de emergências, que faz DELETE) afeta os dados reais.
+    Para segurança total, o profissional cria um <b>2º projeto Supabase</b> só para testes (o plano grátis permite 2 projetos).
+  </div>
+
+  <div class="box info">
+    <b>💡 Recomendação para você</b>
+    Você <b>não precisa</b> recriar o projeto do zero. O caminho profissional é:
+    manter a produção no <b>main</b>, fazer toda a reorganização no <b>galho</b> (sem afetar ninguém),
+    testar no link de preview do Vercel e só depois fazer o merge. O galho <i>é</i> a sua cópia integral.
+  </div>
+</section>
+
+<!-- ============ MAPA DO PROJETO ============ -->
+<section id="mapa">
+  <h2>🗺️ Mapa do seu projeto</h2>
+  <p class="sub">O que cada pasta e arquivo significa. Não precisa decorar — é só para consultar.</p>
+
+  <div class="tree">
+dashboard-obras-cidade/
+├── <span class="d">src/</span>                  <span class="c"># todo o código do site</span>
+│   ├── <span class="f">App.jsx</span>           <span class="c"># a "espinha dorsal": navegação e layout</span>
+│   ├── <span class="f">main.jsx</span>          <span class="c"># liga o React à página</span>
+│   ├── <span class="f">index.css</span>         <span class="c"># estilos globais</span>
+│   ├── <span class="d">components/</span>        <span class="c"># peças reutilizáveis da interface</span>
+│   │   ├── <span class="d">charts/</span>        <span class="c"># gráficos e mapas</span>
+│   │   └── <span class="d">pages/</span>         <span class="c"># conteúdo de cada aba do painel</span>
+│   ├── <span class="d">pages/</span>            <span class="c"># telas principais (Home, Login)</span>
+│   ├── <span class="d">lib/</span>              <span class="c"># lógica sem visual (cálculos, conexões)</span>
+│   │   ├── <span class="f">supabase.js</span>    <span class="c"># conexão com o banco</span>
+│   │   ├── <span class="f">auth.js</span>        <span class="c"># login e logout</span>
+│   │   └── <span class="f">aggregations.js</span><span class="c"># contas, KPIs, formatação de datas</span>
+│   └── <span class="d">data/</span>             <span class="c"># dados fixos (mapa de SP)</span>
+├── <span class="d">supabase/</span>             <span class="c"># scripts do banco (HOJE bagunçado — vamos organizar)</span>
+├── <span class="d">public/</span>               <span class="c"># arquivos servidos como estão (logos)</span>
+├── <span class="f">CLAUDE.md</span>             <span class="c"># a "memória" do projeto (recém-criada!)</span>
+├── <span class="f">package.json</span>          <span class="c"># lista de dependências e comandos</span>
+└── <span class="f">tailwind.config.js</span>    <span class="c"># cores e tema</span>
+  </div>
+
+  <div class="box info">
+    <b>Termo: dependência</b>
+    São "peças prontas" feitas por outras pessoas que seu projeto usa (React, Recharts, etc.).
+    Ficam listadas no <span class="url">package.json</span>. O comando <span class="url">npm install</span> baixa todas.
+  </div>
+</section>
+
+<!-- ============ GLOSSÁRIO ============ -->
+<section id="glossario">
+  <h2>📖 Glossário — clique para abrir</h2>
+  <p class="sub">Aqueles termos que apareceram e você não fazia ideia do que eram. Aqui, em português claro.</p>
+
+  <div class="acc"><button>Repositório (repo) <span class="chev">▾</span></button>
+    <div class="body"><p>A pasta do seu projeto inteira, com todo o histórico, guardada no GitHub. "Repo" é o apelido.</p></div></div>
+
+  <div class="acc"><button>Commit <span class="chev">▾</span></button>
+    <div class="body"><p>Uma "fotografia" salva do código num momento. Cada commit tem uma mensagem dizendo o que mudou. Permite voltar no tempo.</p></div></div>
+
+  <div class="acc"><button>Push / Pull <span class="chev">▾</span></button>
+    <div class="body"><p><b>Push</b> = enviar seus commits para o GitHub. <b>Pull</b> = trazer mudanças do GitHub para você. É a sincronização nos dois sentidos.</p></div></div>
+
+  <div class="acc"><button>Branch (galho) <span class="chev">▾</span></button>
+    <div class="body"><p>Uma linha de trabalho paralela. Permite mexer no projeto sem afetar a versão principal (main). Sua cópia segura.</p></div></div>
+
+  <div class="acc"><button>Merge <span class="chev">▾</span></button>
+    <div class="body"><p>Juntar as mudanças de um galho de volta ao tronco (main). É o momento em que o que você testou vira oficial.</p></div></div>
+
+  <div class="acc"><button>Pull Request (PR) <span class="chev">▾</span></button>
+    <div class="body"><p>Um "pedido de merge" no GitHub. Mostra exatamente o que mudou e permite revisar antes de aprovar. É onde você confere meu trabalho.</p></div></div>
+
+  <div class="acc"><button>Deploy <span class="chev">▾</span></button>
+    <div class="body"><p>Publicar o site. Cada vez que o Vercel pega o código e coloca no ar, ele fez um "deploy".</p></div></div>
+
+  <div class="acc"><button>Front-end / Back-end <span class="chev">▾</span></button>
+    <div class="body"><p><b>Front-end</b> = o que o usuário vê e clica (as telas, em React). <b>Back-end</b> = os bastidores (banco de dados, login) — no seu caso, o Supabase.</p></div></div>
+
+  <div class="acc"><button>RLS (Row Level Security) <span class="chev">▾</span></button>
+    <div class="body"><p>Regras no banco que controlam, linha por linha, quem pode ver ou alterar cada dado. É o que impede um usuário comum de ver dados que não deveria.</p></div></div>
+
+  <div class="acc"><button>Migration (migração) <span class="chev">▾</span></button>
+    <div class="body"><p>Um arquivo SQL numerado que descreve uma mudança no banco. Aplicados em ordem, recriam o banco do zero de forma confiável. Vamos organizar os seus SQLs assim.</p></div></div>
+
+  <div class="acc"><button>Variável de ambiente (.env) <span class="chev">▾</span></button>
+    <div class="body"><p>Configurações secretas (como chaves de acesso) que NÃO vão no código. Ficam num arquivo <span class="url">.env.local</span> (escondido do GitHub) e nas configurações do Vercel.</p></div></div>
+
+  <div class="acc"><button>Linter / Formatador <span class="chev">▾</span></button>
+    <div class="body"><p><b>Linter</b> (ESLint) avisa sobre possíveis erros. <b>Formatador</b> (Prettier) deixa todo o código com o mesmo estilo automaticamente. Profissionaliza e evita brigas de espaçamento.</p></div></div>
+
+  <div class="acc"><button>CLAUDE.md <span class="chev">▾</span></button>
+    <div class="body"><p>Um arquivo de texto que eu (Claude Code) leio no começo de cada conversa. É a "memória" do projeto: explica o sistema, as regras e as decisões. É como o conhecimento "viaja" entre conversas diferentes.</p></div></div>
+
+</section>
+
+<!-- ============ ROADMAP ============ -->
+<section id="roadmap">
+  <h2>🚀 Nosso roteiro — o curso em módulos</h2>
+  <p class="sub">Vamos um módulo por vez, sem pressa. Cada um deixa o projeto mais profissional.
+     Você decide o ritmo.</p>
+
+  <div class="step">
+    <span class="num">0</span>
+    <div class="body"><h4>Fundamentos e orientação <span class="pill" style="background:var(--okbg);color:var(--ok)">✓ feito</span></h4>
+      <p>Este guia + o arquivo CLAUDE.md. Você entende as ferramentas e como tudo se conecta.</p></div>
+  </div>
+
+  <div class="step">
+    <span class="num">1</span>
+    <div class="body"><h4>Memória do projeto <span class="pill" style="background:var(--okbg);color:var(--ok)">✓ feito</span></h4>
+      <p>Criamos o CLAUDE.md e este guia. Falta um README.md decente (a "capa" do projeto no GitHub).</p></div>
+  </div>
+
+  <div class="step">
+    <span class="num">2</span>
+    <div class="body"><h4>Ambientes seguros</h4>
+      <p>Entender e usar produção vs. preview. Opcional: criar um 2º Supabase só para testes, para nunca arriscar dados reais.</p></div>
+  </div>
+
+  <div class="step">
+    <span class="num">3</span>
+    <div class="body"><h4>Organização do código</h4>
+      <p>Padronizar nomes de pastas e arquivos, separar bem as responsabilidades, eliminar duplicações.</p></div>
+  </div>
+
+  <div class="step">
+    <span class="num">4</span>
+    <div class="body"><h4>Organização do banco (Supabase)</h4>
+      <p>Transformar os 10 SQLs soltos da pasta <span class="url">supabase/</span> em migrações numeradas e ordenadas.</p></div>
+  </div>
+
+  <div class="step">
+    <span class="num">5</span>
+    <div class="body"><h4>Qualidade automática</h4>
+      <p>Instalar ESLint + Prettier para o código se corrigir e padronizar sozinho. Revisar tratamento de segredos.</p></div>
+  </div>
+
+  <div class="step">
+    <span class="num">6</span>
+    <div class="body"><h4>Fluxo de trabalho profissional</h4>
+      <p>Rotina saudável de branches, commits e Pull Requests. Como revisar e aprovar mudanças com confiança.</p></div>
+  </div>
+
+</section>
+
+<footer>
+  Guia gerado para o projeto OBRAS Dashboard · Abra este arquivo sempre que tiver dúvida.
+</footer>
+
+<script>
+  // Accordion do glossário
+  document.querySelectorAll('.acc > button').forEach(function(b){
+    b.addEventListener('click', function(){ b.parentElement.classList.toggle('open'); });
+  });
+  // Rolagem suave da navegação
+  document.querySelectorAll('nav.toc a').forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var el = document.querySelector(a.getAttribute('href'));
+      if(el) window.scrollTo({top: el.offsetTop - 60, behavior:'smooth'});
+    });
+  });
+</script>
+
+</body>
+</html>
