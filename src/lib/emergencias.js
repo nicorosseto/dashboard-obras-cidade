@@ -649,6 +649,19 @@ export function agruparMotivos(itens, ctx = {}) {
   return Array.from(grupos.values()).sort((a, b) => b.qtd - a.qtd)
 }
 
+// Evolução mensal dos motivos inválidos (por mês da data-base = AIO, senão cadastro).
+// processos: [{ _data_base }]. Devolve [{ mes: 'AAAA-MM', qtd }] em ordem cronológica.
+export function evolucaoMotivosPorMes(processos) {
+  const m = new Map()
+  for (const p of processos || []) {
+    const d = p._data_base
+    if (!d) continue
+    const mes = String(d).slice(0, 7)
+    if (mes.length === 7) m.set(mes, (m.get(mes) || 0) + 1)
+  }
+  return [...m.entries()].map(([mes, qtd]) => ({ mes, qtd })).sort((a, b) => a.mes.localeCompare(b.mes))
+}
+
 // ── SLA 48h ─────────────────────────────────────────────────────────
 export function normProc(s) {
   if (s === null || s === undefined) return ''
