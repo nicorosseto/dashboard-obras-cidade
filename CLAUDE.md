@@ -15,6 +15,7 @@ valem para todo o trabalho; ignorá-los já causou erros de processo.
 - `@.claude/rules/tokens.md` — limites e gestão de contexto/tokens (CRÍTICO)
 - `@.claude/rules/github.md` — templates de PR e padrões
 - `@.claude/rules/auditoria.md` — auditoria de pendências (sistema anti-perda — CRÍTICO)
+- `docs/mcp-servers.md` — MCP servers do projeto (Context7, Vercel, Supabase read-only, Playwright)
 - `docs/progresso.md` — status atual do projeto
 - `docs/diario-de-bordo.md` — registro por sessão (reconciliar no startup)
 
