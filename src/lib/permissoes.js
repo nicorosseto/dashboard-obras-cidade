@@ -29,6 +29,7 @@ export const TODAS_PERMISSOES = [
   'emerg.aba_processo',
   'emerg.aba_prazo48h',
   'emerg.aba_motivo_invalido',
+  'relatorio.ver',
 ]
 
 // Permissão exigida por cada aba (id usado em paginaAtiva) de cada seção.

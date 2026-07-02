@@ -96,6 +96,15 @@ o fluxo de login).
 - ⚠️ O Claude **nunca** pede código/token/URL de callback por texto — a autorização é
   sempre pelo fluxo visual do navegador, do lado do usuário.
 
+> ⚠️ **Limitação descoberta em 02/07/2026 (Claude Code na WEB):** nas sessões do
+> Claude Code **web/remotas** (as que o usuário usa), o ambiente roda em modo
+> **não-interativo** e o fluxo OAuth **não dispara** — o link de login de
+> Vercel/Supabase **não aparece**. A autorização exigiria uma sessão interativa
+> (`/mcp` num terminal local), que não faz parte do fluxo do usuário. **Na prática:**
+> Vercel/Supabase MCP ficam indisponíveis nas sessões web, e isso **não bloqueia
+> nada** — o schema do banco vem dos scripts versionados em `supabase/schema/`, e
+> Playwright (e o GitHub MCP do ambiente web) funcionam sem OAuth.
+
 ---
 
 ## 5. Pesquisa que motivou a configuração (02/07/2026)

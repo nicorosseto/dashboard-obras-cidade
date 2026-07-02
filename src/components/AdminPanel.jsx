@@ -105,6 +105,7 @@ const PERM_DESCRICAO = {
   'emerg.aba_processo':     'Aba "Busca por Processo" no módulo Emergências',
   'emerg.aba_prazo48h':     'Aba "Prazo 48h" no módulo Emergências (controle de SLA)',
   'emerg.aba_motivo_invalido': 'Aba "Motivo Inválido" no módulo Emergências (emergências que são manutenção/expansão)',
+  'relatorio.ver':          'Acessa o módulo Apresentação (relatório mensal em slides, com download dos dados por slide)',
 }
 
 /* ------------------------------------------------------------------ */

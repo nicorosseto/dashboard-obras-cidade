@@ -24,6 +24,7 @@ import {
 } from './lib/aggregations.js'
 import { traduzErro } from './lib/mensagens.js'
 import Header from './components/Header.jsx'
+import PaginaRelatorio from './components/tabs/relatorio/PaginaRelatorio.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import SidebarSistemaGeo from './components/SidebarSistemaGeo.jsx'
 import SidebarCruzamento from './components/SidebarCruzamento.jsx'
@@ -99,6 +100,18 @@ function IconAlert() {
   )
 }
 
+function IconSlides() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="4" width="18" height="12" rx="1.5" />
+      <path d="M9 8.5h8" />
+      <path d="M9 12h5" />
+      <path d="M12 16v3" />
+      <path d="M8.5 21h7" />
+    </svg>
+  )
+}
+
 const FILTROS_VAZIOS = {
   dataIni: null,
   dataFim: null,
@@ -154,6 +167,7 @@ export default function App() {
   // ── Navigation ────────────────────────────────────────────────────
   const [mostrarHome, setMostrarHome] = useState(true)
   const [mostrarEmergencias, setMostrarEmergencias] = useState(false)
+  const [mostrarRelatorio, setMostrarRelatorio] = useState(false)
   const [secaoAtiva, setSecaoAtiva] = useState('fiscalizacao')
   const [paginaAtiva, setPaginaAtiva] = useState(1)
   const [mostrarAlterarSenha, setMostrarAlterarSenha] = useState(false)
@@ -635,6 +649,7 @@ export default function App() {
   const temGeo = abasGeo.length > 0
   const temCruzamento = isAdmin || abasGeo.includes(4)
   const temEmerg = permissoes?.has('emerg.ver') ?? false
+  const temRelatorio = permissoes?.has('relatorio.ver') ?? false
   const podeExportarFisc = permissoes?.has('fisc.exportar') ?? false
   const podeExportarGeo = permissoes?.has('geo.exportar') ?? false
   const podeUploadEmerg = permissoes?.has('emerg.upload') ?? false
@@ -657,6 +672,7 @@ export default function App() {
     setPaginaAtiva(1)
     setMostrarHome(true)
     setMostrarEmergencias(false)
+    setMostrarRelatorio(false)
     setFiltros(FILTROS_VAZIOS)
     setSistemaGeoLinhas([])
     setSistemaGeoFiltros(FILTROS_GEO_VAZIOS)
@@ -671,12 +687,14 @@ export default function App() {
     setPaginaAtiva(abas[0] ?? 1)
     setMostrarHome(false)
     setMostrarEmergencias(false)
+    setMostrarRelatorio(false)
     window.scrollTo(0, 0)
   }
 
   function handleHome() {
     setMostrarHome(true)
     setMostrarEmergencias(false)
+    setMostrarRelatorio(false)
     setPaginaAtiva(1)
     window.scrollTo(0, 0)
   }
@@ -685,9 +703,14 @@ export default function App() {
     if (secao === 'cruzamento') {
       setMostrarHome(false)
       setMostrarEmergencias(false)
+      setMostrarRelatorio(false)
       setSecaoAtiva('sistemaGeo')
       setPaginaAtiva(4)
       window.scrollTo(0, 0)
+      return
+    }
+    if (secao === 'relatorio') {
+      handleAbrirRelatorio()
       return
     }
     handleSecaoChange(secao)
@@ -696,6 +719,7 @@ export default function App() {
   function handleAbrirConfiguracoes() {
     setMostrarHome(false)
     setMostrarEmergencias(false)
+    setMostrarRelatorio(false)
     setPaginaAtiva(5)
     window.scrollTo(0, 0)
   }
@@ -703,15 +727,26 @@ export default function App() {
   function handleAbrirEmergencias() {
     setMostrarEmergencias(true)
     setMostrarHome(false)
+    setMostrarRelatorio(false)
+    window.scrollTo(0, 0)
+  }
+
+  function handleAbrirRelatorio() {
+    setMostrarRelatorio(true)
+    setMostrarHome(false)
+    setMostrarEmergencias(false)
     window.scrollTo(0, 0)
   }
 
   function handleSelectModule(moduleId) {
     if (moduleId === 'emergencias') {
       handleAbrirEmergencias()
+    } else if (moduleId === 'relatorio') {
+      handleAbrirRelatorio()
     } else if (moduleId === 'cruzamento') {
       setMostrarHome(false)
       setMostrarEmergencias(false)
+      setMostrarRelatorio(false)
       setSecaoAtiva('sistemaGeo')
       setPaginaAtiva(4)
       window.scrollTo(0, 0)
@@ -728,9 +763,10 @@ export default function App() {
       if (temFisc) list.push({ id: 'fiscalizacao', label: 'Fiscalização', icon: <IconClipboard /> })
       if (temCruzamento) list.push({ id: 'cruzamento', label: 'Análise Integrada', icon: <IconMerge /> })
       if (temEmerg) list.push({ id: 'emergencias', label: 'Emergências', icon: <IconAlert /> })
+      if (temRelatorio) list.push({ id: 'relatorio', label: 'Apresentação', icon: <IconSlides /> })
       return list
     },
-    [temGeo, temFisc, temCruzamento, temEmerg]
+    [temGeo, temFisc, temCruzamento, temEmerg, temRelatorio]
   )
 
   // Determina cor do header baseado na seção e página ativa
@@ -787,6 +823,7 @@ export default function App() {
           temFisc={temFisc}
           temGeo={temGeo}
           temCruzamento={temCruzamento}
+          temRelatorio={temRelatorio}
           onAbrirConfiguracoes={isAdmin ? handleAbrirConfiguracoes : undefined}
           onSignOut={handleSignOut}
           sistemaGeoCarregando={sistemaGeoCarregando}
@@ -862,6 +899,67 @@ export default function App() {
             />
           </ErrorBoundary>
         </main>
+      </div>
+    )
+  }
+
+  // ── Tela dedicada do módulo Apresentação (relatório mensal em slides) ──
+  if (mostrarRelatorio) {
+    return (
+      <div className="min-h-screen bg-grey-bg flex flex-col">
+        {sistemaGeoCarregando && <BarraProgresso {...geoProgresso} />}
+        {avisoAtualizacao}
+        {mostrarAlterarSenha && (
+          <AlterarSenhaModal
+            obrigatorio={!!profile?.primeiro_acesso}
+            onConcluido={() => {
+              setMostrarAlterarSenha(false)
+              setProfile((p) => (p ? { ...p, primeiro_acesso: false } : p))
+            }}
+            onFechar={
+              profile?.primeiro_acesso
+                ? undefined
+                : () => setMostrarAlterarSenha(false)
+            }
+          />
+        )}
+        <Header
+          paginaAtiva={0}
+          onPagina={() => {}}
+          user={session?.user}
+          onSignOut={handleSignOut}
+          showAdmin={isAdmin}
+          secaoAtiva={secaoAtiva}
+          onHome={handleHome}
+          onAlterarSenha={() => setMostrarAlterarSenha(true)}
+          abasPermitidas={[]}
+          modules={modules}
+          onSelectModule={handleSelectModule}
+          mostrarRelatorio={true}
+          permissoes={permissoes}
+          abaAdminAtiva={0}
+          onAbaAdmin={() => {}}
+          onAbrirConfiguracoes={handleAbrirConfiguracoes}
+        />
+        <main className="flex-1 flex overflow-hidden">
+          <ErrorBoundary modulo="Apresentação">
+            <PaginaRelatorio
+              geo={sistemaGeoLinhas}
+              fisc={todasLinhas}
+              emerg={emergLinhas}
+              carregandoGeo={sistemaGeoCarregando}
+            />
+          </ErrorBoundary>
+        </main>
+        <ExportModal
+          rowsFisc={filtradas}
+          rowsGeo={sistemaGeoFiltradas}
+          todasFisc={todasLinhas}
+          todasGeo={sistemaGeoLinhas}
+          moduloAtivo={secaoAtiva}
+          mostrarFisc={false}
+          mostrarGeo={false}
+        />
       </div>
     )
   }
