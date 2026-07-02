@@ -527,6 +527,25 @@
   sem nenhum laudo → não fiscalizado, volume alto esperado). A comparação normaliza
   trim + lowercase; deduplication por id_origem mantém o laudo mais recente.
 
+- **Módulo "Apresentação" (Melhoria 2, 02/07/2026):** módulo de topo (padrão
+  Emergências: boolean `mostrarRelatorio` no `App.jsx` + layout próprio), slug interno
+  `relatorio`, cor **teal**, permissão `relatorio.ver` (SQL `18-relatorio-mensal.sql`).
+  Renderiza os **36 slides** da apresentação mensal institucional a partir das bases já
+  carregadas (geo=`sistemaGeoLinhas`, fisc=`todasLinhas`, emerg=`emergLinhas`, **cruas**,
+  sem filtros de sidebar). Cérebro em `src/lib/relatorio.js` (`MODELO_INSTITUCIONAL` +
+  `resolverDadosSlide`); UI em `src/components/tabs/relatorio/` (`PaginaRelatorio` +
+  `SlideRenderer`). **3 categorias de slide** com contorno próprio: 🟢 `dados` (teal,
+  23 slides com dado real), ⚪ `texto` (cinza, 12 institucionais), 🟡 `futuro` (âmbar
+  tracejado, 1 — metragem/multa aguarda taxa externa). Cada slide exibe
+  "Slide {n} — {título}" (mapeia para o PPT do usuário). Exports: XLSX por slide
+  (evento `obras:exportar-grafico`), PNG por slide (`html-to-image`, botões ficam
+  fora da captura via `data-no-export`), "Baixar todos" (`exportarXLSXMultiAba`).
+  KPIs sem fonte no banco (usuários/executantes do Sistema Geo, tempo de resposta NORCREST)
+  aparecem como "preencher manualmente". ⚠️ Ao editar o seed, manter os testes de
+  `src/tests/relatorio.test.js` (contagem 23/12/1 e nºs 1–36 sem buracos) e o plano
+  `docs/plano-melhoria-2-apresentacao.md` alinhados. v2 no radar: .pptx/PDF com seleção
+  de slides; Fase C: editor persistindo em `relatorio_modelos`.
+
 ## Glossário de domínio
 
 - **Permissionária:** empresa autorizada a operar em via pública (ex.: NORCREST).

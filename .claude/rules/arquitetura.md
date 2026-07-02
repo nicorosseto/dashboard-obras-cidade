@@ -14,6 +14,7 @@
 | Gráficos | **Recharts** | Gráficos de barra, linha, donut |
 | Mapas | **Leaflet + react-leaflet** | Mapa choropleth de São Paulo |
 | Planilhas | **SheetJS (xlsx)** | Ler/exportar Excel |
+| Imagem de slide | **html-to-image** | Exporta o card de cada slide do módulo Apresentação como PNG |
 | Banco + Login | **Supabase** (PostgreSQL + Auth + RLS) | Dados e autenticação |
 | Hospedagem | **Vercel** | Publica o site automaticamente |
 | Código | **GitHub** | Guarda o histórico do código |

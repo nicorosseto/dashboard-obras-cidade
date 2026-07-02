@@ -79,6 +79,7 @@ const COLUNAS_MODULOS = {
 const LABEL_MODULO = {
   sistemaGeo: 'Sistema Geo',
   fiscalizacao: 'Fiscalização',
+  relatorio: 'Apresentação',
 }
 
 const STORAGE_KEY = (modulo) => `obras_export_cols_${modulo}`
@@ -358,12 +359,17 @@ export default function ExportModal({
                     </div>
                   </div>
 
-                  <button
-                    onClick={abrirRegistros}
-                    className="text-xs text-navy underline underline-offset-2 hover:text-navy-light"
-                  >
-                    Exportar registros completos com seleção de colunas →
-                  </button>
+                  {/* Só oferece "registros completos" quando o módulo do gráfico
+                      tem colunas configuradas (o módulo Apresentação não tem —
+                      os dados do slide já SÃO o export completo). */}
+                  {COLUNAS_MODULOS[moduloGrafico ?? moduloInicial] && (
+                    <button
+                      onClick={abrirRegistros}
+                      className="text-xs text-navy underline underline-offset-2 hover:text-navy-light"
+                    >
+                      Exportar registros completos com seleção de colunas →
+                    </button>
+                  )}
                 </>
               ) : (
                 /* ── MODO REGISTROS ── */
