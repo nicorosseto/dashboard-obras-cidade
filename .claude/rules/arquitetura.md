@@ -74,3 +74,25 @@ começa depois que ele termina), garantindo que tudo esteja pronto. Faz:
 
 ⚠️ O **Gap 4 (PRs abertos)** e a reconciliação com o diário de bordo continuam manuais
 (o hook não tem acesso ao GitHub MCP). Detalhes no protocolo de startup do `CLAUDE.md`.
+
+## MCP servers (`.mcp.json` + `.claude/settings.json`)
+
+Desde **02/07/2026** (PR #225) o projeto tem 5 **MCP servers** configurados — pontes que
+dão ao Claude ferramentas de **consulta** a sistemas externos. Definidos em `.mcp.json`
+(raiz) e habilitados em `.claude/settings.json` (`enabledMcpjsonServers`):
+
+| Server | Serve para |
+|---|---|
+| **context7** | Doc atualizada de bibliotecas (React, Recharts, Supabase-js, Tailwind…) |
+| **vercel** | Deploys, logs de build e status do projeto na Vercel |
+| **supabase-dev** | Banco de **homologação** (`obras-dev`, ref `exemplorefdevooo0001`) — **read-only** |
+| **supabase-prod** | Banco de **produção** (ref `exemplorefprodooo001`) — **read-only** |
+| **playwright** | Automação de navegador (abrir a homologação, screenshot, testar fluxo) |
+
+⚠️ Regras (detalhe completo em **`docs/mcp-servers.md`**):
+- **Supabase é READ-ONLY** — escrita de banco continua só pelos scripts SQL numerados,
+  rodados pelo usuário nos 2 bancos. O MCP serve para o Claude **conferir** schema/dados.
+- **MCPs carregam só no INÍCIO da sessão** — mexer no `.mcp.json` no meio de um chat só
+  vale no chat seguinte.
+- **Vercel e Supabase exigem OAuth uma vez**, autorizado **pelo usuário** em sessão
+  interativa (o Claude automático não completa o login). context7/playwright não exigem.
