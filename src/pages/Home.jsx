@@ -296,7 +296,7 @@ export default function Home({
 
         {/* Cards dos módulos principais */}
         {(temGeo || temFisc || temCruzamento || temRelatorio) && (
-          <div className={`grid gap-6${nModCards >= 3 ? ' sm:grid-cols-2 lg:grid-cols-3' : nModCards === 2 ? ' sm:grid-cols-2' : ''}`}>
+          <div className={`grid gap-6${nModCards >= 4 ? ' sm:grid-cols-2 lg:grid-cols-4' : nModCards === 3 ? ' sm:grid-cols-2 lg:grid-cols-3' : nModCards === 2 ? ' sm:grid-cols-2' : ''}`}>
             {temGeo && (
               <ModuleCard
                 gradientFrom="#1F3864"

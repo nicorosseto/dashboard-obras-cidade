@@ -10,6 +10,7 @@ import { useRef, useState } from 'react'
 import {
   BarChart,
   Bar,
+  Cell,
   LineChart,
   Line,
   XAxis,
@@ -29,6 +30,8 @@ const NAVY = '#1F3864'
 const AZUL_CLARO = '#8FAADC'
 const VERMELHO = '#C00000'
 const AZUL_MEDIO = '#4472C4'
+// Cor da barra da permissionária SELECIONADA (identidade do módulo).
+const TEAL = '#0f766e'
 
 // Séries por ano (linha mensal comparativa): ordem FIXA por índice do ano —
 // nunca ciclada — espelhando as cores da apresentação institucional.
@@ -231,15 +234,45 @@ function CaixaContexto({ rotulo, valor }) {
   )
 }
 
-// Caixa de destaque "NN% | frase" (coluna direita dos slides de dados).
-function CaixaDestaque({ valor, texto }) {
+// Caixa de destaque "NN% | frase" (coluna direita ou topo do slide).
+function CaixaDestaque({ valor, texto, grande }) {
   return (
     <div className="flex items-stretch border border-navy shadow-[2px_2px_0_rgba(31,56,100,0.25)]">
-      <div className="bg-navy text-white px-3 py-2 text-2xl font-extrabold flex items-center justify-center min-w-[72px]">
+      <div
+        className={`bg-navy text-white font-extrabold flex items-center justify-center ${grande ? 'px-4 py-2.5 text-3xl min-w-[96px]' : 'px-3 py-2 text-2xl min-w-[72px]'}`}
+      >
         {valor}
       </div>
-      <div className="bg-white px-2.5 py-1.5 text-[11px] font-semibold text-navy flex items-center leading-snug">
+      <div
+        className={`bg-white font-semibold text-navy flex items-center leading-snug ${grande ? 'px-3 py-2 text-xs max-w-[240px]' : 'px-2.5 py-1.5 text-[11px]'}`}
+      >
         {texto}
+      </div>
+    </div>
+  )
+}
+
+// Lista lateral de percentuais (uma linha por barra visível do ranking).
+function ListaLateralPct({ config, rows }) {
+  return (
+    <div className="border border-navy shadow-[2px_2px_0_rgba(31,56,100,0.25)]">
+      <div className="bg-navy text-white text-[10px] font-extrabold uppercase text-center px-2 py-1 tracking-wide">
+        {config.titulo}
+      </div>
+      <div className="bg-white px-2 py-1">
+        {rows.map((r) => (
+          <div
+            key={r.nome}
+            className="flex items-center justify-between gap-2 py-0.5 text-[11px] border-b border-gray-100 last:border-0"
+          >
+            <span className="truncate font-semibold text-gray-700" title={r.nome}>
+              {r.nome}
+            </span>
+            <span className="tabular-nums font-extrabold text-navy shrink-0">
+              {new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(r[config.pctKey] ?? 0)}%
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -286,6 +319,7 @@ function FaixaAnosTopo({ painel }) {
 // caixas de contexto, painel de texto à direita e régua dupla.
 function CabecalhoSlide({ slide }) {
   const titulo = slide.tituloInterno || slide.titulo.toUpperCase()
+  const destaquesTopo = slide.destaquePos === 'topo' ? slide.destaques || [] : []
   return (
     <div className="mb-2">
       <div className="flex items-start justify-between gap-3">
@@ -293,6 +327,11 @@ function CabecalhoSlide({ slide }) {
           <h3 className="text-base sm:text-lg font-extrabold text-navy uppercase tracking-wide leading-tight">
             {titulo}
           </h3>
+          {slide.permSelecionada && (
+            <span className="inline-flex items-center gap-1 bg-teal-700 text-white text-[11px] font-bold px-2.5 py-0.5 rounded mt-1.5 mr-2">
+              Permissionária: {slide.permSelecionada}
+            </span>
+          )}
           {slide.subtitulo && (
             <div className="inline-block border-2 border-navy bg-white px-3 py-0.5 text-[11px] sm:text-xs font-extrabold text-navy uppercase mt-1.5 shadow-[3px_3px_0_rgba(31,56,100,0.2)]">
               {slide.subtitulo}
@@ -306,9 +345,16 @@ function CabecalhoSlide({ slide }) {
             </div>
           )}
         </div>
-        {slide.painelTexto && (
-          <div className="bg-navy text-white px-4 py-2.5 text-sm font-extrabold text-center uppercase leading-snug max-w-[210px] shrink-0">
-            {slide.painelTexto}
+        {(slide.painelTexto || destaquesTopo.length > 0) && (
+          <div className="flex flex-col gap-2 items-end shrink-0">
+            {slide.painelTexto && (
+              <div className="bg-navy text-white px-4 py-2.5 text-sm font-extrabold text-center uppercase leading-snug max-w-[210px]">
+                {slide.painelTexto}
+              </div>
+            )}
+            {destaquesTopo.map((d) => (
+              <CaixaDestaque key={d.texto} valor={d.valor} texto={d.texto} grande />
+            ))}
           </div>
         )}
       </div>
@@ -317,11 +363,14 @@ function CabecalhoSlide({ slide }) {
   )
 }
 
-// Corpo com coluna de destaques/painel à direita (posição do PDF).
-function CorpoComLateral({ slide, children }) {
+// Corpo com coluna à direita (destaques, painel de anos, lista de %).
+function CorpoComLateral({ slide, janelaRows, children }) {
+  const destaquesLado = slide.destaquePos === 'topo' ? [] : slide.destaques || []
+  const temLista = slide.listaLateral && janelaRows && janelaRows.length > 0
   const temLateral =
-    (slide.destaques && slide.destaques.length > 0) ||
-    (slide.painelAnos && slide.painelPos !== 'topo')
+    destaquesLado.length > 0 ||
+    (slide.painelAnos && slide.painelPos !== 'topo') ||
+    temLista
   if (!temLateral) return children
   return (
     <div className="flex flex-col md:flex-row gap-3 items-start">
@@ -330,9 +379,10 @@ function CorpoComLateral({ slide, children }) {
         {slide.painelAnos && slide.painelPos !== 'topo' && (
           <PainelAnosLado painel={slide.painelAnos} />
         )}
-        {(slide.destaques || []).map((d) => (
+        {destaquesLado.map((d) => (
           <CaixaDestaque key={d.texto} valor={d.valor} texto={d.texto} />
         ))}
+        {temLista && <ListaLateralPct config={slide.listaLateral} rows={janelaRows} />}
       </div>
     </div>
   )
@@ -340,9 +390,25 @@ function CorpoComLateral({ slide, children }) {
 
 /* ── Gráficos ───────────────────────────────────────────────────────────── */
 
-function GraficoBarras({ dados, colunas, horizontal }) {
+// Janela de exibição dos rankings: mostra `janela` barras; com permissionária
+// selecionada fora da janela, as barras "andam" até a posição dela.
+function janelaDados(slide) {
+  const dados = slide.dados || []
+  const n = slide.janela
+  if (!n || dados.length <= n)
+    return { rows: dados, ini: 0, total: dados.length, deslocada: false }
+  const idx = slide.destaqueNome
+    ? dados.findIndex((d) => d.nome === slide.destaqueNome)
+    : -1
+  if (idx < n) return { rows: dados.slice(0, n), ini: 0, total: dados.length, deslocada: false }
+  const ini = idx - n + 1
+  return { rows: dados.slice(ini, idx + 1), ini, total: dados.length, deslocada: true }
+}
+
+function GraficoBarras({ dados, colunas, horizontal, destaqueNome }) {
   const chaves = chavesDeSerie(colunas, dados)
   const eixoNome = dados?.[0]?.nome !== undefined ? 'nome' : 'ano'
+  const umaSerie = chaves.length === 1
   return (
     <ResponsiveContainer width="100%" height={horizontal ? Math.max(220, dados.length * 34) : 280}>
       <BarChart
@@ -372,7 +438,21 @@ function GraficoBarras({ dados, colunas, horizontal }) {
             fill={COR_SERIE[k] || NAVY}
             radius={horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]}
             maxBarSize={40}
-          />
+          >
+            {destaqueNome &&
+              dados.map((d, i) => (
+                <Cell
+                  key={i}
+                  fill={
+                    umaSerie && d.nome === destaqueNome
+                      ? TEAL
+                      : COR_SERIE[k] || NAVY
+                  }
+                  stroke={!umaSerie && d.nome === destaqueNome ? TEAL : undefined}
+                  strokeWidth={!umaSerie && d.nome === destaqueNome ? 2.5 : 0}
+                />
+              ))}
+          </Bar>
         ))}
       </BarChart>
     </ResponsiveContainer>
@@ -701,18 +781,56 @@ function CorpoSlide({ slide }) {
               />
             )}
           </div>
+          {/* Composição do grupo "Expansão/Implantação" (hover, como o
+              "Outros" da Visão Geral do Sistema Geo) */}
+          {slide.composicao && slide.composicao.length > 0 && (
+            <div className="relative inline-block group mt-2">
+              <span className="text-[11px] font-semibold text-navy underline decoration-dotted cursor-help">
+                ℹ️ O que compõe &quot;Expansão/Implantação&quot;?
+              </span>
+              <div className="hidden group-hover:block absolute z-20 left-0 bottom-full mb-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg p-2.5">
+                <div className="text-[10px] font-bold text-gray-500 uppercase mb-1">
+                  Tipos de processo somados neste grupo
+                </div>
+                {slide.composicao.map((c) => (
+                  <div key={c.nome} className="flex justify-between gap-3 text-[11px] py-0.5 border-b border-gray-50 last:border-0">
+                    <span className="text-gray-700">{c.nome}</span>
+                    <span className="tabular-nums font-semibold text-navy shrink-0">
+                      {fmtNumero(c.valor)} ({c.pct}%)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CorpoComLateral>
       )
     }
     case 'pizzas_viaria':
       return <PizzasViaria dados={slide.dados || []} />
     case 'barra':
-    case 'barra_dupla':
+    case 'barra_dupla': {
+      const win = janelaDados(slide)
       return (
-        <CorpoComLateral slide={slide}>
-          <GraficoBarras dados={slide.dados || []} colunas={slide.colunas} />
+        <CorpoComLateral slide={slide} janelaRows={win.rows}>
+          <GraficoBarras
+            dados={win.rows}
+            colunas={slide.colunas}
+            destaqueNome={slide.destaqueNome}
+          />
+          {slide.janela && win.total > win.rows.length && (
+            <div className="text-[10px] text-gray-500 mt-1">
+              Exibindo posições {win.ini + 1}–{win.ini + win.rows.length} de{' '}
+              {win.total} permissionárias
+              {win.deslocada
+                ? ' — janela deslocada até a permissionária selecionada'
+                : ''}
+              . O download ⬇ traz a lista completa.
+            </div>
+          )}
         </CorpoComLateral>
       )
+    }
     case 'barra_horizontal':
       return (
         <CorpoComLateral slide={slide}>
@@ -769,7 +887,7 @@ function CorpoSlide({ slide }) {
   }
 }
 
-export default function SlideRenderer({ slide }) {
+export default function SlideRenderer({ slide, campos, onCampo }) {
   const slideRef = useRef(null)
   const [baixandoImg, setBaixandoImg] = useState(false)
   const cat = slide.catInfo
@@ -852,6 +970,28 @@ export default function SlideRenderer({ slide }) {
         {slide.aviso && (
           <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800" data-no-export>
             ⚠️ {slide.aviso}
+          </div>
+        )}
+        {/* Campo de valor digitado pelo usuário (multa/custo por m²) — fica
+            fora da imagem exportada; o resultado calculado entra nos quadros. */}
+        {slide.input && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-teal-200 bg-teal-50 px-3 py-2" data-no-export>
+            <label className="text-xs font-bold text-teal-900" htmlFor={`campo-${slide.n}`}>
+              {slide.input.rotulo}:
+            </label>
+            <input
+              id={`campo-${slide.n}`}
+              type="number"
+              min="0"
+              step="0.01"
+              value={campos?.[slide.input.campo] ?? ''}
+              onChange={(e) => onCampo?.(slide.input.campo, e.target.value)}
+              placeholder="0,00"
+              className="w-32 rounded border border-teal-300 px-2 py-1 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-teal-400"
+            />
+            <span className="text-[10px] text-teal-800">
+              usado nos cálculos deste slide — fica salvo neste navegador.
+            </span>
           </div>
         )}
         {slide.categoria === 'futuro' && (
