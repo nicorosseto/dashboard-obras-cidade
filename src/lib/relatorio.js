@@ -30,7 +30,7 @@
 import {
   consolidarNorcrest,
   topPermissionarias,
-  tiposObraCount,
+  topTiposProcesso,
   comparativoAnualPorMes,
   processosPorRegiao,
   contagemPorSubprefeituraGeo,
@@ -43,6 +43,7 @@ import {
   mediaDiaria,
   fmtNumero,
 } from './aggregations.js'
+import { nomeCurtoPermissionaria } from './emergencias.js'
 
 // ── Categorias de slide (contorno visual) ──────────────────────────────────
 export const CATEGORIA = {
@@ -72,10 +73,20 @@ export const CATEGORIA = {
 
 const pct = (n, d) => (d > 0 ? Math.round((n / d) * 100) : 0)
 
-// Detecta uma emergência do Sistema Geo pelo rótulo do tipo de obra.
+// A classificação "Emergência"/"Manutenção Corretiva" do Sistema Geo vive no
+// TIPO DE PROCESSO (catálogo `08-tipos-processo-sistema-geo.sql`: EMERGENCIA,
+// MANUTENCAO_CORRETIVA…). `tipo_obra` é outro eixo (vem do posicionamento)
+// e fica só como fallback — filtrar por ele zerava as emergências.
+function rotuloTipoProcesso(r) {
+  return String(
+    r.tipo_processo_nome || r.tipo_processo || r.tipo_obra_nome || r.tipo_obra || ''
+  ).toUpperCase()
+}
 function ehEmergencia(r) {
-  const t = String(r.tipo_obra_nome || r.tipo_obra || '').toUpperCase()
-  return t.includes('EMERG')
+  return rotuloTipoProcesso(r).includes('EMERG')
+}
+function ehCorretiva(r) {
+  return rotuloTipoProcesso(r).includes('CORRETIVA')
 }
 function ehNorcrest(r) {
   return String(r.permissionaria || '')
@@ -147,10 +158,11 @@ function mensalPorAno(rows) {
   }
 }
 
-// Distribuição por unidade da NORCREST (o texto após "NORCREST" / "NORCREST - XX").
+// Distribuição por unidade da NORCREST (o texto após "NORCREST", separado por
+// hífen, barra ou espaço — ex.: "NORCREST - NCR", "NORCREST/NCR").
 function unidadeNorcrest(nome) {
-  const m = String(nome || '').match(/NORCREST\s*[-–]?\s*(.+)$/i)
-  return m ? m[1].trim().toUpperCase() : null
+  const m = String(nome || '').match(/NORCREST\s*[-–/]*\s*(.+)$/i)
+  return m ? m[1].replace(/^[-–/\s]+/, '').trim().toUpperCase() || null : null
 }
 
 // ── O seed: os 36 slides da apresentação institucional ──────────────────────
@@ -480,8 +492,10 @@ export function resolverDadosSlide(slide, bases = {}) {
       }
     }
     case 'geo_por_tipo_obra': {
+      // As categorias do slide (Emergência, Ligação Domiciliar, Manutenção…)
+      // são os TIPOS DE PROCESSO do Sistema Geo, como no PDF.
       const total = geo.length
-      const dados = tiposObraCount(geo).map((d) => ({
+      const dados = topTiposProcesso(geo, 12).map((d) => ({
         nome: d.nome,
         valor: d.count,
         pct: pct(d.count, total),
@@ -538,18 +552,18 @@ export function resolverDadosSlide(slide, bases = {}) {
       for (const r of geo) {
         const k = consolidarNorcrest(r.permissionaria)
         if (!k) continue
-        const t = String(r.tipo_obra_nome || r.tipo_obra || '').toUpperCase()
         if (!map.has(k)) map.set(k, { nome: k, emergencia: 0, corretiva: 0 })
         const o = map.get(k)
-        if (t.includes('EMERG')) {
+        if (ehEmergencia(r)) {
           o.emergencia++
           totEmerg++
-        } else if (t.includes('CORRETIVA')) {
+        } else if (ehCorretiva(r)) {
           o.corretiva++
           totCorr++
         }
       }
       const dados = Array.from(map.values())
+        .filter((o) => o.emergencia > 0 || o.corretiva > 0)
         .sort((a, b) => b.emergencia - a.emergencia)
         .slice(0, cfg.topN || 10)
       return {
@@ -742,11 +756,16 @@ export function resolverDadosSlide(slide, bases = {}) {
     // ── Emergências ──────────────────────────────────────────────────────────
     case 'emerg_norcrest_por_unidade': {
       // Encerradas × Informadas por unidade da NORCREST (módulo Emergências).
+      // Na base de Emergências a permissionária vem com o nome COMPLETO da
+      // companhia e a unidade num sufixo "/XXX" — o nome curto ("NORCREST/NCR")
+      // vem do mesmo normalizador usado pelo módulo Emergências.
       const map = new Map()
       for (const r of emerg) {
-        const perm = r.permissionaria || r.nome_permissionaria || ''
-        if (!String(perm).toUpperCase().startsWith('NORCREST')) continue
-        const u = unidadeNorcrest(perm) || 'NORCREST (s/ unidade)'
+        const curto = nomeCurtoPermissionaria(r.permissionaria || '')
+        if (!String(curto || '').toUpperCase().startsWith('NORCREST')) continue
+        const u = curto.includes('/')
+          ? curto.split('/')[1]
+          : 'NORCREST (s/ unidade)'
         const st = String(r.status || '').toUpperCase()
         if (!map.has(u)) map.set(u, { nome: u, encerradas: 0, informadas: 0 })
         const o = map.get(u)
