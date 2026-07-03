@@ -8,11 +8,13 @@ import {
 } from '../lib/relatorio.js'
 
 // ── Fixtures mínimas ──────────────────────────────────────────────────
+// A classificação Emergência/Corretiva vem do TIPO DE PROCESSO (catálogo 08),
+// como no banco real — tipo_obra é outro eixo e fica de fora de propósito.
 const GEO = [
-  { permissionaria: 'NORCREST - NCR', subprefeitura: 'SE', data_cadastro: '2025-03-10', tipo_obra_nome: 'Emergência' },
-  { permissionaria: 'NORCREST - NCJ', subprefeitura: 'PI', data_cadastro: '2025-04-02', tipo_obra_nome: 'Emergência' },
-  { permissionaria: 'WINSLOW', subprefeitura: 'SE', data_cadastro: '2024-05-20', tipo_obra_nome: 'Manutenção Corretiva' },
-  { permissionaria: 'HARGROVE', subprefeitura: 'PA', data_cadastro: '2024-06-01', tipo_obra_nome: 'Ligação Domiciliar' },
+  { permissionaria: 'NORCREST - NCR', subprefeitura: 'SE', data_cadastro: '2025-03-10', tipo_processo: 'EMERGENCIA', tipo_processo_nome: 'Emergência' },
+  { permissionaria: 'NORCREST - NCJ', subprefeitura: 'PI', data_cadastro: '2025-04-02', tipo_processo: 'EMERGENCIA', tipo_processo_nome: 'Emergência' },
+  { permissionaria: 'WINSLOW', subprefeitura: 'SE', data_cadastro: '2024-05-20', tipo_processo: 'MANUTENCAO_CORRETIVA', tipo_processo_nome: 'Manutenção Corretiva' },
+  { permissionaria: 'HARGROVE', subprefeitura: 'PA', data_cadastro: '2024-06-01', tipo_processo: 'LIGACAODOMICILIAR', tipo_processo_nome: 'Ligação Domiciliar' },
 ]
 
 const FISC = [
@@ -22,11 +24,14 @@ const FISC = [
   { permissionaria: 'WINSLOW', legislacao_atendida: true, tem_nao_conformidade: false, solucionado: false, em_andamento: false, classificacao_viaria: 'Coletora', data_inicio: '2024-11-05' },
 ]
 
+// Na base de Emergências a permissionária vem com o nome COMPLETO da
+// companhia e a unidade num sufixo "/XXX" (como na planilha real).
+const NORCREST_LONGO = 'COMPANHIA DE SANEAMENTO BASICO DO ESTADO DE SAO PAULO S/A'
 const EMERG = [
-  { permissionaria: 'NORCREST - NCR', status: 'Encerrada' },
-  { permissionaria: 'NORCREST - NCR', status: 'Informada' },
-  { permissionaria: 'NORCREST - NCJ', status: 'Encerrada' },
-  { permissionaria: 'WINSLOW', status: 'Encerrada' }, // não-NORCREST: fora do slide 17
+  { permissionaria: `${NORCREST_LONGO} /NCR`, status: 'Encerrada' },
+  { permissionaria: `${NORCREST_LONGO} /NCR`, status: 'Informada' },
+  { permissionaria: `${NORCREST_LONGO} /NCJ`, status: 'Encerrada' },
+  { permissionaria: 'WINSLOW LTDA', status: 'Encerrada' }, // não-NORCREST: fora do slide 17
 ]
 
 const bases = { geo: GEO, fisc: FISC, emerg: EMERG }
