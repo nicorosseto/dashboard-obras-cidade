@@ -123,15 +123,41 @@ describe('resolverDadosSlide — agregações', () => {
     expect(winslow).toMatchObject({ emergencia: 0, corretiva: 1 })
   })
 
-  it('geo_autorizacoes_anual exclui emergências (autorizações = resto)', () => {
+  it('geo_autorizacoes_anual exclui emergências (mensal por ano + painel)', () => {
     const r = resolverDadosSlide(slidePorAgregacao('geo_autorizacoes_anual'), bases)
-    // GEO tem 2 não-emergências, ambas de 2024
-    expect(r.dados).toEqual([{ ano: '2024', valor: 2 }])
+    // GEO tem 2 não-emergências, ambas de 2024 (maio e junho)
+    expect(r.series).toEqual(['2024'])
+    const maio = r.dados.find((d) => d.mes === 'Maio')
+    expect(maio['2024']).toBe(1)
+    expect(r.painelAnos.itens).toEqual([{ ano: '2024', valor: 2 }])
   })
 
-  it('geo_emerg_norcrest_anual filtra NORCREST + emergência por ano', () => {
+  it('geo_emerg_norcrest_anual filtra NORCREST + emergência (mensal por ano + contexto)', () => {
     const r = resolverDadosSlide(slidePorAgregacao('geo_emerg_norcrest_anual'), bases)
-    expect(r.dados).toEqual([{ ano: '2025', valor: 2 }])
+    expect(r.series).toEqual(['2025'])
+    expect(r.painelAnos.itens).toEqual([{ ano: '2025', valor: 2 }])
+    // contexto: total NORCREST (2) e total NORCREST emergência (2)
+    expect(r.contexto.map((c) => c.valor)).toEqual(['2', '2'])
+  })
+
+  it('geo_por_permissionaria traz contexto (total) e destaque (% NORCREST)', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('geo_por_permissionaria'), bases)
+    expect(r.contexto[0].valor).toBe('4')
+    expect(r.destaques[0].valor).toBe('50%') // 2 de 4 são NORCREST
+  })
+
+  it('fisc_tipos_falha_kpis agrupa o excedente em "Demais patologias"', () => {
+    // fixture com 6 tipos de falha distintos para forçar o agrupamento
+    const fisc6 = [
+      { falha_nivelamento: true }, { falha_nivelamento: true },
+      { falha_afundamento: true }, { falha_trincas: true },
+      { falha_geometria: true }, { falha_sarjeta: true }, { falha_guia: true },
+    ]
+    const r = resolverDadosSlide(slidePorAgregacao('fisc_tipos_falha_kpis'), { fisc: fisc6 })
+    const resto = r.kpis.find((k) => k.resto)
+    expect(r.kpis.filter((k) => !k.resto)).toHaveLength(4)
+    expect(resto.rotulo).toBe('Demais patologias')
+    expect(resto.valor).toBe(2) // os 2 tipos fora do top-4
   })
 
   it('fisc_leg_vs_nc traz o donut principal e o detalhe soluc×andamento', () => {
@@ -182,8 +208,10 @@ describe('resolverDadosSlide — agregações', () => {
 
   it('geo_visao_geral expõe KPIs do banco + manuais marcados', () => {
     const r = resolverDadosSlide(slidePorAgregacao('geo_visao_geral'), bases)
-    const obras = r.kpis.find((k) => k.rotulo === 'Obras registradas')
+    const obras = r.kpis.find((k) => k.rotulo.includes('obras registradas'))
     expect(obras.valor).toBe(4)
     expect(r.kpis.filter((k) => k.manual)).toHaveLength(2)
+    // card duplo de médias (mensal/diária) presente
+    expect(r.kpis.some((k) => k.duplo)).toBe(true)
   })
 })
