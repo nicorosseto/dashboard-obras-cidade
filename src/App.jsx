@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase, fetchAll, versaoTabela } from './lib/supabase.js'
 import { lerCache, gravarCache } from './lib/cache.js'
 import {
@@ -24,7 +24,6 @@ import {
 } from './lib/aggregations.js'
 import { traduzErro } from './lib/mensagens.js'
 import Header from './components/Header.jsx'
-import PaginaRelatorio from './components/tabs/relatorio/PaginaRelatorio.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import SidebarSistemaGeo from './components/SidebarSistemaGeo.jsx'
 import SidebarCruzamento from './components/SidebarCruzamento.jsx'
@@ -34,22 +33,26 @@ import { carregarPermissoes, abasPermitidas } from './lib/permissoes.js'
 import { agruparMotivos, resolverDefs } from './lib/emergencias.js'
 import KPIStrip from './components/KPIStrip.jsx'
 import KPIStripGeo from './components/KPIStripGeo.jsx'
-import AdminPanel from './components/AdminPanel.jsx'
 import ExportModal from './components/ExportModal.jsx'
 import Login from './pages/Login.jsx'
 import Home from './pages/Home.jsx'
-import Pagina1Geral from './components/tabs/Pagina1Geral.jsx'
-import Pagina2Temporal from './components/tabs/Pagina2Temporal.jsx'
-import Pagina3Espacial from './components/tabs/Pagina3Espacial.jsx'
-import Pagina4Detalhes from './components/tabs/Pagina4Detalhes.jsx'
-import PaginaGeo1Geral from './components/tabs/PaginaGeo1Geral.jsx'
-import PaginaGeo2Temporal from './components/tabs/PaginaGeo2Temporal.jsx'
-import PaginaGeo3Subprefeitura from './components/tabs/PaginaGeo3Subprefeitura.jsx'
-import PaginaGeo4Cruzamento from './components/tabs/PaginaGeo4Cruzamento.jsx'
-import PaginaFisc5Executoras from './components/tabs/PaginaFisc5Executoras.jsx'
-import PaginaBuscaProcesso from './components/tabs/PaginaBuscaProcesso.jsx'
-import PaginaEmergencias from './components/tabs/PaginaEmergencias.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+// Fase M2 (modernização): as páginas de módulo são pesadas (Recharts/Leaflet/xlsx
+// somados) e só uma fica visível por vez — carregadas sob demanda para reduzir o
+// chunk inicial. Cada uso fica dentro de <Suspense fallback={<LoadingInline .../>}>.
+const PaginaRelatorio = lazy(() => import('./components/tabs/relatorio/PaginaRelatorio.jsx'))
+const AdminPanel = lazy(() => import('./components/AdminPanel.jsx'))
+const Pagina1Geral = lazy(() => import('./components/tabs/Pagina1Geral.jsx'))
+const Pagina2Temporal = lazy(() => import('./components/tabs/Pagina2Temporal.jsx'))
+const Pagina3Espacial = lazy(() => import('./components/tabs/Pagina3Espacial.jsx'))
+const Pagina4Detalhes = lazy(() => import('./components/tabs/Pagina4Detalhes.jsx'))
+const PaginaGeo1Geral = lazy(() => import('./components/tabs/PaginaGeo1Geral.jsx'))
+const PaginaGeo2Temporal = lazy(() => import('./components/tabs/PaginaGeo2Temporal.jsx'))
+const PaginaGeo3Subprefeitura = lazy(() => import('./components/tabs/PaginaGeo3Subprefeitura.jsx'))
+const PaginaGeo4Cruzamento = lazy(() => import('./components/tabs/PaginaGeo4Cruzamento.jsx'))
+const PaginaFisc5Executoras = lazy(() => import('./components/tabs/PaginaFisc5Executoras.jsx'))
+const PaginaBuscaProcesso = lazy(() => import('./components/tabs/PaginaBuscaProcesso.jsx'))
+const PaginaEmergencias = lazy(() => import('./components/tabs/PaginaEmergencias.jsx'))
 import { LoadingPage, LoadingInline } from './components/Loading.jsx'
 import AlterarSenhaModal from './components/AlterarSenhaModal.jsx'
 import BarraProgresso from './components/BarraProgresso.jsx'
@@ -880,23 +883,25 @@ export default function App() {
         />
         <main className="flex-1 flex overflow-hidden">
           <ErrorBoundary modulo="Emergências">
-            <PaginaEmergencias
-              user={session?.user}
-              fiscalizacoes={todasLinhas}
-              isAdmin={isAdmin}
-              podeUpload={podeUploadEmerg}
-              abaAtiva={abaEmergencias}
-              onTotalInformadasChange={setTotalInformadasEmerg}
-              linhas={emergLinhas}
-              setLinhas={setEmergLinhas}
-              obras={emergObras}
-              setObras={setEmergObras}
-              motivoGrupos={motivoGrupos}
-              motivoPendentes={motivoPendentes}
-              onSalvarMotivos={salvarClassifMotivos}
-              carregando={emergCarregando}
-              emgProgresso={emergProgresso}
-            />
+            <Suspense fallback={<LoadingInline mensagem="Carregando Emergências..." />}>
+              <PaginaEmergencias
+                user={session?.user}
+                fiscalizacoes={todasLinhas}
+                isAdmin={isAdmin}
+                podeUpload={podeUploadEmerg}
+                abaAtiva={abaEmergencias}
+                onTotalInformadasChange={setTotalInformadasEmerg}
+                linhas={emergLinhas}
+                setLinhas={setEmergLinhas}
+                obras={emergObras}
+                setObras={setEmergObras}
+                motivoGrupos={motivoGrupos}
+                motivoPendentes={motivoPendentes}
+                onSalvarMotivos={salvarClassifMotivos}
+                carregando={emergCarregando}
+                emgProgresso={emergProgresso}
+              />
+            </Suspense>
           </ErrorBoundary>
         </main>
       </div>
@@ -943,12 +948,14 @@ export default function App() {
         />
         <main className="flex-1 flex overflow-hidden">
           <ErrorBoundary modulo="Apresentação">
-            <PaginaRelatorio
-              geo={sistemaGeoLinhas}
-              fisc={todasLinhas}
-              emerg={emergLinhas}
-              carregandoGeo={sistemaGeoCarregando}
-            />
+            <Suspense fallback={<LoadingInline mensagem="Carregando Apresentação..." />}>
+              <PaginaRelatorio
+                geo={sistemaGeoLinhas}
+                fisc={todasLinhas}
+                emerg={emergLinhas}
+                carregandoGeo={sistemaGeoCarregando}
+              />
+            </Suspense>
           </ErrorBoundary>
         </main>
         <ExportModal
@@ -1089,12 +1096,16 @@ export default function App() {
               semDataGeo > 0 && <AvisoSemData n={semDataGeo} />}
 
             {/* Admin page */}
-            {isAdminPage && isAdmin && <AdminPanel abaAtiva={abaAdmin} />}
+            {isAdminPage && isAdmin && (
+              <Suspense fallback={<LoadingInline mensagem="Carregando Configurações..." />}>
+                <AdminPanel abaAtiva={abaAdmin} />
+              </Suspense>
+            )}
 
           {/* OBRAS pages */}
           {!isSpecialPage && abaLiberada && secaoAtiva === 'fiscalizacao' && (
             <ErrorBoundary modulo="Fiscalização">
-              <>
+              <Suspense fallback={<LoadingInline mensagem="Carregando..." />}>
                 {paginaAtiva === 1 && <Pagina1Geral rows={filtradas} />}
                 {paginaAtiva === 2 && <Pagina2Temporal rows={filtradas} />}
                 {paginaAtiva === 3 && (
@@ -1108,7 +1119,7 @@ export default function App() {
                 {paginaAtiva === 4 && <Pagina4Detalhes rows={filtradas} />}
                 {paginaAtiva === 6 && <PaginaFisc5Executoras rows={filtradas} />}
                 {paginaAtiva === 7 && <PaginaBuscaProcesso modo="fisc" rows={filtradas} nFiltrosAtivos={nFiltrosFisc} />}
-              </>
+              </Suspense>
             </ErrorBoundary>
           )}
 
@@ -1120,7 +1131,7 @@ export default function App() {
               <LoadingPage mensagem="Carregando dados Sistema Geo..." />
             ) : (
               <ErrorBoundary modulo="Sistema Geo">
-                <>
+                <Suspense fallback={<LoadingInline mensagem="Carregando..." />}>
                   {paginaAtiva === 1 && (
                     <PaginaGeo1Geral
                       rows={sistemaGeoFiltradas}
@@ -1153,7 +1164,7 @@ export default function App() {
                   {paginaAtiva === 6 && (
                     <PaginaBuscaProcesso modo="geo" rows={sistemaGeoFiltradas} nFiltrosAtivos={nFiltrosGeo} />
                   )}
-                </>
+                </Suspense>
               </ErrorBoundary>
             ))}
           </main>
