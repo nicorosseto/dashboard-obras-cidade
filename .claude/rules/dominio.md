@@ -527,24 +527,49 @@
   sem nenhum laudo → não fiscalizado, volume alto esperado). A comparação normaliza
   trim + lowercase; deduplication por id_origem mantém o laudo mais recente.
 
-- **Módulo "Apresentação" (Melhoria 2, 02/07/2026):** módulo de topo (padrão
-  Emergências: boolean `mostrarRelatorio` no `App.jsx` + layout próprio), slug interno
-  `relatorio`, cor **teal**, permissão `relatorio.ver` (SQL `18-relatorio-mensal.sql`).
-  Renderiza os **36 slides** da apresentação mensal institucional a partir das bases já
-  carregadas (geo=`sistemaGeoLinhas`, fisc=`todasLinhas`, emerg=`emergLinhas`, **cruas**,
-  sem filtros de sidebar). Cérebro em `src/lib/relatorio.js` (`MODELO_INSTITUCIONAL` +
-  `resolverDadosSlide`); UI em `src/components/tabs/relatorio/` (`PaginaRelatorio` +
-  `SlideRenderer`). **3 categorias de slide** com contorno próprio: 🟢 `dados` (teal,
-  23 slides com dado real), ⚪ `texto` (cinza, 12 institucionais), 🟡 `futuro` (âmbar
-  tracejado, 1 — metragem/multa aguarda taxa externa). Cada slide exibe
-  "Slide {n} — {título}" (mapeia para o PPT do usuário). Exports: XLSX por slide
-  (evento `obras:exportar-grafico`), PNG por slide (`html-to-image`, botões ficam
-  fora da captura via `data-no-export`), "Baixar todos" (`exportarXLSXMultiAba`).
-  KPIs sem fonte no banco (usuários/executantes do Sistema Geo, tempo de resposta NORCREST)
-  aparecem como "preencher manualmente". ⚠️ Ao editar o seed, manter os testes de
-  `src/tests/relatorio.test.js` (contagem 23/12/1 e nºs 1–36 sem buracos) e o plano
-  `docs/plano-melhoria-2-apresentacao.md` alinhados. v2 no radar: .pptx/PDF com seleção
-  de slides; Fase C: editor persistindo em `relatorio_modelos`.
+- **Módulo "Apresentação" (Melhoria 2, entregue 03/07/2026, PRs #227–#230):** módulo de
+  topo (padrão Emergências: boolean `mostrarRelatorio` no `App.jsx` + layout próprio),
+  slug interno `relatorio`, cor **teal**, permissão `relatorio.ver` (SQL
+  `18-relatorio-mensal.sql`). Renderiza **49 slides** (numeração com lacunas
+  propositais em 22/35/36/37 e o extra 20.1, para bater com o PPT de 52 páginas do
+  usuário) a partir das bases já carregadas (geo=`sistemaGeoLinhas`, fisc=`todasLinhas`,
+  emerg=`emergLinhas`, **cruas**, sem filtros de sidebar). Cérebro em
+  `src/lib/relatorio.js` (`MODELO_INSTITUCIONAL` + `resolverDadosSlide`); UI em
+  `src/components/tabs/relatorio/` (`PaginaRelatorio` + `SlideRenderer`). **3
+  categorias de slide** com contorno próprio: 🟢 `dados` (teal, 27 slides com dado
+  real), ⚪ `texto` (cinza, 19 institucionais), 🟡 `futuro` (âmbar tracejado, 3 —
+  metragem/multa da fiscalização e as 2 telas de "Multas Aplicadas" via CORBETT, que
+  não existe no sistema). Cada slide exibe "Slide {n} — {título}" (mapeia para o PPT
+  do usuário).
+  - **Seletor de permissionária** (barra do módulo): filtra os slides "gerais" para
+    ela; nos rankings multi-permissionária (barras), todas continuam no gráfico, a
+    dela fica destacada em **teal** e a "janela" de exibição (top N) desloca até a
+    posição dela quando está fora do topo (nota indica "posições X–Y de Z"; o
+    download ⬇ sempre traz a lista completa). O nome dela aparece num chip no
+    cabeçalho de cada slide (sai também na imagem exportada).
+  - **Unidades da NORCREST agrupadas** (`normUnidadeNorcrest` em `relatorio.js`):
+    NCRV/NCRS → NCR e NCJV/NCJL → NCJ, em toda análise por base NORCREST (slides
+    17/31 e afins) — mesma regra de agrupamento já usada em outras telas do sistema.
+  - **Campos de valor digitados pelo usuário** (multa/custo por m², slides 23/24/27/28):
+    persistem no `localStorage` do navegador (`obras_relatorio_campos`), NÃO no
+    banco — cada admin vê o campo vazio até digitar no próprio navegador. O cálculo
+    (área × valor) é refeito ao vivo; sem valor, o slide mostra "— informe o valor".
+  - **Sem coluna de nome de via na fiscalização:** os slides 24/27/28 (recomposição/
+    legislação atendida) contam vias distintas por `id_origem` (a chave
+    "PROCESSOS/VIA" da planilha, 1 processo ≈ 1 via) — não existe nome de logradouro
+    nessa tabela.
+  - Exports: XLSX por slide (evento `obras:exportar-grafico`), PNG por slide
+    (`html-to-image`, botões ficam fora da captura via `data-no-export`), "Baixar
+    todos" (`exportarXLSXMultiAba`).
+  - KPI sem fonte no banco (usuários cadastrados no Sistema Geo; tempo de resposta da
+    NORCREST) aparece como "preencher manualmente" — as EXECUTANTES do slide 7, ao
+    contrário do que se pensou inicialmente, **são contadas do banco** (distintas,
+    case-insensitive), não são mais manuais.
+  - ⚠️ Ao editar o seed, manter os testes de `src/tests/relatorio.test.js` (121 casos:
+    numeração 1–52 com as lacunas certas, contagem 27/19/3) e o plano
+    `docs/plano-melhoria-2-apresentacao.md` alinhados. v2 no radar: export .pptx
+    (PptxGenJS, gráficos nativos editáveis) e PDF, ambos com seleção de slides; Fase
+    C: editor de modelos persistindo em `relatorio_modelos` (tabela já criada).
 
 ## Glossário de domínio
 
