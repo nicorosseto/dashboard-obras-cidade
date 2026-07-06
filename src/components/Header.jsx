@@ -75,6 +75,20 @@ function IconAlert() {
   )
 }
 
+function IconSlides() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+      <rect x="3" y="4" width="18" height="12" rx="1.5" />
+      <path d="M9 8.5h8" />
+      <path d="M9 12h5" />
+      <path d="M6 8.5h.01" />
+      <path d="M6 12h.01" />
+      <path d="M12 16v3" />
+      <path d="M8.5 21h7" />
+    </svg>
+  )
+}
+
 function IconSettings() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
@@ -85,7 +99,9 @@ function IconSettings() {
 }
 
 // Determina a configuração visual do módulo ativo
-function getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias) {
+function getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio) {
+  if (mostrarRelatorio)
+    return { label: 'Apresentação', icon: <IconSlides />, from: '#0f766e', to: '#14b8a6' }
   if (mostrarEmergencias)
     return { label: 'Emergências', icon: <IconAlert />, from: '#b45309', to: '#d97706' }
   if (paginaAtiva === 5)
@@ -110,6 +126,7 @@ export default function Header({
   modules = [],
   onSelectModule = () => {},
   mostrarEmergencias = false,
+  mostrarRelatorio = false,
   abaEmergAtiva = 'geral',
   onAbaEmerg = () => {},
   totalInformadasEmerg = 0,
@@ -131,9 +148,9 @@ export default function Header({
     if (onSignOut) onSignOut()
   }
 
-  const mod = getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias)
+  const mod = getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio)
   const accentGradient = `linear-gradient(to right, ${mod.from}, ${mod.to})`
-  const mostrarAbas = !mostrarEmergencias && paginaAtiva !== 5
+  const mostrarAbas = !mostrarEmergencias && !mostrarRelatorio && paginaAtiva !== 5
   const mostrarAbasAdmin = paginaAtiva === 5
   const mostrarAbasCruzamento = mostrarAbas && secaoAtiva === 'sistemaGeo' && paginaAtiva === 4
   const mostrarAbasNormal = mostrarAbas && !mostrarAbasCruzamento
@@ -187,7 +204,7 @@ export default function Header({
           <div className="shrink-0">
             <ModuleDropdown
               modules={modules}
-              activeModuleId={mostrarEmergencias ? 'emergencias' : secaoAtiva}
+              activeModuleId={mostrarRelatorio ? 'relatorio' : mostrarEmergencias ? 'emergencias' : secaoAtiva}
               onSelect={onSelectModule}
               showAdmin={showAdmin}
               onAdmin={onAbrirConfiguracoes}
