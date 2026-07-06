@@ -35,6 +35,20 @@ function IconMerge({ className = 'w-10 h-10' }) {
   )
 }
 
+function IconSlides({ className = 'w-10 h-10' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="12" rx="1.5" />
+      <path d="M9 8.5h8" />
+      <path d="M9 12h5" />
+      <path d="M6 8.5h.01" />
+      <path d="M6 12h.01" />
+      <path d="M12 16v3" />
+      <path d="M8.5 21h7" />
+    </svg>
+  )
+}
+
 function IconAlert({ className = 'w-8 h-8' }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -171,6 +185,7 @@ export default function Home({
   temFisc = true,
   temGeo = true,
   temCruzamento = false,
+  temRelatorio = false,
   onAbrirConfiguracoes,
   onSignOut,
   sistemaGeoCarregando = false,
@@ -178,8 +193,8 @@ export default function Home({
   emgVencidas48h = 0,
   totalEmergencias = 0,
 }) {
-  const semModulos = !temFisc && !temGeo && !onAbrirEmergencias && !temCruzamento
-  const nModCards = [temGeo, temFisc, temCruzamento].filter(Boolean).length
+  const semModulos = !temFisc && !temGeo && !onAbrirEmergencias && !temCruzamento && !temRelatorio
+  const nModCards = [temGeo, temFisc, temCruzamento, temRelatorio].filter(Boolean).length
 
   const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0 })
   const handleMouseMove = useCallback((e) => {
@@ -280,8 +295,8 @@ export default function Home({
         )}
 
         {/* Cards dos módulos principais */}
-        {(temGeo || temFisc || temCruzamento) && (
-          <div className={`grid gap-6${nModCards >= 3 ? ' sm:grid-cols-2 lg:grid-cols-3' : nModCards === 2 ? ' sm:grid-cols-2' : ''}`}>
+        {(temGeo || temFisc || temCruzamento || temRelatorio) && (
+          <div className={`grid gap-6${nModCards >= 4 ? ' sm:grid-cols-2 lg:grid-cols-4' : nModCards === 3 ? ' sm:grid-cols-2 lg:grid-cols-3' : nModCards === 2 ? ' sm:grid-cols-2' : ''}`}>
             {temGeo && (
               <ModuleCard
                 gradientFrom="#1F3864"
@@ -319,6 +334,20 @@ export default function Home({
                 descricao="Reconcilia as bases de Fiscalização e Sistema Geo — identifica o que está nas duas, o que está só em uma delas e divergências de dados."
                 ultimaAtualizacao={dataFisc ?? dataGeo}
                 onClick={() => onNavigate('cruzamento')}
+                carregando={sistemaGeoCarregando}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+              />
+            )}
+            {temRelatorio && (
+              <ModuleCard
+                gradientFrom="#0f766e"
+                gradientTo="#14b8a6"
+                icon={<IconSlides />}
+                titulo="Apresentação"
+                descricao="Prévia do relatório mensal em slides, espelhando a apresentação institucional, com download dos dados e da imagem de cada slide."
+                ultimaAtualizacao={dataGeo}
+                onClick={() => onNavigate('relatorio')}
                 carregando={sistemaGeoCarregando}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
