@@ -1,8 +1,12 @@
-import * as XLSX from 'xlsx'
+// ⚠️ O xlsx (424 kB) entra por import DINÂMICO, na hora do clique: este
+// arquivo é importado estaticamente pelo ExportModal, que está no grafo de
+// boot do App — um `import * as XLSX from 'xlsx'` aqui faria o index.html
+// pré-carregar o vendor inteiro no boot (achado do PR 1 da M4).
 
 // Exporta um array de objetos como .xlsx via SheetJS.
 // colunas: [{ key, label }] — define quais campos incluir e o cabeçalho.
-export function exportarXLSX(rows, colunas, nomeArquivo) {
+export async function exportarXLSX(rows, colunas, nomeArquivo) {
+  const XLSX = await import('xlsx')
   const header = colunas.map((c) => c.label)
   const corpo = rows.map((r) =>
     colunas.map((c) => {
@@ -25,7 +29,8 @@ export function exportarXLSX(rows, colunas, nomeArquivo) {
 // Exporta várias abas num único .xlsx (uma aba por slide, no módulo Apresentação).
 // abas: [{ nome, rows, colunas }] — `nome` é truncado a 31 chars (limite do Excel)
 // e deduplicado, senão o book_append_sheet lança erro.
-export function exportarXLSXMultiAba(abas, nomeArquivo) {
+export async function exportarXLSXMultiAba(abas, nomeArquivo) {
+  const XLSX = await import('xlsx')
   const wb = XLSX.utils.book_new()
   const usados = new Set()
   for (const aba of abas) {
