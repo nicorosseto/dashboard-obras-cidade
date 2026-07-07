@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import { evolucaoTrimestral, fmtNumero } from '../../lib/aggregations.js'
 import ChartTooltip from './ChartTooltip.jsx'
+import { NAVY } from '../../lib/cores.js'
 
 export default function Trimestres({ titulo, rows }) {
   const dados = evolucaoTrimestral(rows, 'solucionado')
@@ -58,11 +59,11 @@ export default function Trimestres({ titulo, rows }) {
           />
           <YAxis tick={{ fontSize: 11 }} />
           <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
-          <Bar dataKey="valor" fill="#1F3864" radius={[2, 2, 0, 0]}>
+          <Bar dataKey="valor" fill={NAVY} radius={[2, 2, 0, 0]}>
             <LabelList
               dataKey="valor"
               position="top"
-              style={{ fontSize: 10, fill: '#1F3864' }}
+              style={{ fontSize: 10, fill: NAVY }}
               formatter={fmtNumero}
             />
           </Bar>

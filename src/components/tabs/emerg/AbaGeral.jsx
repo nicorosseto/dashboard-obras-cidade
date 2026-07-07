@@ -5,6 +5,7 @@ import {
   agregaStatusComOutros, COLUNAS_CRUZADA,
 } from '../../../lib/emergencias.js'
 import { KpiCard } from './shared.jsx'
+import { NAVY } from '../../../lib/cores.js'
 
 // Rótulo de exibição de cada coluna (chave interna → label legível)
 const LABEL_COL = { _Outros: 'Outros', _total: 'Total' }
@@ -100,7 +101,7 @@ export default function AbaGeral({ total, linhas: linhasRaw, cruzada }) {
     <div className="space-y-4">
       {/* KPI cards: Total + 4 fixos + Outros */}
       <div className={`grid grid-cols-2 gap-3 ${statusOutros.qtd > 0 ? 'md:grid-cols-3 lg:grid-cols-6' : 'md:grid-cols-3 lg:grid-cols-5'}`}>
-        <KpiCard label="Total de Processos" valor={total} cor="#1F3864" destaque />
+        <KpiCard label="Total de Processos" valor={total} cor={NAVY} destaque />
         {STATUS_FIXOS_EMERG.map((s) => {
           const item = statusFixos.find((f) => f.status === s)
           return (
@@ -137,7 +138,7 @@ export default function AbaGeral({ total, linhas: linhasRaw, cruzada }) {
                 <th
                   key={s}
                   className="text-right p-2 font-semibold cursor-pointer select-none hover:bg-navy/5 rounded-sm whitespace-nowrap"
-                  style={{ color: s === '_total' ? '#1F3864' : corCol(s) }}
+                  style={{ color: s === '_total' ? NAVY : corCol(s) }}
                   onClick={() => handleSort(s)}
                 >
                   {s === '_total' ? 'Total' : labelCol(s)}

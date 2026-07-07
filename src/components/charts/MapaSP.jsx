@@ -3,6 +3,7 @@ import { MapContainer, GeoJSON } from 'react-leaflet'
 import geojson from '../../data/subprefeituras-sp.geojson?url'
 import { NOME_TO_SIGLA } from '../../data/subprefeituras-sp.js'
 import { fmtNumero } from '../../lib/aggregations.js'
+import { NAVY, RED } from '../../lib/cores.js'
 
 // Escala de cor linear do azul claro ao navy
 function corPorIntensidade(valor, maximo) {
@@ -55,7 +56,7 @@ export default function MapaSP({
       return {
         fillColor: corPorIntensidade(valor, maximo),
         weight: 3,
-        color: '#C00000',
+        color: RED,
         fillOpacity: 0.95,
         className: clicavel ? 'cursor-pointer' : '',
       }
@@ -119,7 +120,7 @@ export default function MapaSP({
         <div
           className="h-2 w-24 rounded-sm"
           style={{
-            background: 'linear-gradient(to right, #E8EEF7, #1F3864)',
+            background: `linear-gradient(to right, #E8EEF7, ${NAVY})`,
           }}
         />
         <span>Mais {unidade}</span>

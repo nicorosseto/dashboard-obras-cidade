@@ -13,6 +13,7 @@ import {
 import ChartTooltip from '../../charts/ChartTooltip.jsx'
 import { usePaginadorGrafico, ControlePaginacao } from '../../charts/PaginadorGrafico.jsx'
 import { KpiCard, ChartCard } from './shared.jsx'
+import { NAVY, NAVY_LIGHT, NAVY_MID, RED } from '../../../lib/cores.js'
 
 // Card "Outros" da Visão Geral: mostra o total agrupado e, ao passar o mouse,
 // um popover com os status reais contemplados (cor + nome + contagem).
@@ -101,10 +102,10 @@ export default function AbaDashboard({ linhas }) {
   return (
     <div className="space-y-4">
       <div className={`grid grid-cols-2 gap-3 ${statusOutros.qtd > 0 ? 'md:grid-cols-3 lg:grid-cols-5' : 'md:grid-cols-4'}`}>
-        <KpiCard label="Total de Processos" valor={totalProcessos} cor="#1F3864" destaque />
-        <KpiCard label="Em Aberto (Informadas)" valor={totalInformadas} cor="#C00000" destaque pct={parseFloat(pctInformadas)} />
-        <KpiCard label="Permissionárias Afetadas" valor={permissionariasComInf} cor="#2E4F7F" />
-        <KpiCard label="Subprefeituras Afetadas" valor={subsAfetadas} cor="#4472C4" />
+        <KpiCard label="Total de Processos" valor={totalProcessos} cor={NAVY} destaque />
+        <KpiCard label="Em Aberto (Informadas)" valor={totalInformadas} cor={RED} destaque pct={parseFloat(pctInformadas)} />
+        <KpiCard label="Permissionárias Afetadas" valor={permissionariasComInf} cor={NAVY_LIGHT} />
+        <KpiCard label="Subprefeituras Afetadas" valor={subsAfetadas} cor={NAVY_MID} />
         <CardOutrosStatus outros={statusOutros} />
       </div>
 
@@ -137,8 +138,8 @@ export default function AbaDashboard({ linhas }) {
               <XAxis type="number" tick={{ fontSize: 10 }} hide />
               <YAxis type="category" dataKey="nome" tick={{ fontSize: 10 }} width={130} />
               <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
-              <Bar dataKey="total" fill="#C00000" radius={[0, 3, 3, 0]}>
-                <LabelList dataKey="total" position="right" style={{ fontSize: 10, fill: '#C00000', fontWeight: 'bold' }} formatter={fmtNumero} />
+              <Bar dataKey="total" fill={RED} radius={[0, 3, 3, 0]}>
+                <LabelList dataKey="total" position="right" style={{ fontSize: 10, fill: RED, fontWeight: 'bold' }} formatter={fmtNumero} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -154,8 +155,8 @@ export default function AbaDashboard({ linhas }) {
               <XAxis type="number" tick={{ fontSize: 10 }} hide />
               <YAxis type="category" dataKey="nome" tick={{ fontSize: 10 }} width={70} />
               <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
-              <Bar dataKey="qtd" fill="#C00000" radius={[0, 3, 3, 0]}>
-                <LabelList dataKey="qtd" position="right" style={{ fontSize: 10, fill: '#C00000', fontWeight: 'bold' }} formatter={fmtNumero} />
+              <Bar dataKey="qtd" fill={RED} radius={[0, 3, 3, 0]}>
+                <LabelList dataKey="qtd" position="right" style={{ fontSize: 10, fill: RED, fontWeight: 'bold' }} formatter={fmtNumero} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -168,7 +169,7 @@ export default function AbaDashboard({ linhas }) {
               <XAxis dataKey="etapa" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtNumero} />
               <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
-              <Bar dataKey="Informada" stackId="a" fill="#C00000">
+              <Bar dataKey="Informada" stackId="a" fill={RED}>
                 <LabelList dataKey="Informada" position="center" style={{ fontSize: 10, fill: '#fff', fontWeight: 'bold' }} formatter={fmtNumero} />
               </Bar>
               <Bar dataKey="Encerrada" stackId="a" fill="#1F7A4D">
@@ -195,7 +196,7 @@ export default function AbaDashboard({ linhas }) {
               <XAxis dataKey="mes" tick={{ fontSize: 10 }} tickFormatter={fmtMesAno} angle={-45} textAnchor="end" height={50} />
               <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtNumero} />
               <Tooltip content={<ChartTooltip labelFormatter={fmtMesAno} />} wrapperStyle={{ zIndex: 50 }} />
-              <Line type="monotone" dataKey="informadas" name="Informadas" stroke="#C00000" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="informadas" name="Informadas" stroke={RED} strokeWidth={2} dot={{ r: 3 }} />
               <Line type="monotone" dataKey="encerradas" name="Encerradas" stroke="#1F7A4D" strokeWidth={2} dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>

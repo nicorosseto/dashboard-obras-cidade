@@ -25,11 +25,11 @@ import ChartTooltip from '../../charts/ChartTooltip.jsx'
 import DonutComparativo from '../../charts/DonutComparativo.jsx'
 import BotaoExportarGrafico from '../../BotaoExportarGrafico.jsx'
 import { fmtNumero } from '../../../lib/aggregations.js'
+import { NAVY, NAVY_MID, RED } from '../../../lib/cores.js'
 
-const NAVY = '#1F3864'
 const AZUL_CLARO = '#8FAADC'
-const VERMELHO = '#C00000'
-const AZUL_MEDIO = '#4472C4'
+const VERMELHO = RED
+const AZUL_MEDIO = NAVY_MID
 // Cor da barra da permissionária SELECIONADA (identidade do módulo).
 const TEAL = '#0f766e'
 
@@ -38,18 +38,18 @@ const TEAL = '#0f766e'
 const CORES_ANO = [
   '#7f1d1d', // vinho
   '#2e7d32', // verde
-  '#1F3864', // navy
+  NAVY,
   '#b45309', // âmbar escuro
   '#0e7490', // ciano escuro
   '#6d28d9', // violeta
   '#111827', // quase-preto
-  '#C00000', // vermelho (ano corrente)
+  RED, // vermelho (ano corrente)
 ]
 
 // Donut de composição: fatias ordenadas por magnitude → atribuição sequencial
 // (azuis claro→escuro) + separador branco; identidade nunca só pela cor
 // (legenda com nome/valor/% já vem do DonutComparativo).
-const CORES_DONUT = ['#1F3864', '#2E5A9E', '#4472C4', '#6E93D1', '#8FAADC', '#94a3b8', '#cbd5e1']
+const CORES_DONUT = [NAVY, '#2E5A9E', NAVY_MID, '#6E93D1', '#8FAADC', '#94a3b8', '#cbd5e1']
 
 // Rótulos e cores por chave de série (legendas dos gráficos).
 const LABEL_SERIE = {

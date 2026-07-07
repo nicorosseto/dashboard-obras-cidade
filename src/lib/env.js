@@ -11,6 +11,8 @@
 // como rede de segurança: em build de produção sem a variável, não mostramos
 // nada (para não dar alarme falso no site real).
 
+import { NAVY } from './cores.js'
+
 const appEnv = import.meta.env.VITE_APP_ENV
 
 export const IS_PRODUCTION = appEnv === 'production'
@@ -28,7 +30,7 @@ export function getAmbiente() {
   }
 
   if (appEnv === 'development' || import.meta.env.DEV) {
-    return { label: 'DESENVOLVIMENTO LOCAL', cor: '#1F3864', emoji: '🔧' }
+    return { label: 'DESENVOLVIMENTO LOCAL', cor: NAVY, emoji: '🔧' }
   }
 
   // Build de produção sem VITE_APP_ENV definido: não arrisca mostrar aviso.

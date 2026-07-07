@@ -11,12 +11,13 @@ import {
 import ChartTooltip from '../../charts/ChartTooltip.jsx'
 import { usePaginadorGrafico, ControlePaginacao } from '../../charts/PaginadorGrafico.jsx'
 import { KpiCard, StatusBadgeEmerg, PaginacaoBusca } from './shared.jsx'
+import { NAVY, NAVY_LIGHT, RED } from '../../../lib/cores.js'
 
 const PAGE_SIZE = 50
 
 const COR_SITUACAO = {
   'Dentro do prazo': '#1F7A4D',
-  Vencido: '#C00000',
+  Vencido: RED,
 }
 
 function Chip({ ativo, onClick, children, cor }) {
@@ -26,7 +27,7 @@ function Chip({ ativo, onClick, children, cor }) {
       className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${
         ativo ? 'text-white border-transparent' : 'bg-white text-gray-600 border-grey-line hover:bg-grey-bg'
       }`}
-      style={ativo ? { backgroundColor: cor || '#1F3864' } : undefined}
+      style={ativo ? { backgroundColor: cor || NAVY } : undefined}
     >
       {children}
     </button>
@@ -148,9 +149,9 @@ export default function AbaPrazo48h({ rows, temPosicionamento }) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard label="Dentro do prazo" valor={kpis.regulares} cor="#1F7A4D" />
-        <KpiCard label="Vencidos (48h)" valor={kpis.vencidos} cor="#C00000" destaque />
-        <KpiCard label="% no prazo" valor={isNaN(kpis.pctNoPrazo) ? 0 : Math.round(kpis.pctNoPrazo)} sufixo="%" cor="#1F3864" />
-        <KpiCard label="Em aberto no prazo" valor={kpis.abertosNoPrazo} cor="#2E4F7F" />
+        <KpiCard label="Vencidos (48h)" valor={kpis.vencidos} cor={RED} destaque />
+        <KpiCard label="% no prazo" valor={isNaN(kpis.pctNoPrazo) ? 0 : Math.round(kpis.pctNoPrazo)} sufixo="%" cor={NAVY} />
+        <KpiCard label="Em aberto no prazo" valor={kpis.abertosNoPrazo} cor={NAVY_LIGHT} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -189,7 +190,7 @@ export default function AbaPrazo48h({ rows, temPosicionamento }) {
                 <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
                 <YAxis type="category" dataKey="nome" width={120} tick={{ fontSize: 10 }} />
                 <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
-                <Bar dataKey="vencidos" name="Vencidos" fill="#C00000" radius={[0, 3, 3, 0]}>
+                <Bar dataKey="vencidos" name="Vencidos" fill={RED} radius={[0, 3, 3, 0]}>
                   <LabelList dataKey="vencidos" position="right" style={{ fontSize: 10, fill: '#374151' }} />
                 </Bar>
               </BarChart>
@@ -228,7 +229,7 @@ export default function AbaPrazo48h({ rows, temPosicionamento }) {
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[11px] text-gray-500 w-20 shrink-0">Dias atraso</span>
             {FAIXAS_ATRASO.map((f) => (
-              <Chip key={f.id} ativo={fFaixa.has(f.id)} onClick={() => toggle(setFFaixa)(f.id)} cor="#C00000">{f.label}</Chip>
+              <Chip key={f.id} ativo={fFaixa.has(f.id)} onClick={() => toggle(setFFaixa)(f.id)} cor={RED}>{f.label}</Chip>
             ))}
           </div>
           {statusOpts.length > 0 && (
