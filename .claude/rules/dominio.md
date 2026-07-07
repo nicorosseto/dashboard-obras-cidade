@@ -516,10 +516,14 @@
   `activeTooltipIndex`. Padrão para drill-down por clique:
   `const nome = e?.activeLabel ?? top[e?.activeTooltipIndex]?.nome`.
   Quebrou o drill-down de executoras (`PaginaFisc5Executoras.jsx`) na migração.
-  Além disso a v3 liga `accessibilityLayer` por padrão (SVG focável): o contorno
-  de foco ao CLICAR é suprimido via `:focus:not(:focus-visible)` no `index.css`
-  (Tab/teclado continua mostrando o contorno — não remover essa regra nem
-  desligar o accessibilityLayer).
+  Além disso a v3 liga `accessibilityLayer` por padrão e espalha `tabindex`
+  por DEZENAS de elementos internos (svg, camadas `g.recharts-zIndex-layer_*`,
+  fatias `path.recharts-sector`…) — o clique foca o elemento interno mais
+  próximo, **não o svg** (por isso a 1ª correção, só em `svg:focus`, não
+  resolveu — lição de 07/07). A regra do `index.css` cobre o wrapper e
+  **qualquer descendente**: `.recharts-wrapper :focus:not(:focus-visible)`.
+  Tab/teclado continua mostrando o contorno — não remover essa regra nem
+  desligar o accessibilityLayer.
 - **Tooltip padrão dos gráficos:** todos os gráficos (Recharts) usam o
   componente compartilhado `src/components/charts/ChartTooltip.jsx` — card
   branco, título em navy, bolinhas de cor por série e valores alinhados.
