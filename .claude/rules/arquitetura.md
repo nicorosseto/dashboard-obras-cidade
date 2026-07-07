@@ -9,7 +9,7 @@
 
 | Camada | Ferramenta | Para que serve |
 |---|---|---|
-| Interface (front-end) | **React 18 + Vite 5** | Monta as telas no navegador |
+| Interface (front-end) | **React 19 + Vite 8 (Rolldown)** | Monta as telas no navegador |
 | Estilo | **Tailwind CSS 3** | Classes utilitárias de estilo |
 | Gráficos | **Recharts** | Gráficos de barra, linha, donut |
 | Mapas | **Leaflet + react-leaflet** | Mapa choropleth de São Paulo |
@@ -62,6 +62,20 @@ npm run lint     # aponta problemas no código (ESLint)
 npm run format   # formata o código (Prettier)
 npm test         # roda os testes (Vitest, modo run)
 ```
+
+⚠️ **`npm run build` no ambiente remoto exige um `.env.local` com valores dummy**
+(desde o Vite 8 — Fase M4, PR 2). O `src/lib/supabase.js` lança erro no topo do
+módulo se faltarem `VITE_SUPABASE_URL`/`VITE_SUPABASE_PUBLISHABLE_KEY`; o
+minificador do Rolldown (Oxc) faz constant-folding dessa checagem e, sem as
+variáveis no build, **elimina a aplicação inteira como código morto** — o build
+"passa" mas o `index` sai com ~19 kB (sem app). No Vercel isso nunca ocorre (as
+variáveis existem lá). Para builds fiéis no ambiente do Claude:
+```bash
+printf 'VITE_SUPABASE_URL=https://exemplo-dummy.supabase.co\nVITE_SUPABASE_PUBLISHABLE_KEY=chave-dummy\n' > .env.local
+```
+(o `.env.local` está no `.gitignore` — nunca commitá-lo). Sinal de alerta: se o
+build imprimir um chunk `index` minúsculo (~19 kB) e nenhum chunk `react`,
+faltou o `.env.local`.
 
 ## Hook de início de sessão (`.claude/hooks/session-start.sh`)
 
