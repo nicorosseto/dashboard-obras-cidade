@@ -1,5 +1,3 @@
-import * as XLSX from 'xlsx'
-
 // ────────────────────────────────────────────────────────────────────
 // Conversão de datas de planilha → 'YYYY-MM-DD' (fonte ÚNICA da verdade)
 // ────────────────────────────────────────────────────────────────────
@@ -12,7 +10,10 @@ import * as XLSX from 'xlsx'
 // Aceita (superset de tudo que os três importadores precisavam):
 //   - Date (objeto): usa métodos UTC. O SheetJS cria Date em UTC midnight;
 //     ler em UTC evita o shift de fuso (UTC-3 faria Jan 1 virar Dez 31).
-//   - número: serial Excel, via XLSX.SSF.parse_date_code (canônico da lib).
+//   - número: serial Excel (sistema 1900), convertido localmente — equivale ao
+//     XLSX.SSF.parse_date_code, validado por teste de equivalência em
+//     src/tests/datas.test.js. Sem depender do xlsx: este arquivo está no
+//     grafo de boot do App e o import estático puxava 424 kB de xlsx no boot.
 //   - texto ISO: 'YYYY-MM-DD' (aceita mês/dia com 1 ou 2 dígitos).
 //   - texto brasileiro: 'DD/MM/AAAA' ou 'DD-MM-AAAA' (barra OU traço; a
 //     planilha de emergências usa traço). Sempre dia→mês→ano; ano com 2 ou 4
@@ -32,11 +33,17 @@ export function toIsoDate(v) {
   }
 
   if (typeof v === 'number') {
-    const d = XLSX.SSF.parse_date_code(v)
-    if (!d) return null
-    const mm = String(d.m).padStart(2, '0')
-    const dd = String(d.d).padStart(2, '0')
-    return `${d.y}-${mm}-${dd}`
+    if (!isFinite(v) || v < 1) return null
+    const dias = Math.floor(v) // fração = hora do dia; só a data interessa
+    // Época do sistema 1900 do Excel: serial 1 = 01/01/1900. O serial 60 é o
+    // fictício 29/02/1900 (bug herdado do Lotus 1-2-3); a partir do 61 a
+    // época efetiva recua um dia para compensar. Datas reais das planilhas
+    // são 2019+ (serial ~43500), longe dessa borda.
+    const epoch = Date.UTC(1899, 11, dias < 61 ? 31 : 30)
+    const d = new Date(epoch + dias * 86400000)
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+    const dd = String(d.getUTCDate()).padStart(2, '0')
+    return `${d.getUTCFullYear()}-${mm}-${dd}`
   }
 
   const s = String(v).trim()
