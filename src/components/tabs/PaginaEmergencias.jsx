@@ -41,6 +41,13 @@ import AbaPrazo48h from './emerg/AbaPrazo48h.jsx'
 import AbaBuscaEmerg from './emerg/AbaBuscaEmerg.jsx'
 import AbaMotivosInvalidos from './emerg/AbaMotivosInvalidos.jsx'
 import EditorMotivos from './emerg/EditorMotivos.jsx'
+import ManualEmergencias from './emerg/ManualEmergencias.jsx'
+
+const SECOES_MANUAL = [
+  { id: 'introducao', label: 'Introdução' },
+  { id: 'parte-1', label: 'Parte 1 — Sistema Geo' },
+  { id: 'parte-2', label: 'Parte 2 — OBRAS' },
+]
 
 // ── Modais de sucesso ────────────────────────────────────────────────
 function ModalSucesso({ mensagem, titulo, onClose }) {
@@ -62,14 +69,19 @@ function ModalSucesso({ mensagem, titulo, onClose }) {
   )
 }
 
-// Modal com o manual em PDF (visualizado via <iframe>, sem dependência extra).
+// Modal com o manual de atualização — conteúdo nativo (mesmo padrão visual
+// dos pop-ups "?" de AjudaUpload.jsx), com as telas reais como imagens. O PDF
+// original fica disponível só para download, no link do cabeçalho.
 function ModalManual({ onClose }) {
+  function irPara(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[88vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-grey-line">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl h-[88vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-grey-line shrink-0">
           <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
-            Manual — Atualização de dados de Emergências
+            Como atualizar os dados de Emergências
           </h3>
           <div className="flex items-center gap-3">
             <a
@@ -88,11 +100,20 @@ function ModalManual({ onClose }) {
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none" title="Fechar">✕</button>
           </div>
         </div>
-        <iframe
-          src="/manuais/guia-atualizacao-emergencias.pdf"
-          title="Manual de atualização de dados de Emergências"
-          className="flex-1 w-full rounded-b-xl"
-        />
+        <div className="flex gap-1.5 px-5 py-2 border-b border-grey-line bg-grey-bg shrink-0">
+          {SECOES_MANUAL.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => irPara(s.id)}
+              className="text-[11px] font-semibold px-2.5 py-1 rounded-sm border border-grey-line bg-white text-navy hover:bg-navy hover:text-white hover:border-navy transition-colors"
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">
+          <ManualEmergencias />
+        </div>
       </div>
     </div>
   )
