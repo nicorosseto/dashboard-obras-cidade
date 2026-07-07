@@ -104,6 +104,13 @@ o fluxo de login).
 > Vercel/Supabase MCP ficam indisponíveis nas sessões web, e isso **não bloqueia
 > nada** — o schema do banco vem dos scripts versionados em `supabase/schema/`, e
 > Playwright (e o GitHub MCP do ambiente web) funcionam sem OAuth.
+>
+> **🔒 Registrado como bloqueado (07/07/2026):** confirmado com o usuário que, por
+> ora, ele **não tem acesso ao Claude Code desktop** (única forma de abrir uma
+> sessão interativa e completar o `/mcp` login). Fica **em espera** — nenhuma nova
+> tentativa de autorizar Vercel/Supabase MCP até o usuário avisar que já tem acesso
+> ao desktop e quer tentar. Não é uma pendência a perseguir sozinho; é uma decisão
+> dele revisitar quando fizer sentido.
 
 ---
 
