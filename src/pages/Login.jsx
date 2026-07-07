@@ -73,6 +73,7 @@ export default function Login({ onLogin }) {
                 onMouseLeave={() => setMostrarSenha(false)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 select-none"
                 tabIndex={-1}
+                aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 {mostrarSenha ? (
                   <svg
@@ -81,6 +82,7 @@ export default function Login({ onLogin }) {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -96,6 +98,7 @@ export default function Login({ onLogin }) {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
