@@ -67,7 +67,7 @@ export default function DonutComparativo({ titulo, dados, cores, total }) {
             className="inline-flex items-center gap-1.5 text-[11px] text-gray-600"
           >
             <span
-              className="w-2.5 h-2.5 rounded-sm shrink-0"
+              className="w-2.5 h-2.5 rounded-xs shrink-0"
               style={{ backgroundColor: cores[i] || '#999' }}
             />
             {d.nome}: <strong>{fmtNumero(d.valor)}</strong> ({d.pct}%)

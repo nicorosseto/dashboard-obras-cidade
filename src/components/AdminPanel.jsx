@@ -27,20 +27,20 @@ function ModalConfirmacao({ titulo, mensagem, alerta, onConfirmar, onCancelar })
             <h2 id="modal-conf-titulo" className="text-base font-bold text-gray-900">{titulo}</h2>
             <p className="text-sm text-gray-600 mt-1">{mensagem}</p>
             {alerta && (
-              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 mt-2">{alerta}</p>
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-sm px-2 py-1.5 mt-2">{alerta}</p>
             )}
           </div>
         </div>
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancelar}
-            className="px-4 py-2 text-sm rounded border border-grey-line text-gray-600 hover:bg-grey-bg transition-colors"
+            className="px-4 py-2 text-sm rounded-sm border border-grey-line text-gray-600 hover:bg-grey-bg transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={onConfirmar}
-            className="px-4 py-2 text-sm rounded bg-red font-semibold text-white hover:opacity-90 transition-opacity"
+            className="px-4 py-2 text-sm rounded-sm bg-red font-semibold text-white hover:opacity-90 transition-opacity"
           >
             Excluir
           </button>
@@ -77,7 +77,7 @@ const TABS = [
 
 export default function AdminPanel({ abaAtiva = 0 }) {
   return (
-    <section className="bg-white rounded-lg shadow p-5">
+    <section className="bg-white rounded-lg shadow-sm p-5">
       {abaAtiva === 0 && <AbaUsuarios />}
       {abaAtiva === 1 && <AbaPerfis />}
       {abaAtiva === 2 && <AtualizarDados />}
@@ -286,7 +286,7 @@ function AbaPerfis() {
         </p>
         <button
           onClick={() => (editando !== null ? setEditando(null) : abrirNovo())}
-          className="text-xs bg-navy text-white px-3 py-1.5 rounded hover:bg-navy-light transition-colors"
+          className="text-xs bg-navy text-white px-3 py-1.5 rounded-sm hover:bg-navy-light transition-colors"
         >
           {editando !== null ? 'Cancelar' : '+ Novo perfil'}
         </button>
@@ -294,7 +294,7 @@ function AbaPerfis() {
 
       {msg && (
         <div
-          className={`flex items-start justify-between gap-2 text-xs rounded p-2 mb-3 ${msg.tipo === 'ok' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}
+          className={`flex items-start justify-between gap-2 text-xs rounded-sm p-2 mb-3 ${msg.tipo === 'ok' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}
         >
           <span>{msg.texto}</span>
           <button
@@ -311,7 +311,7 @@ function AbaPerfis() {
       {editando !== null && (
         <form
           onSubmit={handleSalvar}
-          className="mb-4 p-3 bg-grey-bg rounded border border-grey-line space-y-3"
+          className="mb-4 p-3 bg-grey-bg rounded-sm border border-grey-line space-y-3"
         >
           <p className="text-xs font-semibold text-gray-600 uppercase">
             {editando === 'novo' ? 'Novo perfil' : 'Editar perfil'}
@@ -327,10 +327,10 @@ function AbaPerfis() {
                 onChange={(e) => setFormNome(e.target.value)}
                 required
                 placeholder="ex: Equipe Sistema Geo"
-                className="w-full border border-grey-line rounded px-2 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-navy"
+                className="w-full border border-grey-line rounded-sm px-2 py-1.5 text-xs bg-white focus:outline-hidden focus:ring-1 focus:ring-navy"
               />
             </div>
-            <div className="flex-[2]">
+            <div className="flex-2">
               <label className="text-[10px] text-gray-500 font-semibold uppercase block mb-1">
                 Descrição (opcional)
               </label>
@@ -339,7 +339,7 @@ function AbaPerfis() {
                 value={formDescricao}
                 onChange={(e) => setFormDescricao(e.target.value)}
                 placeholder="ex: Acesso de leitura aos dados do Sistema Geo"
-                className="w-full border border-grey-line rounded px-2 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-navy"
+                className="w-full border border-grey-line rounded-sm px-2 py-1.5 text-xs bg-white focus:outline-hidden focus:ring-1 focus:ring-navy"
               />
             </div>
           </div>
@@ -355,7 +355,7 @@ function AbaPerfis() {
               return (
                 <div
                   key={mod}
-                  className="bg-white rounded border border-grey-line p-2"
+                  className="bg-white rounded-sm border border-grey-line p-2"
                 >
                   <label className="flex items-center gap-2 pb-1.5 mb-1.5 border-b border-grey-line cursor-pointer">
                     <input
@@ -375,7 +375,7 @@ function AbaPerfis() {
                     {itens.map((c) => (
                       <label
                         key={c.codigo}
-                        className="flex items-start gap-2 cursor-pointer hover:bg-grey-bg rounded px-1 py-0.5"
+                        className="flex items-start gap-2 cursor-pointer hover:bg-grey-bg rounded-sm px-1 py-0.5"
                         title={c.descricao || ''}
                       >
                         <input
@@ -397,7 +397,7 @@ function AbaPerfis() {
 
           {/* Legenda do que cada permissão libera */}
           {catalogo.length > 0 && (
-            <details className="border border-grey-line rounded bg-grey-bg/50">
+            <details className="border border-grey-line rounded-sm bg-grey-bg/50">
               <summary className="text-[10px] text-gray-500 px-3 py-2 cursor-pointer select-none hover:text-navy">
                 ℹ️ O que cada permissão libera na interface?
               </summary>
@@ -416,7 +416,7 @@ function AbaPerfis() {
             <button
               type="submit"
               disabled={salvando}
-              className="bg-navy text-white px-4 py-1.5 rounded text-xs hover:bg-navy-light disabled:opacity-50 transition-colors"
+              className="bg-navy text-white px-4 py-1.5 rounded-sm text-xs hover:bg-navy-light disabled:opacity-50 transition-colors"
             >
               {salvando ? 'Salvando...' : 'Salvar perfil'}
             </button>
@@ -752,7 +752,7 @@ function AbaUsuarios() {
             setMostrarForm((v) => !v)
             setMsgCriacao(null)
           }}
-          className="text-xs bg-navy text-white px-3 py-1.5 rounded hover:bg-navy-light transition-colors"
+          className="text-xs bg-navy text-white px-3 py-1.5 rounded-sm hover:bg-navy-light transition-colors"
         >
           {mostrarForm ? 'Cancelar' : '+ Novo usuário'}
         </button>
@@ -778,11 +778,11 @@ function AbaUsuarios() {
                 minLength={6}
                 placeholder="Nova senha temporária (mín. 6 caracteres)"
                 autoFocus
-                className="w-full border border-grey-line rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-navy"
+                className="w-full border border-grey-line rounded-sm px-3 py-2 text-sm focus:outline-hidden focus:ring-1 focus:ring-navy"
               />
               {msgReset && (
                 <p
-                  className={`text-xs rounded p-2 ${msgReset.tipo === 'ok' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}
+                  className={`text-xs rounded-sm p-2 ${msgReset.tipo === 'ok' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}
                 >
                   {msgReset.texto}
                 </p>
@@ -795,7 +795,7 @@ function AbaUsuarios() {
                     setMsgReset(null)
                     setResetSenha('')
                   }}
-                  className="w-full py-1.5 bg-navy text-white text-xs rounded hover:bg-navy-light transition-colors"
+                  className="w-full py-1.5 bg-navy text-white text-xs rounded-sm hover:bg-navy-light transition-colors"
                 >
                   Ok
                 </button>
@@ -808,14 +808,14 @@ function AbaUsuarios() {
                       setMsgReset(null)
                       setResetSenha('')
                     }}
-                    className="flex-1 py-1.5 border border-grey-line text-navy text-xs rounded hover:bg-grey-bg transition-colors"
+                    className="flex-1 py-1.5 border border-grey-line text-navy text-xs rounded-sm hover:bg-grey-bg transition-colors"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={resetando}
-                    className="flex-1 py-1.5 bg-navy text-white text-xs rounded hover:bg-navy-light disabled:opacity-50 transition-colors"
+                    className="flex-1 py-1.5 bg-navy text-white text-xs rounded-sm hover:bg-navy-light disabled:opacity-50 transition-colors"
                   >
                     {resetando ? 'Salvando...' : 'Redefinir'}
                   </button>
@@ -829,7 +829,7 @@ function AbaUsuarios() {
       {mostrarForm && (
         <form
           onSubmit={handleCriar}
-          className="mb-4 p-3 bg-grey-bg rounded border border-grey-line space-y-3"
+          className="mb-4 p-3 bg-grey-bg rounded-sm border border-grey-line space-y-3"
         >
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-gray-600 uppercase">
@@ -850,7 +850,7 @@ function AbaUsuarios() {
                 }
                 required
                 placeholder="ex: joao.silva"
-                className="w-full border border-grey-line rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-navy"
+                className="w-full border border-grey-line rounded-sm px-2 py-1.5 text-xs focus:outline-hidden focus:ring-1 focus:ring-navy"
               />
             </div>
             <div className="flex-1">
@@ -864,7 +864,7 @@ function AbaUsuarios() {
                 required
                 placeholder="Mínimo 6 caracteres"
                 minLength={6}
-                className="w-full border border-grey-line rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-navy"
+                className="w-full border border-grey-line rounded-sm px-2 py-1.5 text-xs focus:outline-hidden focus:ring-1 focus:ring-navy"
               />
             </div>
           </div>
@@ -874,7 +874,7 @@ function AbaUsuarios() {
             <label className="text-[10px] text-gray-500 font-semibold uppercase block mb-1">
               Perfil
             </label>
-            <div className="flex rounded border border-grey-line overflow-hidden text-[11px] w-fit">
+            <div className="flex rounded-sm border border-grey-line overflow-hidden text-[11px] w-fit">
               <button
                 type="button"
                 onClick={() => setNovoRole('user')}
@@ -906,7 +906,7 @@ function AbaUsuarios() {
               <select
                 value={novoPerfilId}
                 onChange={(e) => setNovoPerfilId(e.target.value)}
-                className="border border-grey-line rounded px-2 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-navy"
+                className="border border-grey-line rounded-sm px-2 py-1.5 text-xs bg-white focus:outline-hidden focus:ring-1 focus:ring-navy"
               >
                 <option value="">Sem perfil (não verá nenhum módulo)</option>
                 {perfis.map((p) => (
@@ -925,7 +925,7 @@ function AbaUsuarios() {
             <button
               type="submit"
               disabled={criando}
-              className="bg-navy text-white px-4 py-1.5 rounded text-xs hover:bg-navy-light disabled:opacity-50 transition-colors"
+              className="bg-navy text-white px-4 py-1.5 rounded-sm text-xs hover:bg-navy-light disabled:opacity-50 transition-colors"
             >
               {criando ? 'Criando...' : 'Criar usuário'}
             </button>
@@ -939,14 +939,14 @@ function AbaUsuarios() {
 
       {msgCriacao && (
         <p
-          className={`text-xs rounded p-2 mb-3 ${msgCriacao.tipo === 'ok' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}
+          className={`text-xs rounded-sm p-2 mb-3 ${msgCriacao.tipo === 'ok' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}
         >
           {msgCriacao.texto}
         </p>
       )}
 
       {msgAcao && (
-        <div className="text-xs rounded p-2 mb-3 flex items-start justify-between gap-2 bg-red-50 text-red-600 border border-red-200">
+        <div className="text-xs rounded-sm p-2 mb-3 flex items-start justify-between gap-2 bg-red-50 text-red-600 border border-red-200">
           <span>{msgAcao.texto}</span>
           <button
             onClick={() => setMsgAcao(null)}
@@ -1044,7 +1044,7 @@ function AbaUsuarios() {
                         onChange={(e) =>
                           trocarPerfilAcesso(u.id, e.target.value)
                         }
-                        className={`border rounded px-1.5 py-0.5 text-[10px] bg-white focus:outline-none focus:ring-1 focus:ring-navy max-w-[170px] ${
+                        className={`border rounded px-1.5 py-0.5 text-[10px] bg-white focus:outline-hidden focus:ring-1 focus:ring-navy max-w-[170px] ${
                           u.perfil_acesso_id == null
                             ? 'border-amber-400 text-amber-700'
                             : 'border-grey-line text-gray-700'

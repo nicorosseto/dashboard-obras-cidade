@@ -34,9 +34,9 @@ function LegendItem({ d, color }) {
       onMouseEnter={() => d.detalhe && setAberto(true)}
       onMouseLeave={() => setAberto(false)}
     >
-      <div className="flex items-center gap-1.5 text-xs px-1 py-0.5 rounded hover:bg-grey-bg cursor-default">
+      <div className="flex items-center gap-1.5 text-xs px-1 py-0.5 rounded-sm hover:bg-grey-bg cursor-default">
         <div
-          className="w-2.5 h-2.5 rounded-sm shrink-0"
+          className="w-2.5 h-2.5 rounded-xs shrink-0"
           style={{ background: color }}
         />
         <span className="flex-1 truncate min-w-0">{d.nome}</span>
@@ -75,7 +75,7 @@ function TooltipDonut({ active, payload }) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
-    <div className="bg-white border border-grey-line rounded shadow-card p-2 text-xs w-[210px]">
+    <div className="bg-white border border-grey-line rounded-sm shadow-card p-2 text-xs w-[210px]">
       <div className="font-semibold text-navy mb-0.5 truncate">{d.nome}</div>
       <div className="text-gray-600">
         {fmtNumero(d.valor)} processos ({d.pct}%)
@@ -107,7 +107,7 @@ function ChartCard({ titulo, acoes, children }) {
           <h3 className="text-sm font-semibold text-navy uppercase tracking-wide flex-1 text-center">
             {titulo}
           </h3>
-          {acoes && <div className="ml-2 flex-shrink-0">{acoes}</div>}
+          {acoes && <div className="ml-2 shrink-0">{acoes}</div>}
         </div>
       )}
       <div className="flex-1">{children}</div>

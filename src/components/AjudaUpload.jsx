@@ -28,7 +28,7 @@ export default function AjudaUpload({ titulo = 'Como funciona', children }) {
 
       {aberto && (
         <div
-          className="fixed inset-0 z-[70] bg-black/40 flex items-center justify-center p-4"
+          className="fixed inset-0 z-70 bg-black/40 flex items-center justify-center p-4"
           onClick={() => setAberto(false)}
         >
           <div
@@ -41,7 +41,7 @@ export default function AjudaUpload({ titulo = 'Como funciona', children }) {
               </h2>
               <button
                 onClick={() => setAberto(false)}
-                className="text-gray-500 hover:text-navy text-xl leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-grey-bg"
+                className="text-gray-500 hover:text-navy text-xl leading-none w-7 h-7 flex items-center justify-center rounded-sm hover:bg-grey-bg"
                 title="Fechar"
               >
                 ×
@@ -53,7 +53,7 @@ export default function AjudaUpload({ titulo = 'Como funciona', children }) {
             <div className="px-5 py-3 border-t border-grey-line sticky bottom-0 bg-white text-right">
               <button
                 onClick={() => setAberto(false)}
-                className="bg-navy text-white px-4 py-1.5 rounded text-xs font-semibold hover:bg-navy-light transition-colors"
+                className="bg-navy text-white px-4 py-1.5 rounded-sm text-xs font-semibold hover:bg-navy-light transition-colors"
               >
                 Entendi
               </button>

@@ -330,7 +330,7 @@ export default function SidebarSistemaGeo({
               type="date"
               value={filtros.dataIni || ''}
               onChange={(e) => setDataIni(e.target.value)}
-              className="w-full text-xs border border-grey-line rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-navy"
+              className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 focus:outline-hidden focus:ring-1 focus:ring-navy"
             />
           </div>
           <div>
@@ -341,7 +341,7 @@ export default function SidebarSistemaGeo({
               type="date"
               value={filtros.dataFim || ''}
               onChange={(e) => setDataFim(e.target.value)}
-              className="w-full text-xs border border-grey-line rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-navy"
+              className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 focus:outline-hidden focus:ring-1 focus:ring-navy"
             />
           </div>
           {/* Presets de período */}
@@ -404,7 +404,7 @@ export default function SidebarSistemaGeo({
           placeholder="Buscar..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="w-full text-xs border border-grey-line rounded px-2 py-1 mb-2 focus:outline-none focus:ring-1 focus:ring-navy"
+          className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 mb-2 focus:outline-hidden focus:ring-1 focus:ring-navy"
         />
         <div className="space-y-0.5 max-h-72 overflow-y-auto pr-1">
           <Check
@@ -587,7 +587,7 @@ export default function SidebarSistemaGeo({
       <div className="px-3 py-2 border-t border-grey-line shrink-0">
         <button
           onClick={onLimpar}
-          className="w-full text-xs py-2 border border-navy text-navy rounded hover:bg-navy hover:text-white transition-colors"
+          className="w-full text-xs py-2 border border-navy text-navy rounded-sm hover:bg-navy hover:text-white transition-colors"
         >
           Limpar filtros
         </button>
@@ -656,7 +656,7 @@ function CheckExpansivel({
           type="button"
           onClick={onToggle}
           title={aberto ? 'Recolher' : 'Expandir bases'}
-          className="w-5 h-5 flex items-center justify-center rounded border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
+          className="w-5 h-5 flex items-center justify-center rounded-sm border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
         >
           {aberto ? '−' : '+'}
         </button>

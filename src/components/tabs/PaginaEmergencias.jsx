@@ -54,7 +54,7 @@ function ModalSucesso({ mensagem, titulo, onClose }) {
         </div>
         <h3 className="text-sm font-bold text-navy uppercase tracking-wide mb-1">{titulo}</h3>
         <p className="text-sm text-gray-700 mb-5">{mensagem}</p>
-        <button onClick={onClose} className="w-full py-2 rounded bg-navy text-white text-sm font-semibold hover:bg-navy-light transition-colors">
+        <button onClick={onClose} className="w-full py-2 rounded-sm bg-navy text-white text-sm font-semibold hover:bg-navy-light transition-colors">
           Ok
         </button>
       </div>
@@ -450,13 +450,13 @@ export default function PaginaEmergencias({
             <div className="flex gap-2">
               <button
                 onClick={() => setPromptAjuste(false)}
-                className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded hover:bg-grey-bg"
+                className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded-sm hover:bg-grey-bg"
               >
                 Depois
               </button>
               <button
                 onClick={() => { setPromptAjuste(false); setEditorMotivos(true) }}
-                className="flex-1 py-2 bg-navy text-white text-xs font-semibold rounded hover:bg-navy-light"
+                className="flex-1 py-2 bg-navy text-white text-xs font-semibold rounded-sm hover:bg-navy-light"
               >
                 Ajustar agora
               </button>
@@ -503,7 +503,7 @@ export default function PaginaEmergencias({
               </svg>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-amber-700 mb-1">Carregando emergências…</p>
-                <div className="h-1.5 bg-amber-100 rounded overflow-hidden">
+                <div className="h-1.5 bg-amber-100 rounded-sm overflow-hidden">
                   <div
                     className="h-full bg-amber-500 transition-all duration-300"
                     style={{ width: `${emgProgresso.total > 0 ? Math.min(100, Math.round((emgProgresso.carregadas / emgProgresso.total) * 100)) : 0}%` }}
@@ -521,7 +521,7 @@ export default function PaginaEmergencias({
             <div className="flex justify-end">
               <button
                 onClick={() => setModalUpload(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded border border-navy text-navy hover:bg-navy hover:text-white transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-sm border border-navy text-navy hover:bg-navy hover:text-white transition-colors"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -586,14 +586,14 @@ export default function PaginaEmergencias({
                         <div className="flex gap-2 pt-1 border-t border-grey-line">
                           <button
                             onClick={() => { setPrevia(null); setPreviaObras(null) }}
-                            className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded hover:bg-grey-bg transition-colors"
+                            className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded-sm hover:bg-grey-bg transition-colors"
                           >
                             Cancelar
                           </button>
                           <button
                             onClick={confirmarAmbos}
                             disabled={lendo}
-                            className="flex-1 py-2.5 bg-navy text-white text-xs font-semibold rounded hover:bg-navy-light transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="flex-1 py-2.5 bg-navy text-white text-xs font-semibold rounded-sm hover:bg-navy-light transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                           >
                             {lendo ? 'Aguardando leitura…' : 'Confirmar e importar'}
                           </button>

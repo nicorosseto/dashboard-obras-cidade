@@ -34,12 +34,12 @@ export default class ErrorBoundary extends Component {
             <p className="text-sm text-gray-600 mb-4">
               Algo deu errado ao carregar este módulo. O restante do sistema continua funcionando.
             </p>
-            <p className="text-xs text-gray-400 font-mono bg-gray-50 rounded p-2 mb-4 text-left break-all">
+            <p className="text-xs text-gray-400 font-mono bg-gray-50 rounded-sm p-2 mb-4 text-left break-all">
               {this.state.erro?.message || String(this.state.erro)}
             </p>
             <button
               onClick={() => this.setState({ erro: null })}
-              className="text-xs font-semibold text-navy border border-navy rounded px-3 py-1.5 hover:bg-navy hover:text-white transition-colors"
+              className="text-xs font-semibold text-navy border border-navy rounded-sm px-3 py-1.5 hover:bg-navy hover:text-white transition-colors"
             >
               Tentar novamente
             </button>

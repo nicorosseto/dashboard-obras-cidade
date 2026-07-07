@@ -245,7 +245,7 @@ export default function SidebarCruzamento({ rowsFisc, rowsGeo, filtros, setFiltr
         <Bloco titulo="Visibilidade" count={visibilidadeAtiva ? 1 : 0} defaultOpen>
           <div className="space-y-1">
             {OPCOES_VISIBILIDADE.map((op) => (
-              <label key={op.id} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+              <label key={op.id} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
                 <input
                   type="radio"
                   name="visibilidade-cruzamento"
@@ -269,7 +269,7 @@ export default function SidebarCruzamento({ rowsFisc, rowsGeo, filtros, setFiltr
             placeholder="Buscar..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full text-xs border border-grey-line rounded px-2 py-1 mb-2 focus:outline-none focus:ring-1 focus:ring-navy"
+            className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 mb-2 focus:outline-hidden focus:ring-1 focus:ring-navy"
           />
           <div className="space-y-0.5 max-h-64 overflow-y-auto pr-1">
             <Check
@@ -367,7 +367,7 @@ export default function SidebarCruzamento({ rowsFisc, rowsGeo, filtros, setFiltr
               const algumIndMarcado = individuais.some(i => sgSet.has(i))
               return (
                 <div key={grupo}>
-                  <div className="flex items-center gap-1 text-xs px-1 py-0.5 rounded hover:bg-grey-bg">
+                  <div className="flex items-center gap-1 text-xs px-1 py-0.5 rounded-sm hover:bg-grey-bg">
                     <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
                       <input
                         type="checkbox"
@@ -397,7 +397,7 @@ export default function SidebarCruzamento({ rowsFisc, rowsGeo, filtros, setFiltr
                           return next
                         })}
                         title={grupoAberto ? 'Recolher' : 'Ver status individuais'}
-                        className="w-5 h-5 flex items-center justify-center rounded border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
+                        className="w-5 h-5 flex items-center justify-center rounded-sm border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
                       >
                         {grupoAberto ? '−' : '+'}
                       </button>
@@ -474,7 +474,7 @@ export default function SidebarCruzamento({ rowsFisc, rowsGeo, filtros, setFiltr
       <div className="px-3 py-2 border-t border-grey-line shrink-0">
         <button
           onClick={onLimpar}
-          className="w-full text-xs py-2 border border-navy text-navy rounded hover:bg-navy hover:text-white transition-colors"
+          className="w-full text-xs py-2 border border-navy text-navy rounded-sm hover:bg-navy hover:text-white transition-colors"
         >
           Limpar filtros
         </button>
@@ -485,7 +485,7 @@ export default function SidebarCruzamento({ rowsFisc, rowsGeo, filtros, setFiltr
 
 function Check({ label, checked, onChange, bold }) {
   return (
-    <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+    <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
       <input
         type="checkbox"
         checked={!!checked}
@@ -499,7 +499,7 @@ function Check({ label, checked, onChange, bold }) {
 
 function CheckExpansivel({ label, checked, onChange, aberto, onToggle, mostraBotao = true }) {
   return (
-    <div className="flex items-center gap-1 text-xs px-1 py-0.5 rounded hover:bg-grey-bg">
+    <div className="flex items-center gap-1 text-xs px-1 py-0.5 rounded-sm hover:bg-grey-bg">
       <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
         <input
           type="checkbox"
@@ -514,7 +514,7 @@ function CheckExpansivel({ label, checked, onChange, aberto, onToggle, mostraBot
           type="button"
           onClick={onToggle}
           title={aberto ? 'Recolher' : 'Expandir bases'}
-          className="w-5 h-5 flex items-center justify-center rounded border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
+          className="w-5 h-5 flex items-center justify-center rounded-sm border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
         >
           {aberto ? '−' : '+'}
         </button>

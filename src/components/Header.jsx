@@ -22,7 +22,7 @@ function Logo({ src, alt }) {
 function LogoFallback({ texto }) {
   return (
     <div
-      className="h-14 px-3 rounded bg-white/15 items-center justify-center font-semibold text-xs uppercase tracking-wide"
+      className="h-14 px-3 rounded-sm bg-white/15 items-center justify-center font-semibold text-xs uppercase tracking-wide"
       style={{ display: 'none' }}
     >
       {texto}
@@ -156,7 +156,7 @@ export default function Header({
   const mostrarAbasNormal = mostrarAbas && !mostrarAbasCruzamento
 
   return (
-    <header className="bg-slate-800 text-white shadow">
+    <header className="bg-slate-800 text-white shadow-sm">
       {/* Linha 1: Home + Logos + Título do módulo + Dropdown + Usuário */}
       <div className="w-full px-3 sm:px-4 py-4 flex items-center gap-6">
         {/* Home button */}
@@ -164,7 +164,7 @@ export default function Header({
           <button
             onClick={onHome}
             title="Página inicial"
-            className="shrink-0 w-9 h-9 rounded bg-white/15 hover:bg-white/30 flex items-center justify-center transition-colors"
+            className="shrink-0 w-9 h-9 rounded-sm bg-white/15 hover:bg-white/30 flex items-center justify-center transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -224,7 +224,7 @@ export default function Header({
               <button
                 onClick={onAlterarSenha}
                 title="Alterar minha senha"
-                className="w-8 h-8 flex items-center justify-center rounded bg-white/15 hover:bg-white/30 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-sm bg-white/15 hover:bg-white/30 transition-colors"
               >
                 <svg
                   className="w-4 h-4"
@@ -242,7 +242,7 @@ export default function Header({
             )}
             <button
               onClick={handleSignOut}
-              className="text-xs text-white/80 hover:text-white border border-white/30 hover:border-white/60 px-2 py-1 rounded transition-colors"
+              className="text-xs text-white/80 hover:text-white border border-white/30 hover:border-white/60 px-2 py-1 rounded-sm transition-colors"
             >
               Sair
             </button>

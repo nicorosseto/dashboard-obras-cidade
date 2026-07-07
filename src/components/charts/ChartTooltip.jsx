@@ -27,7 +27,7 @@ export default function ChartTooltip({
   const pct = ponto.pct
 
   return (
-    <div className="bg-white border border-grey-line rounded shadow-card p-2 text-xs min-w-[120px] max-w-[240px]">
+    <div className="bg-white border border-grey-line rounded-sm shadow-card p-2 text-xs min-w-[120px] max-w-[240px]">
       {titulo !== '' && (
         <div className="font-semibold text-navy mb-1 truncate">{titulo}</div>
       )}
@@ -37,7 +37,7 @@ export default function ChartTooltip({
           {payload.map((item, i) => (
             <div key={i} className="flex items-center gap-2">
               <span
-                className="w-2.5 h-2.5 rounded-sm shrink-0"
+                className="w-2.5 h-2.5 rounded-xs shrink-0"
                 style={{ background: item.color || item.fill || '#888' }}
               />
               <span className="text-gray-500 truncate min-w-0 flex-1">

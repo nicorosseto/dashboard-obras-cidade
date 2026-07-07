@@ -38,7 +38,7 @@ export default function ModuleDropdown({
       {/* Botão com cor do módulo ativo */}
       <button
         onClick={() => setAberto(!aberto)}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white rounded transition-all hover:opacity-90"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white rounded-sm transition-all hover:opacity-90"
         style={{ background: accentGradient }}
       >
         <span>Módulos</span>
@@ -68,7 +68,7 @@ export default function ModuleDropdown({
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
-              {mod.icon && <span className="w-4 h-4 flex-shrink-0">{mod.icon}</span>}
+              {mod.icon && <span className="w-4 h-4 shrink-0">{mod.icon}</span>}
               <span className="flex-1">{mod.label}</span>
               <svg
                 className="w-3.5 h-3.5 text-white/50"

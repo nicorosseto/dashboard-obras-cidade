@@ -54,7 +54,7 @@ export default function AbaHistorico({ snapshots, carregando }) {
               const aberto = abertos.has(s.id)
               const perPerm = s.por_permissionaria || null
               return (
-                <div key={s.id} className="border border-grey-line rounded">
+                <div key={s.id} className="border border-grey-line rounded-sm">
                   <button onClick={() => toggle(s.id)} className="w-full text-left hover:bg-grey-bg/40">
                     <div className="grid gap-2 items-center px-3 py-2 text-xs" style={{ gridTemplateColumns: 'auto repeat(12, minmax(0, 1fr))' }}>
                       <span className={`w-4 text-navy font-bold text-sm leading-none inline-block transition-transform ${aberto ? 'rotate-90' : ''}`}>▶</span>
@@ -71,7 +71,7 @@ export default function AbaHistorico({ snapshots, carregando }) {
                     <div className="border-t border-grey-line p-3 bg-grey-bg/30">
                       {perPerm && perPerm.length > 0 ? (
                         <div className="overflow-x-auto">
-                          <table className="min-w-full text-[11px] bg-white rounded">
+                          <table className="min-w-full text-[11px] bg-white rounded-sm">
                             <thead className="bg-grey-bg">
                               <tr>
                                 <th className="text-left p-2">Permissionária</th>

@@ -218,7 +218,7 @@ export default function Sidebar({
               type="date"
               value={filtros.dataIni || ''}
               onChange={(e) => setDataIni(e.target.value)}
-              className="w-full text-xs border border-grey-line rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-navy"
+              className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 focus:outline-hidden focus:ring-1 focus:ring-navy"
             />
           </div>
           <div>
@@ -229,7 +229,7 @@ export default function Sidebar({
               type="date"
               value={filtros.dataFim || ''}
               onChange={(e) => setDataFim(e.target.value)}
-              className="w-full text-xs border border-grey-line rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-navy"
+              className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 focus:outline-hidden focus:ring-1 focus:ring-navy"
             />
           </div>
           {/* Presets de período */}
@@ -316,10 +316,10 @@ export default function Sidebar({
           placeholder="Buscar..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="w-full text-xs border border-grey-line rounded px-2 py-1 mb-2 focus:outline-none focus:ring-1 focus:ring-navy"
+          className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 mb-2 focus:outline-hidden focus:ring-1 focus:ring-navy"
         />
         <div className="space-y-0.5 max-h-72 overflow-y-auto pr-1">
-          <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+          <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
             <input
               type="checkbox"
               checked={isTodasPerm}
@@ -330,7 +330,7 @@ export default function Sidebar({
           </label>
           {/* NORCREST (consolidado) com botão expansível */}
           {norcrestUnits.length > 0 && (
-            <div className="flex items-center gap-1 text-xs hover:bg-grey-bg px-1 py-0.5 rounded">
+            <div className="flex items-center gap-1 text-xs hover:bg-grey-bg px-1 py-0.5 rounded-sm">
               <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
                 <input
                   type="checkbox"
@@ -346,7 +346,7 @@ export default function Sidebar({
                 type="button"
                 onClick={() => setNorcrestAberto((o) => !o)}
                 title={norcrestAberto ? 'Recolher' : 'Expandir bases'}
-                className="w-5 h-5 flex items-center justify-center rounded border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
+                className="w-5 h-5 flex items-center justify-center rounded-sm border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
               >
                 {norcrestAberto || busca ? '−' : '+'}
               </button>
@@ -356,7 +356,7 @@ export default function Sidebar({
           {(norcrestAberto || busca) &&
             norcrestFiltradas.map((p) => (
               <div key={p} className="pl-4 border-l-2 border-navy/20 ml-2">
-                <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+                <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
                   <input
                     type="checkbox"
                     checked={permSet.has(p)}
@@ -372,7 +372,7 @@ export default function Sidebar({
           {permissionariasFiltradas.map((p) => (
             <label
               key={p}
-              className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded"
+              className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm"
             >
               <input
                 type="checkbox"
@@ -389,7 +389,7 @@ export default function Sidebar({
       {/* Subprefeitura */}
       <Bloco titulo="Subprefeitura" count={subSet.size}>
         <div className="space-y-0.5 max-h-56 overflow-y-auto pr-1">
-          <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+          <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
             <input
               type="checkbox"
               checked={isTodasSub}
@@ -404,7 +404,7 @@ export default function Sidebar({
               <label
                 key={s}
                 title={nome || s}
-                className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded"
+                className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm"
               >
                 <input
                   type="checkbox"
@@ -425,7 +425,7 @@ export default function Sidebar({
       <div className="px-3 py-2 border-t border-grey-line shrink-0">
         <button
           onClick={onLimpar}
-          className="w-full text-xs py-2 border border-navy text-navy rounded hover:bg-navy hover:text-white transition-colors"
+          className="w-full text-xs py-2 border border-navy text-navy rounded-sm hover:bg-navy hover:text-white transition-colors"
         >
           Limpar filtros
         </button>

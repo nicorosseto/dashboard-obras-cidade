@@ -100,7 +100,7 @@ export default function AbaBuscaEmerg({ linhas, vistoriaMap, filtrosAtivos = fal
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Ex.: 6012.2024/0001234-5 ou parte do número…"
-              className="w-full pl-9 pr-10 py-2 text-sm border border-grey-line rounded-lg focus:outline-none focus:ring-2 focus:ring-navy/30 focus:border-navy"
+              className="w-full pl-9 pr-10 py-2 text-sm border border-grey-line rounded-lg focus:outline-hidden focus:ring-2 focus:ring-navy/30 focus:border-navy"
               autoFocus
             />
             {busca && (
@@ -142,7 +142,7 @@ export default function AbaBuscaEmerg({ linhas, vistoriaMap, filtrosAtivos = fal
 
       {mostrarTabela && !carregando && (
         <>
-          <div className="overflow-x-auto rounded border border-grey-line">
+          <div className="overflow-x-auto rounded-sm border border-grey-line">
             <table className="w-full text-xs border-collapse">
               <thead>
                 <tr className="bg-navy text-white text-left">
@@ -175,7 +175,7 @@ export default function AbaBuscaEmerg({ linhas, vistoriaMap, filtrosAtivos = fal
                       <td className="p-2 whitespace-nowrap">{it.subprefeitura || '—'}</td>
                       <td className="p-2 whitespace-nowrap"><StatusBadgeEmerg status={it.status} /></td>
                       <td className="p-2 text-center">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${temVist ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-semibold ${temVist ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                           {temVist ? 'Sim' : 'Não'}
                         </span>
                       </td>
