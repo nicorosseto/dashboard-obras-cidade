@@ -173,7 +173,7 @@ function UploadSistemaGeo() {
 
   if (etapa === 'concluido')
     return (
-      <div className="bg-green-50 border border-green-200 rounded p-6 text-center space-y-3">
+      <div className="bg-green-50 border border-green-200 rounded-sm p-6 text-center space-y-3">
         <p className="text-sm font-bold text-green-700">
           Importação concluída! {resultado.importadas.toLocaleString('pt-BR')}{' '}
           processos no banco.
@@ -183,7 +183,7 @@ function UploadSistemaGeo() {
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="bg-navy text-white px-4 py-2 rounded text-xs hover:bg-navy-light transition-colors"
+          className="bg-navy text-white px-4 py-2 rounded-sm text-xs hover:bg-navy-light transition-colors"
         >
           Recarregar o sistema agora
         </button>
@@ -192,7 +192,7 @@ function UploadSistemaGeo() {
 
   if (etapa === 'importando')
     return (
-      <div className="bg-white border border-grey-line rounded p-6 space-y-3">
+      <div className="bg-white border border-grey-line rounded-sm p-6 space-y-3">
         <p className="text-sm font-semibold text-navy">
           Importando — NÃO feche esta tela
         </p>
@@ -203,7 +203,7 @@ function UploadSistemaGeo() {
         <p className="text-xs text-gray-600">{progresso?.fase}</p>
         {progresso?.total > 1 && (
           <>
-            <div className="h-2 bg-grey-bg rounded overflow-hidden">
+            <div className="h-2 bg-grey-bg rounded-sm overflow-hidden">
               <div
                 className="h-full bg-navy transition-all duration-300"
                 style={{
@@ -272,7 +272,7 @@ function UploadSistemaGeo() {
       )}
 
       {erro && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded p-2">
+        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-sm p-2">
           {erro}
         </p>
       )}
@@ -280,7 +280,7 @@ function UploadSistemaGeo() {
       {etapa === 'revisao' && arquivo && (
         <div className="space-y-4">
           {/* Resumo da análise */}
-          <div className="bg-white border border-grey-line rounded p-4">
+          <div className="bg-white border border-grey-line rounded-sm p-4">
             <p className="text-xs font-bold text-navy uppercase mb-2">
               Análise de "{arquivo.nome}"
             </p>
@@ -314,14 +314,14 @@ function UploadSistemaGeo() {
 
           {/* Classificação dos status novos */}
           {arquivo.analise.statusDesconhecidos.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded p-4 space-y-3">
+            <div className="bg-amber-50 border border-amber-200 rounded-sm p-4 space-y-3">
               <p className="text-xs font-bold text-amber-800 uppercase">
                 Classifique os status novos antes de importar
               </p>
               {arquivo.analise.statusDesconhecidos.map(({ status, qtd }) => (
                 <div
                   key={status}
-                  className="bg-white border border-grey-line rounded p-2 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center"
+                  className="bg-white border border-grey-line rounded-sm p-2 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center"
                 >
                   <div className="text-xs">
                     <div className="font-mono font-semibold text-gray-800 truncate">
@@ -341,7 +341,7 @@ function UploadSistemaGeo() {
                       }))
                     }
                     placeholder="Nome legível"
-                    className="border border-grey-line rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-navy"
+                    className="border border-grey-line rounded-sm px-2 py-1.5 text-xs focus:outline-hidden focus:ring-1 focus:ring-navy"
                   />
                   <select
                     value={classif[status]?.grupo ?? ''}
@@ -351,7 +351,7 @@ function UploadSistemaGeo() {
                         [status]: { ...c[status], grupo: e.target.value },
                       }))
                     }
-                    className="border border-grey-line rounded px-2 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-navy"
+                    className="border border-grey-line rounded-sm px-2 py-1.5 text-xs bg-white focus:outline-hidden focus:ring-1 focus:ring-navy"
                   >
                     <option value="">Escolha o grupo unificado…</option>
                     {grupos.map((g) => (
@@ -367,7 +367,7 @@ function UploadSistemaGeo() {
 
           {/* Classificação dos tipos de processo novos */}
           {arquivo.analise.tiposProcessoDesconhecidos.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded p-4 space-y-3">
+            <div className="bg-amber-50 border border-amber-200 rounded-sm p-4 space-y-3">
               <p className="text-xs font-bold text-amber-800 uppercase">
                 Classifique os tipos de processo novos antes de importar
               </p>
@@ -375,7 +375,7 @@ function UploadSistemaGeo() {
                 ({ tipo, qtd }) => (
                   <div
                     key={tipo}
-                    className="bg-white border border-grey-line rounded p-2 grid grid-cols-1 sm:grid-cols-2 gap-2 items-center"
+                    className="bg-white border border-grey-line rounded-sm p-2 grid grid-cols-1 sm:grid-cols-2 gap-2 items-center"
                   >
                     <div className="text-xs">
                       <div className="font-mono font-semibold text-gray-800 truncate">
@@ -395,7 +395,7 @@ function UploadSistemaGeo() {
                         }))
                       }
                       placeholder="Nome legível (ex.: Manutenção Corretiva)"
-                      className="border border-grey-line rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-navy"
+                      className="border border-grey-line rounded-sm px-2 py-1.5 text-xs focus:outline-hidden focus:ring-1 focus:ring-navy"
                     />
                   </div>
                 )
@@ -404,7 +404,7 @@ function UploadSistemaGeo() {
           )}
 
           {/* Confirmação */}
-          <div className="bg-red-50 border border-red-200 rounded p-4 space-y-3">
+          <div className="bg-red-50 border border-red-200 rounded-sm p-4 space-y-3">
             <p className="text-xs text-red-700">
               ⚠️ A importação <strong>substitui TODOS os dados</strong> do
               Sistema Geo pelos da planilha. A operação testa a permissão de
@@ -417,7 +417,7 @@ function UploadSistemaGeo() {
                   setEtapa('inicio')
                   setErro(null)
                 }}
-                className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded hover:bg-grey-bg transition-colors"
+                className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded-sm hover:bg-grey-bg transition-colors"
               >
                 Cancelar
               </button>
@@ -429,7 +429,7 @@ function UploadSistemaGeo() {
                     ? `Classifique os ${pendentes} item(ns) pendentes para liberar`
                     : ''
                 }
-                className="flex-1 py-2 bg-red text-white text-xs font-semibold rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+                className="flex-1 py-2 bg-red text-white text-xs font-semibold rounded-sm hover:opacity-90 disabled:opacity-40 transition-opacity"
               >
                 {pendentes > 0
                   ? `Classifique ${pendentes} item(ns) para liberar`
@@ -507,7 +507,7 @@ function UploadFiscalizacao() {
 
   if (etapa === 'concluido')
     return (
-      <div className="bg-green-50 border border-green-200 rounded p-6 text-center space-y-3">
+      <div className="bg-green-50 border border-green-200 rounded-sm p-6 text-center space-y-3">
         <p className="text-sm font-bold text-green-700">
           Importação concluída! {resultado.importadas.toLocaleString('pt-BR')}{' '}
           laudos no banco.
@@ -517,7 +517,7 @@ function UploadFiscalizacao() {
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="bg-navy text-white px-4 py-2 rounded text-xs hover:bg-navy-light transition-colors"
+          className="bg-navy text-white px-4 py-2 rounded-sm text-xs hover:bg-navy-light transition-colors"
         >
           Recarregar o sistema agora
         </button>
@@ -526,7 +526,7 @@ function UploadFiscalizacao() {
 
   if (etapa === 'importando')
     return (
-      <div className="bg-white border border-grey-line rounded p-6 space-y-3">
+      <div className="bg-white border border-grey-line rounded-sm p-6 space-y-3">
         <p className="text-sm font-semibold text-navy">
           Importando — NÃO feche esta tela
         </p>
@@ -537,7 +537,7 @@ function UploadFiscalizacao() {
         <p className="text-xs text-gray-600">{progresso?.fase}</p>
         {progresso?.total > 1 && (
           <>
-            <div className="h-2 bg-grey-bg rounded overflow-hidden">
+            <div className="h-2 bg-grey-bg rounded-sm overflow-hidden">
               <div
                 className="h-full bg-navy transition-all duration-300"
                 style={{
@@ -606,7 +606,7 @@ function UploadFiscalizacao() {
       )}
 
       {erro && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded p-2">
+        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-sm p-2">
           {erro}
         </p>
       )}
@@ -614,7 +614,7 @@ function UploadFiscalizacao() {
       {etapa === 'revisao' && arquivo && (
         <div className="space-y-4">
           {/* Resumo da análise */}
-          <div className="bg-white border border-grey-line rounded p-4">
+          <div className="bg-white border border-grey-line rounded-sm p-4">
             <p className="text-xs font-bold text-navy uppercase mb-2">
               Análise de "{arquivo.nome}"
             </p>
@@ -653,7 +653,7 @@ function UploadFiscalizacao() {
           </div>
 
           {/* Período e distribuição por status */}
-          <div className="bg-white border border-grey-line rounded p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-white border border-grey-line rounded-sm p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-[10px] font-semibold text-gray-500 uppercase mb-1">
                 Período coberto
@@ -707,7 +707,7 @@ function UploadFiscalizacao() {
           </div>
 
           {/* Prova real: cruzamento NC × status */}
-          <div className="bg-white border border-grey-line rounded p-4">
+          <div className="bg-white border border-grey-line rounded-sm p-4">
             <p className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
               Prova real (NC × Status)
             </p>
@@ -761,7 +761,7 @@ function UploadFiscalizacao() {
 
           {/* Aviso: Solucionado sem data de encerramento */}
           {arquivo.analise.solucionadoSemData > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded p-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-sm p-4">
               <p className="text-xs text-amber-800">
                 ⚠️ <strong>{fmt(arquivo.analise.solucionadoSemData)}</strong> laudo(s) marcado(s)
                 como Solucionado sem data de encerramento — corrija no Consolidador antes de
@@ -771,7 +771,7 @@ function UploadFiscalizacao() {
           )}
 
           {/* Confirmação */}
-          <div className="bg-red-50 border border-red-200 rounded p-4 space-y-3">
+          <div className="bg-red-50 border border-red-200 rounded-sm p-4 space-y-3">
             <p className="text-xs text-red-700">
               ⚠️ A importação{' '}
               <strong>substitui TODOS os dados</strong> de Fiscalização pelos
@@ -785,13 +785,13 @@ function UploadFiscalizacao() {
                   setEtapa('inicio')
                   setErro(null)
                 }}
-                className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded hover:bg-grey-bg transition-colors"
+                className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded-sm hover:bg-grey-bg transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmarImportacao}
-                className="flex-1 py-2 bg-red text-white text-xs font-semibold rounded hover:opacity-90 transition-opacity"
+                className="flex-1 py-2 bg-red text-white text-xs font-semibold rounded-sm hover:opacity-90 transition-opacity"
               >
                 Substituir os dados (
                 {fmt(arquivo.analise.linhas.length)} laudos)
@@ -861,7 +861,7 @@ function HistoricoImportacoes() {
                 {fmtDataHora(s.uploaded_at)}
               </td>
               <td className="py-2 pr-4">
-                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-navy/10 text-navy">
+                <span className="px-2 py-0.5 rounded-sm text-[10px] font-semibold bg-navy/10 text-navy">
                   {s.fonte === 'sistemaGeo'
                     ? 'Sistema Geo'
                     : s.fonte === 'fiscalizacoes'

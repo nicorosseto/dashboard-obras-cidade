@@ -29,11 +29,11 @@ if (typeof document !== 'undefined' && !document.getElementById(STYLE_ID)) {
 export function TopProgressBar() {
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[200] h-0.5 bg-transparent pointer-events-none"
+      className="fixed top-0 left-0 right-0 z-200 h-0.5 bg-transparent pointer-events-none"
       aria-hidden="true"
     >
       <div
-        className="h-full bg-navy shadow-sm"
+        className="h-full bg-navy shadow-xs"
         style={{
           animation: 'topbar-fill 3s ease-out forwards',
           boxShadow: '0 0 6px 0 #1F3864aa',

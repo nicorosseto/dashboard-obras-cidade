@@ -13,7 +13,7 @@ export default function BarraProgresso({ carregadas, total }) {
   const finalizando = totalConfiavel && pct >= 100
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[60] bg-navy text-white shadow-md">
+    <div className="fixed top-0 left-0 right-0 z-60 bg-navy text-white shadow-md">
       <div className="px-4 py-1.5 flex items-center gap-3">
         <svg
           className="w-4 h-4 animate-spin shrink-0"
@@ -46,7 +46,7 @@ export default function BarraProgresso({ carregadas, total }) {
         </div>
         {!finalizando && (
           <>
-            <div className="flex-1 h-2 bg-white/20 rounded overflow-hidden">
+            <div className="flex-1 h-2 bg-white/20 rounded-sm overflow-hidden">
               {totalConfiavel ? (
                 <div
                   className="h-full bg-white transition-all duration-300"
@@ -54,7 +54,7 @@ export default function BarraProgresso({ carregadas, total }) {
                 />
               ) : (
                 // Total desconhecido: barra "indeterminada" (faixa que desliza)
-                <div className="h-full w-1/3 bg-white/80 animate-pulse rounded" />
+                <div className="h-full w-1/3 bg-white/80 animate-pulse rounded-sm" />
               )}
             </div>
             <span className="text-[11px] tabular-nums whitespace-nowrap">

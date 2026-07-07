@@ -303,7 +303,7 @@ function contarFiltrosAtivos(filtros) {
 // ── Micro-componentes ─────────────────────────────────────────────────────────
 function KPICard({ label, valor, sub, destaque }) {
   return (
-    <div className={`bg-white rounded-lg shadow p-4 flex flex-col gap-1 transition-all ${destaque ? 'ring-2 ring-violet-500 shadow-violet-100' : ''}`}>
+    <div className={`bg-white rounded-lg shadow-sm p-4 flex flex-col gap-1 transition-all ${destaque ? 'ring-2 ring-violet-500 shadow-violet-100' : ''}`}>
       <span className="text-[11px] text-gray-500 uppercase tracking-wide leading-tight">{label}</span>
       <span className={`text-2xl font-bold tabular-nums ${destaque ? 'text-violet-700' : 'text-navy'}`}>{fmtNumero(valor)}</span>
       {sub && <span className="text-[11px] text-gray-400">{sub}</span>}
@@ -319,10 +319,10 @@ function Paginacao({ pagina, totalPaginas, total, onChange }) {
       <span>Mostrando {fmtNumero(ini)}–{fmtNumero(fim)} de {fmtNumero(total)}</span>
       <div className="flex gap-1">
         <button disabled={pagina === 0} onClick={() => onChange(pagina - 1)}
-          className="px-2 py-1 rounded border border-slate-200 disabled:opacity-30 hover:bg-slate-50">‹</button>
+          className="px-2 py-1 rounded-sm border border-slate-200 disabled:opacity-30 hover:bg-slate-50">‹</button>
         <span className="px-2 py-1">{pagina + 1}/{totalPaginas}</span>
         <button disabled={pagina >= totalPaginas - 1} onClick={() => onChange(pagina + 1)}
-          className="px-2 py-1 rounded border border-slate-200 disabled:opacity-30 hover:bg-slate-50">›</button>
+          className="px-2 py-1 rounded-sm border border-slate-200 disabled:opacity-30 hover:bg-slate-50">›</button>
       </div>
     </div>
   )
@@ -391,7 +391,7 @@ function TabelaPaginada({ rows, colunas, emptyMsg, defaultSort, defaultDir = 'de
 
 function SecaoCard({ titulo, children, className = '' }) {
   return (
-    <div className={`bg-white rounded-lg shadow p-5 ${className}`}>
+    <div className={`bg-white rounded-lg shadow-sm p-5 ${className}`}>
       {titulo && <h3 className="text-sm font-semibold text-navy mb-4 uppercase tracking-wide">{titulo}</h3>}
       {children}
     </div>
@@ -483,7 +483,7 @@ function AbaVisaoGeral({ dados, visibilidade, norcrestDrillDown = false }) {
           <div className="flex flex-col gap-1 mt-2">
             {donutData.map((d, i) => (
               <div key={i} className="flex items-center gap-2 text-xs">
-                <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: [NAVY, RED, AMBER][i] }} />
+                <span className="w-3 h-3 rounded-xs shrink-0" style={{ background: [NAVY, RED, AMBER][i] }} />
                 <span className="flex-1 text-gray-600">{d.nome}</span>
                 <span className="font-semibold tabular-nums">{fmtNumero(d.valor)}</span>
               </div>
@@ -531,7 +531,7 @@ function AbaVisaoGeral({ dados, visibilidade, norcrestDrillDown = false }) {
           <div className="flex gap-1 shrink-0 ml-4">
             {['agrupado', 'individual'].map(m => (
               <button key={m} onClick={() => setModoStatus(m)}
-                className={`text-xs px-3 py-1 rounded font-medium transition-colors ${modoStatus === m ? 'bg-navy text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                className={`text-xs px-3 py-1 rounded-sm font-medium transition-colors ${modoStatus === m ? 'bg-navy text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                 {m === 'agrupado' ? 'Agrupado' : 'Individual'}
               </button>
             ))}
@@ -684,7 +684,7 @@ function AbaStatusCruzado({ matrizStatus, topGeoStatuses, matrizStatusInd, topGe
         <div className="flex gap-1">
           {[{ id: 'grafico', l: 'Gráfico' }, { id: 'matriz', l: 'Tabela matriz' }, { id: 'inconsistencias', l: `Inconsistências (${fmtNumero(divStatus.length)})` }].map(s => (
             <button key={s.id} onClick={() => setSubAba(s.id)}
-              className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${subAba === s.id ? 'bg-navy text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+              className={`text-xs px-3 py-1.5 rounded-sm font-medium transition-colors ${subAba === s.id ? 'bg-navy text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
               {s.l}
             </button>
           ))}
@@ -693,7 +693,7 @@ function AbaStatusCruzado({ matrizStatus, topGeoStatuses, matrizStatusInd, topGe
           <div className="flex gap-1 ml-2">
             {['agrupado', 'individual'].map(m => (
               <button key={m} onClick={() => setModoStatus(m)}
-                className={`text-xs px-3 py-1 rounded font-medium transition-colors ${modoStatus === m ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                className={`text-xs px-3 py-1 rounded-sm font-medium transition-colors ${modoStatus === m ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                 {m === 'agrupado' ? 'Agrupado' : 'Individual'}
               </button>
             ))}
@@ -859,7 +859,7 @@ function AbaDivergencias({ soFisc, divSubpref, soGeo }) {
       <div className="flex flex-wrap gap-1">
         {SUBS.map(s => (
           <button key={s.id} onClick={() => setSubAba(s.id)}
-            className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${subAba === s.id ? 'bg-navy text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+            className={`text-xs px-3 py-1.5 rounded-sm font-medium transition-colors ${subAba === s.id ? 'bg-navy text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
             {s.label}
           </button>
         ))}
@@ -985,13 +985,13 @@ function AbaMapa({ porSubpref }) {
                     { l: 'Só Fisc.',       v: fmtNumero(detalheSub.soFisc) },
                     { l: 'Só Sistema Geo',    v: fmtNumero(detalheSub.soGeo) },
                   ].map(({ l, v }) => (
-                    <div key={l} className="bg-slate-50 rounded p-2">
+                    <div key={l} className="bg-slate-50 rounded-sm p-2">
                       <p className="text-[10px] text-gray-500 uppercase tracking-wide">{l}</p>
                       <p className="text-base font-bold text-navy tabular-nums">{v}</p>
                     </div>
                   ))}
                 </div>
-                <div className={`rounded p-2 text-center ${detalheSub.pctCob < 70 ? 'bg-red/5 border border-red/20' : 'bg-verde/5 border border-verde/20'}`}>
+                <div className={`rounded-sm p-2 text-center ${detalheSub.pctCob < 70 ? 'bg-red/5 border border-red/20' : 'bg-verde/5 border border-verde/20'}`}>
                   <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-0.5">Cobertura Sistema Geo</p>
                   <p className={`text-2xl font-bold tabular-nums ${detalheSub.pctCob < 70 ? 'text-red' : 'text-verde'}`}>
                     {detalheSub.pctCob}%
@@ -1001,7 +1001,7 @@ function AbaMapa({ porSubpref }) {
                   </p>
                 </div>
                 <button onClick={() => setSubSelecionada(null)}
-                  className="w-full text-xs py-1.5 border border-slate-200 rounded text-gray-500 hover:bg-slate-50 shrink-0">
+                  className="w-full text-xs py-1.5 border border-slate-200 rounded-sm text-gray-500 hover:bg-slate-50 shrink-0">
                   Limpar seleção
                 </button>
               </div>
@@ -1028,7 +1028,7 @@ function AbaMapa({ porSubpref }) {
                 .filter(s => s.sub !== '(sem)' && s.totalGeo > 0)
                 .map((s) => (
                   <button key={s.sub} onClick={() => handleSelecionar(s.sub)}
-                    className={`w-full grid grid-cols-3 gap-1 text-xs px-1 py-1 rounded text-left transition-colors ${subSelecionada === s.sub ? 'bg-navy/10 font-semibold' : 'hover:bg-slate-50'}`}>
+                    className={`w-full grid grid-cols-3 gap-1 text-xs px-1 py-1 rounded-sm text-left transition-colors ${subSelecionada === s.sub ? 'bg-navy/10 font-semibold' : 'hover:bg-slate-50'}`}>
                     <span className="truncate">{s.sub}</span>
                     <span className="text-right text-gray-500 tabular-nums">{fmtNumero(s.totalGeo)}</span>
                     <span className={`text-right font-semibold tabular-nums ${s.pctCob < 70 ? 'text-red' : 'text-verde'}`}>{s.pctCob}%</span>
@@ -1061,7 +1061,7 @@ function BadgeOrigem({ origem }) {
     : origem === 'Só Sistema Geo'
     ? 'bg-navy/10 text-navy'
     : 'bg-violet-100 text-violet-700'
-  return <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${cfg}`}>{origem}</span>
+  return <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-sm ${cfg}`}>{origem}</span>
 }
 
 // Tooltip flutuante que segue o cursor
@@ -1077,7 +1077,7 @@ function TooltipCursor({ children, texto }) {
       {pos && (
         <span
           style={{ position: 'fixed', left: pos.x + 14, top: pos.y + 14, zIndex: 9999 }}
-          className="pointer-events-none bg-gray-800 text-white text-[11px] px-2 py-1 rounded shadow-lg max-w-[220px] leading-snug"
+          className="pointer-events-none bg-gray-800 text-white text-[11px] px-2 py-1 rounded-sm shadow-lg max-w-[220px] leading-snug"
         >
           {texto}
         </span>
@@ -1248,9 +1248,9 @@ function AbaBusca({ emComum, soFisc, soGeo, nFiltrosAtivos, visibilidade }) {
       </p>
       <p className="text-xs text-gray-500 mb-4">
         Origem dos dados:
-        <span className="mx-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-violet-100 text-violet-700">Comum</span> presente nas duas bases ·
-        <span className="mx-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-navy/10 text-navy">Só Sistema Geo</span> obra sem fiscalização ·
-        <span className="mx-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red/10 text-red">Só Fisc.</span> sem registro no Sistema Geo
+        <span className="mx-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-sm bg-violet-100 text-violet-700">Comum</span> presente nas duas bases ·
+        <span className="mx-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-sm bg-navy/10 text-navy">Só Sistema Geo</span> obra sem fiscalização ·
+        <span className="mx-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-sm bg-red/10 text-red">Só Fisc.</span> sem registro no Sistema Geo
       </p>
 
       <CampoBusca

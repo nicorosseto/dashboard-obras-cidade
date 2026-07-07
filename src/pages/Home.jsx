@@ -122,7 +122,7 @@ function ModuleCard({ gradientFrom, gradientTo, icon, titulo, descricao, ultimaA
 
         <div className="relative z-10 flex flex-col h-full">
           {/* Ícone */}
-          <div className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl w-fit mb-5 text-white">
+          <div className="bg-white/20 backdrop-blur-xs p-3 rounded-2xl w-fit mb-5 text-white">
             {icon}
           </div>
 
@@ -262,7 +262,7 @@ export default function Home({
           {onSignOut && (
             <button
               onClick={onSignOut}
-              className="shrink-0 text-xs text-navy/70 hover:text-navy border border-grey-line hover:border-navy px-2 py-1 rounded transition-colors"
+              className="shrink-0 text-xs text-navy/70 hover:text-navy border border-grey-line hover:border-navy px-2 py-1 rounded-sm transition-colors"
             >
               Sair
             </button>

@@ -83,7 +83,7 @@ export default function AbaInformadas({ linhas, totalInformadas, vistoriaMap }) 
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex rounded border border-grey-line overflow-hidden text-[11px]">
+          <div className="flex rounded-sm border border-grey-line overflow-hidden text-[11px]">
             <button
               onClick={() => setViewMode('consolidada')}
               className={`px-2.5 py-1 ${viewMode === 'consolidada' ? 'bg-navy text-white' : 'bg-white text-navy hover:bg-grey-bg'}`}
@@ -101,13 +101,13 @@ export default function AbaInformadas({ linhas, totalInformadas, vistoriaMap }) 
           <button
             onClick={exportarTudo}
             title="Exportar como Excel (.xlsx) com colunas separadas"
-            className="text-xs px-3 py-1.5 border border-navy text-navy rounded hover:bg-navy hover:text-white transition-colors inline-flex items-center gap-1"
+            className="text-xs px-3 py-1.5 border border-navy text-navy rounded-sm hover:bg-navy hover:text-white transition-colors inline-flex items-center gap-1"
           >
             ⬇ Exportar Excel
           </button>
           <button
             onClick={toggleTodos}
-            className="text-xs px-3 py-1.5 border border-navy text-navy rounded hover:bg-navy hover:text-white transition-colors"
+            className="text-xs px-3 py-1.5 border border-navy text-navy rounded-sm hover:bg-navy hover:text-white transition-colors"
           >
             {todosAbertos ? 'Recolher todas' : 'Expandir todas'}
           </button>
@@ -127,14 +127,14 @@ export default function AbaInformadas({ linhas, totalInformadas, vistoriaMap }) 
             const baseTotal = viewMode === 'unidades' ? totalNaView : totalInformadas
             const pct = baseTotal ? (g.items.length / baseTotal) * 100 : 0
             return (
-              <div key={g.nome} className="border border-grey-line rounded">
+              <div key={g.nome} className="border border-grey-line rounded-sm">
                 <div className="w-full flex items-center gap-3 px-3 py-2 hover:bg-grey-bg">
                   <button onClick={() => toggleGrupo(g.nome)} className="flex items-center gap-2 flex-1 text-left min-w-0">
                     <span className={`w-4 text-navy font-bold text-sm leading-none transition-transform ${aberto ? 'rotate-90' : ''}`}>▶</span>
                     <span className="font-semibold text-sm truncate">{g.nome}</span>
                   </button>
                   <div className="hidden sm:block w-32">
-                    <div className="h-1.5 bg-grey-bg rounded overflow-hidden">
+                    <div className="h-1.5 bg-grey-bg rounded-sm overflow-hidden">
                       <div className="h-full bg-red" style={{ width: `${(g.items.length / maxQtd) * 100}%` }} />
                     </div>
                   </div>
@@ -143,7 +143,7 @@ export default function AbaInformadas({ linhas, totalInformadas, vistoriaMap }) 
                   <button
                     onClick={() => exportarGrupo(g)}
                     title={`Exportar processos de ${g.nome} em Excel`}
-                    className="text-[10px] px-2 py-1 border border-navy/40 text-navy rounded hover:bg-navy hover:text-white transition-colors"
+                    className="text-[10px] px-2 py-1 border border-navy/40 text-navy rounded-sm hover:bg-navy hover:text-white transition-colors"
                   >
                     ⬇ XLSX
                   </button>
@@ -176,7 +176,7 @@ export default function AbaInformadas({ linhas, totalInformadas, vistoriaMap }) 
                               <td className="p-2">{it.permissionaria || '—'}</td>
                               <td className="p-2">{it.subprefeitura || '—'}</td>
                               <td className="p-2">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${temVist ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                <span className={`px-2 py-0.5 rounded-sm text-[10px] font-semibold ${temVist ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                   {temVist ? 'Sim' : 'Não'}
                                 </span>
                               </td>

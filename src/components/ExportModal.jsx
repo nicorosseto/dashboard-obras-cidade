@@ -312,7 +312,7 @@ export default function ExportModal({
               </h2>
               <button
                 onClick={fechar}
-                className="text-gray-500 hover:text-navy text-xl leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-grey-bg"
+                className="text-gray-500 hover:text-navy text-xl leading-none w-7 h-7 flex items-center justify-center rounded-sm hover:bg-grey-bg"
                 title="Fechar"
               >
                 ×
@@ -474,7 +474,7 @@ export default function ExportModal({
                                     type="checkbox"
                                     checked={colsSel.has(col.key)}
                                     onChange={() => toggleCol(col.key)}
-                                    className="accent-navy rounded"
+                                    className="accent-navy rounded-sm"
                                   />
                                   <span className="text-sm text-gray-700">
                                     {col.label}

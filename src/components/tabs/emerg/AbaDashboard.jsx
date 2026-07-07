@@ -47,7 +47,7 @@ function CardOutrosStatus({ outros }) {
           <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
             {outros.detalhe.map(({ status, qtd }) => (
               <div key={status} className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: STATUS_COLOR[status] || STATUS_PADRAO }} />
+                <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{ background: STATUS_COLOR[status] || STATUS_PADRAO }} />
                 <span className="flex-1 truncate text-gray-700">{status}</span>
                 <span className="text-gray-500 font-semibold shrink-0">{fmtNumero(qtd)}</span>
               </div>
@@ -123,7 +123,7 @@ export default function AbaDashboard({ linhas }) {
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 justify-center">
             {porStatus.map((s) => (
               <div key={s.status} className="flex items-center gap-1 text-[10px] text-gray-600">
-                <div className="w-2.5 h-2.5 rounded-sm" style={{ background: STATUS_COLOR[s.status] || STATUS_PADRAO }} />
+                <div className="w-2.5 h-2.5 rounded-xs" style={{ background: STATUS_COLOR[s.status] || STATUS_PADRAO }} />
                 <span>{s.status} ({fmtNumero(s.qtd)})</span>
               </div>
             ))}
@@ -180,9 +180,9 @@ export default function AbaDashboard({ linhas }) {
             </BarChart>
           </ResponsiveContainer>
           <div className="flex justify-center gap-3 mt-1 text-[10px] text-gray-600">
-            <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-red" /> Informada</span>
-            <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm" style={{ background: '#1F7A4D' }} /> Encerrada</span>
-            <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm" style={{ background: '#6B7280' }} /> Outras</span>
+            <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-xs bg-red" /> Informada</span>
+            <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-xs" style={{ background: '#1F7A4D' }} /> Encerrada</span>
+            <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-xs" style={{ background: '#6B7280' }} /> Outras</span>
           </div>
         </ChartCard>
       </div>
@@ -200,8 +200,8 @@ export default function AbaDashboard({ linhas }) {
             </LineChart>
           </ResponsiveContainer>
           <div className="flex justify-center gap-3 mt-1 text-[10px] text-gray-600">
-            <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-red" /> Informadas</span>
-            <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm" style={{ background: '#1F7A4D' }} /> Encerradas</span>
+            <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-xs bg-red" /> Informadas</span>
+            <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-xs" style={{ background: '#1F7A4D' }} /> Encerradas</span>
           </div>
         </ChartCard>
       )}

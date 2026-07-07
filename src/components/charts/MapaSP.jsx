@@ -117,7 +117,7 @@ export default function MapaSP({
       <div className="flex items-center justify-center gap-2 mt-2 text-[10px] text-gray-600">
         <span>Menos {unidade}</span>
         <div
-          className="h-2 w-24 rounded"
+          className="h-2 w-24 rounded-sm"
           style={{
             background: 'linear-gradient(to right, #E8EEF7, #1F3864)',
           }}

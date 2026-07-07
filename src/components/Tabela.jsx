@@ -69,7 +69,7 @@ export default function Tabela({ rows }) {
   const thProps = { sortKey, sortDir, onSort: handleSort }
 
   return (
-    <section className="bg-white rounded-lg shadow p-5">
+    <section className="bg-white rounded-lg shadow-sm p-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h3 className="font-semibold text-slate-800">Detalhe dos laudos</h3>
         <div className="flex gap-2 flex-wrap text-xs">
@@ -79,7 +79,7 @@ export default function Tabela({ rows }) {
               setSubprefeitura(e.target.value)
               setPagina(0)
             }}
-            className="border border-slate-300 rounded px-2 py-1"
+            className="border border-slate-300 rounded-sm px-2 py-1"
           >
             {subprefeituras.map((s) => (
               <option key={s} value={s}>
@@ -93,7 +93,7 @@ export default function Tabela({ rows }) {
               setStatus(e.target.value)
               setPagina(0)
             }}
-            className="border border-slate-300 rounded px-2 py-1"
+            className="border border-slate-300 rounded-sm px-2 py-1"
           >
             {STATUS_OPCOES.map((s) => (
               <option key={s} value={s}>
@@ -191,7 +191,7 @@ export default function Tabela({ rows }) {
           <button
             onClick={() => setPagina((p) => Math.max(0, p - 1))}
             disabled={paginaAtual === 0}
-            className="px-3 py-1 border rounded disabled:opacity-40"
+            className="px-3 py-1 border rounded-sm disabled:opacity-40"
           >
             Anterior
           </button>
@@ -201,7 +201,7 @@ export default function Tabela({ rows }) {
           <button
             onClick={() => setPagina((p) => Math.min(totalPaginas - 1, p + 1))}
             disabled={paginaAtual >= totalPaginas - 1}
-            className="px-3 py-1 border rounded disabled:opacity-40"
+            className="px-3 py-1 border rounded-sm disabled:opacity-40"
           >
             Proxima
           </button>

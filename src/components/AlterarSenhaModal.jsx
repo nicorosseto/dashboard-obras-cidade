@@ -109,7 +109,7 @@ export default function AlterarSenhaModal({
               onClick={() => {
                 if (onConcluido) onConcluido()
               }}
-              className="w-full py-2 rounded bg-navy text-white text-sm font-semibold hover:bg-navy-light transition-colors"
+              className="w-full py-2 rounded-sm bg-navy text-white text-sm font-semibold hover:bg-navy-light transition-colors"
             >
               Ok
             </button>
@@ -135,7 +135,7 @@ export default function AlterarSenhaModal({
             />
 
             {erro && (
-              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded p-2">
+              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-sm p-2">
                 {erro}
               </p>
             )}
@@ -145,7 +145,7 @@ export default function AlterarSenhaModal({
                 <button
                   type="button"
                   onClick={onFechar}
-                  className="flex-1 py-2 rounded border border-grey-line text-navy text-sm font-semibold hover:bg-grey-bg transition-colors"
+                  className="flex-1 py-2 rounded-sm border border-grey-line text-navy text-sm font-semibold hover:bg-grey-bg transition-colors"
                 >
                   Cancelar
                 </button>
@@ -153,7 +153,7 @@ export default function AlterarSenhaModal({
               <button
                 type="submit"
                 disabled={salvando}
-                className="flex-1 py-2 rounded bg-navy text-white text-sm font-semibold hover:bg-navy-light transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                className="flex-1 py-2 rounded-sm bg-navy text-white text-sm font-semibold hover:bg-navy-light transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 {salvando && <Spinner size="sm" color="#ffffff" />}
                 {salvando ? 'Salvando...' : 'Salvar senha'}
@@ -189,7 +189,7 @@ function CampoSenha({
           minLength={6}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className="w-full border border-grey-line rounded px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-navy"
+          className="w-full border border-grey-line rounded-sm px-3 py-2 pr-10 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy"
         />
         <button
           type="button"

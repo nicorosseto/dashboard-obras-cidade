@@ -10,7 +10,7 @@
 | Camada | Ferramenta | Para que serve |
 |---|---|---|
 | Interface (front-end) | **React 19 + Vite 8 (Rolldown)** | Monta as telas no navegador |
-| Estilo | **Tailwind CSS 3** | Classes utilitárias de estilo |
+| Estilo | **Tailwind CSS 4** | Classes utilitárias de estilo |
 | Gráficos | **Recharts** | Gráficos de barra, linha, donut |
 | Mapas | **Leaflet + react-leaflet** | Mapa choropleth de São Paulo |
 | Planilhas | **SheetJS (xlsx)** | Ler/exportar Excel |
@@ -26,7 +26,8 @@
 - `red` (vermelho institucional): `#C00000`
 - `grey-bg` (fundo cinza): `#F2F2F2`
 
-Definidas em `tailwind.config.js`.
+Definidas no bloco `@theme` de `src/index.css` (desde o Tailwind 4 — Fase M4,
+PR 4 — a configuração é CSS-first; o `tailwind.config.js` foi removido).
 
 ## Estrutura de pastas
 

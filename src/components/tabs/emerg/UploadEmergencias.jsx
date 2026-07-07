@@ -122,7 +122,7 @@ export function UploadObrasZone({ dragOver, setDragOver, onDrop, onPickFile, sta
           <h3 className="text-sm font-bold text-amber-800 uppercase tracking-wide">
             Posicionamento de Obras
           </h3>
-          <span className="text-[10px] font-semibold text-amber-700 bg-amber-200 rounded px-1.5 py-0.5">
+          <span className="text-[10px] font-semibold text-amber-700 bg-amber-200 rounded-sm px-1.5 py-0.5">
             Opcional, mas importante
           </span>
         </div>
@@ -212,10 +212,10 @@ export function PreviaObras({ previa, onConfirmar, onCancelar, hideConfirm = fal
       )}
       {!hideConfirm && (
         <div className="flex gap-2">
-          <button onClick={onCancelar} className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded hover:bg-grey-bg transition-colors">
+          <button onClick={onCancelar} className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded-sm hover:bg-grey-bg transition-colors">
             Cancelar
           </button>
-          <button onClick={onConfirmar} className="flex-1 py-2 bg-amber-600 text-white text-xs font-semibold rounded hover:opacity-90 transition-opacity">
+          <button onClick={onConfirmar} className="flex-1 py-2 bg-amber-600 text-white text-xs font-semibold rounded-sm hover:opacity-90 transition-opacity">
             Substituir posicionamento ({fmtNumero(resumo.total)} obras)
           </button>
         </div>
@@ -269,10 +269,10 @@ export function PreviaEmergencias({ previa, linhasAtuais = 0, onConfirmar, onCan
         </div>
         {!hideConfirm && (
           <div className="flex gap-2">
-            <button onClick={onCancelar} className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded hover:bg-grey-bg transition-colors">
+            <button onClick={onCancelar} className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded-sm hover:bg-grey-bg transition-colors">
               Cancelar
             </button>
-            <button onClick={onConfirmar} className="flex-1 py-2 bg-red text-white text-xs font-semibold rounded hover:opacity-90 transition-opacity">
+            <button onClick={onConfirmar} className="flex-1 py-2 bg-red text-white text-xs font-semibold rounded-sm hover:opacity-90 transition-opacity">
               Sim, substituir todos os dados
             </button>
           </div>
@@ -323,7 +323,7 @@ export function MapeamentoColunas({ dados, onConfirmar, onCancelar }) {
             <select
               value={map[campo] || ''}
               onChange={(e) => setMap({ ...map, [campo]: e.target.value || null })}
-              className={`flex-1 text-xs border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-navy ${
+              className={`flex-1 text-xs border rounded px-2 py-1 focus:outline-hidden focus:ring-1 focus:ring-navy ${
                 cfg.obrigatoria && !map[campo] ? 'border-red' : 'border-grey-line'
               }`}
             >
@@ -336,13 +336,13 @@ export function MapeamentoColunas({ dados, onConfirmar, onCancelar }) {
         ))}
       </div>
       {erro && (
-        <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded p-2">{erro}</div>
+        <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-sm p-2">{erro}</div>
       )}
       <div className="flex gap-2 pt-1">
-        <button onClick={onCancelar} className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded hover:bg-grey-bg transition-colors">
+        <button onClick={onCancelar} className="flex-1 py-2 border border-grey-line text-navy text-xs font-semibold rounded-sm hover:bg-grey-bg transition-colors">
           Cancelar
         </button>
-        <button onClick={confirmar} className="flex-1 py-2 bg-navy text-white text-xs font-semibold rounded hover:bg-navy-light transition-colors">
+        <button onClick={confirmar} className="flex-1 py-2 bg-navy text-white text-xs font-semibold rounded-sm hover:bg-navy-light transition-colors">
           Continuar
         </button>
       </div>

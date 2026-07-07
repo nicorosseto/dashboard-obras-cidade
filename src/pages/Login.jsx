@@ -51,7 +51,7 @@ export default function Login({ onLogin }) {
               required
               autoComplete="username"
               placeholder="seu usuário"
-              className="w-full border border-grey-line rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy"
+              className="w-full border border-grey-line rounded-sm px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy"
             />
           </div>
           <div>
@@ -64,7 +64,7 @@ export default function Login({ onLogin }) {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 required
-                className="w-full border border-grey-line rounded px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-navy"
+                className="w-full border border-grey-line rounded-sm px-3 py-2 pr-10 text-sm focus:outline-hidden focus:ring-2 focus:ring-navy"
               />
               <button
                 type="button"
@@ -116,14 +116,14 @@ export default function Login({ onLogin }) {
           </div>
 
           {erro && (
-            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded p-2">
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-sm p-2">
               {erro}
             </p>
           )}
           <button
             type="submit"
             disabled={carregando}
-            className="w-full bg-navy text-white py-2 rounded font-semibold text-sm hover:bg-navy-light transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+            className="w-full bg-navy text-white py-2 rounded-sm font-semibold text-sm hover:bg-navy-light transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {carregando && <Spinner size="sm" color="#ffffff" />}
             {carregando ? 'Entrando...' : 'Entrar'}

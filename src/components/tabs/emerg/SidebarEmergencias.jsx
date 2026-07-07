@@ -74,7 +74,7 @@ function BlocoStatusSistemaGeo({ statusDisponiveis, filtros, setFiltros }) {
 
   return (
     <div className="space-y-0.5">
-      <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+      <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
         <input
           type="checkbox"
           checked={stGeoSet.size === 0}
@@ -84,7 +84,7 @@ function BlocoStatusSistemaGeo({ statusDisponiveis, filtros, setFiltros }) {
         <span className="font-semibold">TODOS</span>
       </label>
       {STATUS_FIXOS_EMERG.map((status) => (
-        <label key={status} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+        <label key={status} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
           <input type="checkbox" checked={stGeoSet.has(status)} onChange={() => toggle(status)} className="accent-navy" />
           <span className="truncate flex-1">{status}</span>
           <span className="text-gray-400 shrink-0">{fmtNumero(qtdPorStatus.get(status) || 0)}</span>
@@ -92,7 +92,7 @@ function BlocoStatusSistemaGeo({ statusDisponiveis, filtros, setFiltros }) {
       ))}
       {outros.length > 0 && (
         <div>
-          <div className="flex items-center gap-2 text-xs hover:bg-grey-bg px-1 py-0.5 rounded">
+          <div className="flex items-center gap-2 text-xs hover:bg-grey-bg px-1 py-0.5 rounded-sm">
             <input
               type="checkbox"
               checked={todosOutrosSel}
@@ -110,7 +110,7 @@ function BlocoStatusSistemaGeo({ statusDisponiveis, filtros, setFiltros }) {
               type="button"
               onClick={() => setOutrosAberto((o) => !o)}
               title={outrosAberto ? 'Recolher' : 'Expandir status agrupados'}
-              className="w-5 h-5 flex items-center justify-center rounded border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
+              className="w-5 h-5 flex items-center justify-center rounded-sm border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
             >
               {outrosAberto ? '−' : '+'}
             </button>
@@ -118,7 +118,7 @@ function BlocoStatusSistemaGeo({ statusDisponiveis, filtros, setFiltros }) {
           {outrosAberto && (
             <div className="pl-4 border-l-2 border-navy/20 ml-2 mt-0.5 space-y-0.5 max-h-44 overflow-y-auto pr-1">
               {outros.map(({ status, qtd }) => (
-                <label key={status} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+                <label key={status} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
                   <input type="checkbox" checked={stGeoSet.has(status)} onChange={() => toggle(status)} className="accent-navy" />
                   <span className="truncate flex-1">{status}</span>
                   <span className="text-gray-400 shrink-0">{fmtNumero(qtd)}</span>
@@ -238,7 +238,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
               min={dataLimites.min || undefined}
               max={dataLimites.max || undefined}
               onChange={(e) => setFiltros({ ...filtros, dataIni: e.target.value || null })}
-              className="w-full text-xs border border-grey-line rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-navy"
+              className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 focus:outline-hidden focus:ring-1 focus:ring-navy"
             />
           </div>
           <div>
@@ -249,7 +249,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
               min={dataLimites.min || undefined}
               max={dataLimites.max || undefined}
               onChange={(e) => setFiltros({ ...filtros, dataFim: e.target.value || null })}
-              className="w-full text-xs border border-grey-line rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-navy"
+              className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 focus:outline-hidden focus:ring-1 focus:ring-navy"
             />
           </div>
           {dataLimites.min && dataLimites.max && (
@@ -266,15 +266,15 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
           placeholder="Buscar..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="w-full text-xs border border-grey-line rounded px-2 py-1 mb-2 focus:outline-none focus:ring-1 focus:ring-navy"
+          className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 mb-2 focus:outline-hidden focus:ring-1 focus:ring-navy"
         />
         <div className="space-y-0.5 max-h-48 overflow-y-auto pr-1">
-          <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+          <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
             <input type="checkbox" checked={isTodasPerm} onChange={() => togglePerm('TODAS')} className="accent-navy" />
             <span className="font-semibold">TODAS</span>
           </label>
           {norcrestUnits.length > 0 && (
-            <div className="flex items-center gap-1 text-xs hover:bg-grey-bg px-1 py-0.5 rounded">
+            <div className="flex items-center gap-1 text-xs hover:bg-grey-bg px-1 py-0.5 rounded-sm">
               <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
                 <input type="checkbox" checked={permSet.has('NORCREST')} onChange={() => togglePerm('NORCREST')} className="accent-navy" />
                 <span className="font-semibold truncate">NORCREST (consolidado)</span>
@@ -282,7 +282,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
               <button
                 type="button"
                 onClick={() => setNorcrestAberto((o) => !o)}
-                className="w-5 h-5 flex items-center justify-center rounded border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
+                className="w-5 h-5 flex items-center justify-center rounded-sm border border-navy/30 text-navy text-xs font-bold hover:bg-navy hover:text-white transition-colors shrink-0"
               >
                 {norcrestAberto || busca ? '−' : '+'}
               </button>
@@ -290,7 +290,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
           )}
           {(norcrestAberto || busca) && norcrestFiltradas.map((p) => (
             <div key={p} className="pl-4 border-l-2 border-navy/20 ml-2">
-              <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+              <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
                 <input type="checkbox" checked={permSet.has(p)} onChange={() => togglePerm(p)} className="accent-navy" />
                 <span className="truncate">{p}</span>
               </label>
@@ -298,7 +298,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
           ))}
           {norcrestUnits.length > 0 && <div className="h-px bg-grey-line my-1" />}
           {demaisFiltradas.map((p) => (
-            <label key={p} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+            <label key={p} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
               <input type="checkbox" checked={permSet.has(p)} onChange={() => togglePerm(p)} className="accent-navy" />
               <span className="truncate">{p}</span>
             </label>
@@ -315,7 +315,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
       </BlocoFiltro>
 
       <BlocoFiltro titulo="Possui Vistoria?" bloqueado={!!bloqueados.possuiVistoria}>
-        <div className="flex rounded border border-grey-line overflow-hidden text-[11px]">
+        <div className="flex rounded-sm border border-grey-line overflow-hidden text-[11px]">
           {[['todas', 'Todas'], ['sim', 'Sim'], ['nao', 'Não']].map(([val, label], i) => (
             <button
               key={val}
@@ -338,7 +338,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
 
       <BlocoFiltro titulo="Status da Vistoria" bloqueado={!!bloqueados.statusVistoria}>
         <div className="space-y-0.5 max-h-44 overflow-y-auto pr-1">
-          <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+          <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
             <input
               type="checkbox"
               checked={(filtros.statusVistoria?.size ?? 0) === 0}
@@ -358,7 +358,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
               'Sem vistoria': 'text-gray-500',
             }
             return (
-              <label key={st} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded">
+              <label key={st} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
                 <input
                   type="checkbox"
                   checked={sel}
@@ -383,7 +383,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
       <button
         onClick={onLimpar}
         disabled={!filtrosAtivos}
-        className="w-full text-xs py-2 border border-navy text-navy rounded hover:bg-navy hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-navy"
+        className="w-full text-xs py-2 border border-navy text-navy rounded-sm hover:bg-navy hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-navy"
       >
         Limpar filtros
       </button>
