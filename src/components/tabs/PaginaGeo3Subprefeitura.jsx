@@ -23,10 +23,11 @@ import {
 import ChartTooltip from '../charts/ChartTooltip.jsx'
 import MapaSP from '../charts/MapaSP.jsx'
 import { usePaginadorGrafico, ControlePaginacao } from '../charts/PaginadorGrafico.jsx'
+import { NAVY, NAVY_MID } from '../../lib/cores.js'
 
 const COR_REGIAO = {
   Leste: '#5B9BD5',
-  Sul: '#4472C4',
+  Sul: NAVY_MID,
   Oeste: '#ED7D31',
   Central: '#7030A0',
   Norte: '#E91E63',
@@ -132,11 +133,11 @@ export default function PaginaGeo3Subprefeitura({
                 content={<ChartTooltip />}
                 wrapperStyle={{ zIndex: 50 }}
               />
-              <Bar dataKey="total" fill="#1F3864" radius={[0, 3, 3, 0]}>
+              <Bar dataKey="total" fill={NAVY} radius={[0, 3, 3, 0]}>
                 <LabelList
                   dataKey="total"
                   position="right"
-                  style={{ fontSize: 10, fill: '#1F3864', fontWeight: 'bold' }}
+                  style={{ fontSize: 10, fill: NAVY, fontWeight: 'bold' }}
                   formatter={fmtNumero}
                 />
               </Bar>
@@ -184,11 +185,11 @@ export default function PaginaGeo3Subprefeitura({
                 content={<ChartTooltip />}
                 wrapperStyle={{ zIndex: 50 }}
               />
-              <Bar dataKey="total" fill="#1F3864" radius={[3, 3, 0, 0]}>
+              <Bar dataKey="total" fill={NAVY} radius={[3, 3, 0, 0]}>
                 <LabelList
                   dataKey="total"
                   position="top"
-                  style={{ fontSize: 9, fill: '#1F3864', fontWeight: 'bold' }}
+                  style={{ fontSize: 9, fill: NAVY, fontWeight: 'bold' }}
                   formatter={fmtNumero}
                 />
               </Bar>

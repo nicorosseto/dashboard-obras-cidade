@@ -7,6 +7,7 @@ import {
   distribuicaoSolucVsEmAnd,
   rankingLegislacaoVsNC,
 } from '../../lib/aggregations.js'
+import { NAVY, RED } from '../../lib/cores.js'
 
 const COLS_RANKING = [
   { key: 'nome', label: 'Permissionária' },
@@ -42,13 +43,13 @@ export default function Pagina1Geral({ rows }) {
         <DonutComparativo
           titulo="Legislação Atendida × Não Conformidades"
           dados={distLeg}
-          cores={['#1F3864', '#C00000']}
+          cores={[NAVY, RED]}
           total={totalLeg}
         />
         <DonutComparativo
           titulo="Dentro das Não Conformidades"
           dados={distSoluc}
-          cores={['#1F3864', '#C00000']}
+          cores={[NAVY, RED]}
           total={totalNC}
         />
       </div>

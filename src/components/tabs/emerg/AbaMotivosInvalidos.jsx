@@ -14,6 +14,7 @@ import ChartTooltip from '../../charts/ChartTooltip.jsx'
 import { usePaginadorGrafico, ControlePaginacao } from '../../charts/PaginadorGrafico.jsx'
 import { KpiCard, PaginacaoBusca } from './shared.jsx'
 import BotaoExportarGrafico from '../../BotaoExportarGrafico.jsx'
+import { NAVY, RED } from '../../../lib/cores.js'
 
 const PAGE_SIZE = 50
 
@@ -351,13 +352,13 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
           {/* KPIs */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <KpiCard label="Processos inválidos" valor={processos.length} cor="#b45309" destaque />
-            <div className="bg-white rounded-md shadow-card px-3 py-2.5 border-l-4" style={{ borderLeftColor: '#C00000' }}>
+            <div className="bg-white rounded-md shadow-card px-3 py-2.5 border-l-4" style={{ borderLeftColor: RED }}>
               <div className="text-[9px] uppercase tracking-wider text-gray-500 font-semibold">% que são inválidos</div>
               <div className="font-bold mt-0.5 text-red text-2xl tabular-nums">{pctInvalidos.toFixed(1)}%</div>
               <div className="text-[9px] text-gray-400 mt-0.5">{processos.length.toLocaleString('pt-BR')} de {totalComNatureza.toLocaleString('pt-BR')} c/ natureza</div>
             </div>
-            <KpiCard label="Motivos inválidos" valor={gruposInvalidos.length} cor="#C00000" />
-            <div className="bg-white rounded-md shadow-card px-3 py-2.5 border-l-4" style={{ borderLeftColor: '#1F3864' }}>
+            <KpiCard label="Motivos inválidos" valor={gruposInvalidos.length} cor={RED} />
+            <div className="bg-white rounded-md shadow-card px-3 py-2.5 border-l-4" style={{ borderLeftColor: NAVY }}>
               <div className="text-[9px] uppercase tracking-wider text-gray-500 font-semibold">Top permissionária</div>
               <div className="font-bold mt-0.5 text-navy text-sm truncate" title={topPermissionaria?.nome}>{topPermissionaria?.nome || '—'}</div>
               <div className="text-[9px] text-gray-400 mt-0.5">{topPermissionaria ? `${topPermissionaria.qtd.toLocaleString('pt-BR')} inválidos` : ''}</div>
@@ -367,7 +368,7 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
               <div className="font-bold mt-0.5 text-amber-700 text-sm truncate" title={cardMotivos[0]?.rotulo}>{cardMotivos[0]?.rotulo || '—'}</div>
               <div className="text-[9px] text-gray-400 mt-0.5">{cardMotivos[0] ? `${cardMotivos[0].qtd.toLocaleString('pt-BR')} processos` : ''}</div>
             </div>
-            <div className="bg-white rounded-md shadow-card px-3 py-2.5 border-l-4" style={{ borderLeftColor: '#1F3864' }}>
+            <div className="bg-white rounded-md shadow-card px-3 py-2.5 border-l-4" style={{ borderLeftColor: NAVY }}>
               <div className="text-[9px] uppercase tracking-wider text-gray-500 font-semibold">Período da análise</div>
               <div className="font-bold mt-0.5 text-navy text-sm tabular-nums">
                 {periodo.min && periodo.max
@@ -391,7 +392,7 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
                   <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" minTickGap={24} />
                   <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
                   <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
-                  <Line type="monotone" dataKey="qtd" name="Inválidos" stroke="#C00000" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="qtd" name="Inválidos" stroke={RED} strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             ) : <p className="text-xs text-gray-400 py-8 text-center">Sem datas para montar a linha do tempo.</p>}
@@ -412,7 +413,7 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
                   <XAxis type="number" tick={{ fontSize: 10 }} allowDecimals={false} />
                   <YAxis type="category" dataKey="nome" width={120} tick={{ fontSize: 10 }} />
                   <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
-                  <Bar dataKey="qtd" name="Inválidos" fill="#C00000" radius={[0, 3, 3, 0]}>
+                  <Bar dataKey="qtd" name="Inválidos" fill={RED} radius={[0, 3, 3, 0]}>
                     <LabelList dataKey="qtd" position="right" style={{ fontSize: 10, fill: '#6B7280' }} />
                   </Bar>
                 </BarChart>

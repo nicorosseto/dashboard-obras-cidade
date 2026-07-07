@@ -16,12 +16,13 @@ import {
 import { fmtNumero, topPermissionarias } from '../../lib/aggregations.js'
 import ChartTooltip from '../charts/ChartTooltip.jsx'
 import { usePaginadorGrafico, ControlePaginacao } from '../charts/PaginadorGrafico.jsx'
+import { NAVY, NAVY_LIGHT, NAVY_MID, RED } from '../../lib/cores.js'
 
 const DONUT_COLORS = [
-  '#1F3864',
-  '#2E4F7F',
-  '#4472C4',
-  '#C00000',
+  NAVY,
+  NAVY_LIGHT,
+  NAVY_MID,
+  RED,
   '#E55B4D',
   '#0E8A6B', // "Demais Serviços" — verde-teal, bom contraste no branco
   '#374151', // "Outros" — cinza-grafite escuro, legível no branco
@@ -344,11 +345,11 @@ export default function PaginaGeo1Geral({ rows }) {
                 content={<ChartTooltip />}
                 wrapperStyle={{ zIndex: 50 }}
               />
-              <Bar dataKey="total" fill="#1F3864" radius={[0, 3, 3, 0]}>
+              <Bar dataKey="total" fill={NAVY} radius={[0, 3, 3, 0]}>
                 <LabelList
                   dataKey="total"
                   position="right"
-                  style={{ fontSize: 10, fill: '#1F3864', fontWeight: 'bold' }}
+                  style={{ fontSize: 10, fill: NAVY, fontWeight: 'bold' }}
                   formatter={fmtNumero}
                 />
               </Bar>
@@ -400,11 +401,11 @@ export default function PaginaGeo1Geral({ rows }) {
                 content={<ChartTooltip />}
                 wrapperStyle={{ zIndex: 50 }}
               />
-              <Bar dataKey="total" fill="#2E4F7F" radius={[0, 3, 3, 0]}>
+              <Bar dataKey="total" fill={NAVY_LIGHT} radius={[0, 3, 3, 0]}>
                 <LabelList
                   dataKey="total"
                   position="right"
-                  style={{ fontSize: 10, fill: '#2E4F7F', fontWeight: 'bold' }}
+                  style={{ fontSize: 10, fill: NAVY_LIGHT, fontWeight: 'bold' }}
                   formatter={fmtNumero}
                 />
               </Bar>
@@ -456,11 +457,11 @@ export default function PaginaGeo1Geral({ rows }) {
                 content={<ChartTooltip />}
                 wrapperStyle={{ zIndex: 50 }}
               />
-              <Bar dataKey="total" fill="#1F3864" radius={[0, 3, 3, 0]}>
+              <Bar dataKey="total" fill={NAVY} radius={[0, 3, 3, 0]}>
                 <LabelList
                   dataKey="total"
                   position="right"
-                  style={{ fontSize: 10, fill: '#1F3864', fontWeight: 'bold' }}
+                  style={{ fontSize: 10, fill: NAVY, fontWeight: 'bold' }}
                   formatter={fmtNumero}
                 />
               </Bar>
@@ -508,11 +509,11 @@ export default function PaginaGeo1Geral({ rows }) {
                 content={<ChartTooltip />}
                 wrapperStyle={{ zIndex: 50 }}
               />
-              <Bar dataKey="total" fill="#1F3864" radius={[0, 3, 3, 0]}>
+              <Bar dataKey="total" fill={NAVY} radius={[0, 3, 3, 0]}>
                 <LabelList
                   dataKey="total"
                   position="right"
-                  style={{ fontSize: 10, fill: '#1F3864', fontWeight: 'bold' }}
+                  style={{ fontSize: 10, fill: NAVY, fontWeight: 'bold' }}
                   formatter={fmtNumero}
                 />
               </Bar>

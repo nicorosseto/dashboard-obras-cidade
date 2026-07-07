@@ -1,6 +1,7 @@
 import PageTabs from './PageTabs.jsx'
 import ModuleDropdown from './ModuleDropdown.jsx'
 import { signOut, nomeExibicao } from '../lib/auth.js'
+import { NAVY, NAVY_LIGHT } from '../lib/cores.js'
 import { ABAS_CRUZAMENTO } from '../lib/abasCruzamento.js'
 import { abasCruzamentoPermitidas } from '../lib/permissoes.js'
 
@@ -109,7 +110,7 @@ function getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRel
   if (secaoAtiva === 'sistemaGeo' && paginaAtiva === 4)
     return { label: 'Análise Integrada', icon: <IconMerge />, from: '#4f1d96', to: '#6d28d9' }
   if (secaoAtiva === 'sistemaGeo')
-    return { label: 'Sistema Geo', icon: <IconMap />, from: '#1F3864', to: '#2E4F7F' }
+    return { label: 'Sistema Geo', icon: <IconMap />, from: NAVY, to: NAVY_LIGHT }
   return { label: 'Fiscalização', icon: <IconClipboard />, from: '#064e3b', to: '#065f46' }
 }
 

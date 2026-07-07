@@ -12,6 +12,7 @@ import {
 import { fmtNumero } from '../../lib/aggregations.js'
 import ChartTooltip from './ChartTooltip.jsx'
 import { usePaginadorGrafico, ControlePaginacao } from './PaginadorGrafico.jsx'
+import { NAVY, RED } from '../../lib/cores.js'
 
 export default function BarGrupado({ titulo, dados, acoes, paginar = false }) {
   // Paginação opcional (ex.: drill-down da NORCREST com muitas unidades): mantém
@@ -45,26 +46,26 @@ export default function BarGrupado({ titulo, dados, acoes, paginar = false }) {
           <Bar
             dataKey="leg_atendida"
             name="Legislação Atendida"
-            fill="#1F3864"
+            fill={NAVY}
             radius={[2, 2, 0, 0]}
           >
             <LabelList
               dataKey="leg_atendida"
               position="top"
-              style={{ fontSize: 10, fill: '#1F3864' }}
+              style={{ fontSize: 10, fill: NAVY }}
               formatter={fmtNumero}
             />
           </Bar>
           <Bar
             dataKey="nao_atendida"
             name="Não Atendida"
-            fill="#C00000"
+            fill={RED}
             radius={[2, 2, 0, 0]}
           >
             <LabelList
               dataKey="nao_atendida"
               position="top"
-              style={{ fontSize: 10, fill: '#C00000' }}
+              style={{ fontSize: 10, fill: RED }}
               formatter={fmtNumero}
             />
           </Bar>

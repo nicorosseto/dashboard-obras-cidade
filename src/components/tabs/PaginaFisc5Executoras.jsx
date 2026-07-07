@@ -12,6 +12,7 @@ import {
 import { consolidarNorcrest, fmtNumero } from '../../lib/aggregations.js'
 import ChartTooltip from '../charts/ChartTooltip.jsx'
 import ThSort from '../ThSort.jsx'
+import { NAVY, RED } from '../../lib/cores.js'
 
 const SEM_EXECUTORA = '(sem executora — obra não cadastrada no Sistema Geo)'
 const PAGE_SIZE = 50
@@ -27,9 +28,9 @@ const METRICAS = [
 
 // Cor de destaque por métrica
 const METRICA_COLOR = {
-  total: '#1F3864',
-  nc: '#C00000',
-  pctNC: '#C00000',
+  total: NAVY,
+  nc: RED,
+  pctNC: RED,
   solucionado: '#16a34a',
   emAndamento: '#d97706',
   legAtendida: '#2563eb',
@@ -138,7 +139,7 @@ function TooltipExecutoras({ active, payload, label, permissionaria, metricaLabe
 // Gráfico de barras horizontais — top N por métrica
 function GraficoTopExecutoras({ dados, metrica, permissionaria }) {
   const m = METRICAS.find((m) => m.key === metrica) || METRICAS[0]
-  const cor = METRICA_COLOR[metrica] || '#1F3864'
+  const cor = METRICA_COLOR[metrica] || NAVY
   const isPct = metrica === 'pctNC'
 
   // Top 10 (excluindo "sem executora"), ordenado pela métrica desc
@@ -253,7 +254,7 @@ function GraficoNCPermissionarias({ dados, onClickPerm }) {
           wrapperStyle={{ zIndex: 50 }}
           cursor={{ fill: '#fff0f0' }}
         />
-        <Bar dataKey="valor" fill="#C00000" fillOpacity={0.8} radius={[0, 3, 3, 0]} maxBarSize={22} style={{ cursor: 'pointer' }} />
+        <Bar dataKey="valor" fill={RED} fillOpacity={0.8} radius={[0, 3, 3, 0]} maxBarSize={22} style={{ cursor: 'pointer' }} />
       </BarChart>
     </ResponsiveContainer>
   )

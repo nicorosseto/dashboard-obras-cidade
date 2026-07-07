@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
+import { NAVY, NAVY_LIGHT } from '../lib/cores.js'
 
 export default function ModuleDropdown({
   modules = [],
@@ -6,8 +7,8 @@ export default function ModuleDropdown({
   onSelect = () => {},
   showAdmin = false,
   onAdmin = () => {},
-  accentFrom = '#1F3864',
-  accentTo = '#2E4F7F',
+  accentFrom = NAVY,
+  accentTo = NAVY_LIGHT,
 }) {
   const [aberto, setAberto] = useState(false)
   const containerRef = useRef(null)
