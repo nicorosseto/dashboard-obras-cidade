@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { supabase } from '../lib/supabase.js'
 import { traduzErro } from '../lib/mensagens.js'
-import { fmtDataHora } from '../lib/aggregations.js'
+import { fmtDataHora, fmtNumero } from '../lib/aggregations.js'
 import { LoadingInline } from './Loading.jsx'
+import AjudaSistemaGeo from './atualizar-dados/AjudaSistemaGeo.jsx'
+import AjudaFiscalizacao from './atualizar-dados/AjudaFiscalizacao.jsx'
 import {
   carregarCatalogos,
   analisarPlanilha,
@@ -286,16 +288,16 @@ function UploadSistemaGeo() {
             </p>
             <ul className="text-xs text-gray-700 space-y-1">
               <li>
-                ✅ <strong>{fmt(arquivo.analise.linhas.length)}</strong>{' '}
+                ✅ <strong>{fmtNumero(arquivo.analise.linhas.length)}</strong>{' '}
                 processos prontos para importar
               </li>
               <li>
-                🔁 {fmt(arquivo.analise.duplicadosRemovidos)} linhas duplicadas
+                🔁 {fmtNumero(arquivo.analise.duplicadosRemovidos)} linhas duplicadas
                 removidas (mantida a de data mais recente por processo)
               </li>
               {arquivo.analise.semProcesso > 0 && (
                 <li>
-                  ⚠️ {fmt(arquivo.analise.semProcesso)} linhas sem nº de
+                  ⚠️ {fmtNumero(arquivo.analise.semProcesso)} linhas sem nº de
                   processo foram descartadas
                 </li>
               )}
@@ -328,7 +330,7 @@ function UploadSistemaGeo() {
                       {status}
                     </div>
                     <div className="text-[10px] text-gray-500">
-                      {fmt(qtd)} linha(s)
+                      {fmtNumero(qtd)} linha(s)
                     </div>
                   </div>
                   <input
@@ -382,7 +384,7 @@ function UploadSistemaGeo() {
                         {tipo}
                       </div>
                       <div className="text-[10px] text-gray-500">
-                        {fmt(qtd)} linha(s)
+                        {fmtNumero(qtd)} linha(s)
                       </div>
                     </div>
                     <input
@@ -433,7 +435,7 @@ function UploadSistemaGeo() {
               >
                 {pendentes > 0
                   ? `Classifique ${pendentes} item(ns) para liberar`
-                  : `Substituir os dados (${fmt(arquivo.analise.linhas.length)} processos)`}
+                  : `Substituir os dados (${fmtNumero(arquivo.analise.linhas.length)} processos)`}
               </button>
             </div>
           </div>
@@ -621,31 +623,31 @@ function UploadFiscalizacao() {
             <ul className="text-xs text-gray-700 space-y-1">
               <li>
                 ✅{' '}
-                <strong>{fmt(arquivo.analise.linhas.length)}</strong> laudos
+                <strong>{fmtNumero(arquivo.analise.linhas.length)}</strong> laudos
                 prontos para importar
               </li>
               {arquivo.analise.duplicadosRemovidos > 0 && (
                 <li>
-                  🔁 {fmt(arquivo.analise.duplicadosRemovidos)} linhas
+                  🔁 {fmtNumero(arquivo.analise.duplicadosRemovidos)} linhas
                   duplicadas removidas (mantida a de vistoria mais recente por
                   PROCESSOS/VIA)
                 </li>
               )}
               {arquivo.analise.semId > 0 && (
                 <li>
-                  ⚠️ {fmt(arquivo.analise.semId)} linhas sem PROCESSOS/VIA
+                  ⚠️ {fmtNumero(arquivo.analise.semId)} linhas sem PROCESSOS/VIA
                   foram descartadas
                 </li>
               )}
               {arquivo.analise.semPermissionaria > 0 && (
                 <li>
-                  ⚠️ {fmt(arquivo.analise.semPermissionaria)} linha(s) sem
+                  ⚠️ {fmtNumero(arquivo.analise.semPermissionaria)} linha(s) sem
                   permissionária — salvas como "(sem permissionária)"
                 </li>
               )}
               {arquivo.analise.semData > 0 && (
                 <li>
-                  ⚠️ {fmt(arquivo.analise.semData)} linha(s) sem data de
+                  ⚠️ {fmtNumero(arquivo.analise.semData)} linha(s) sem data de
                   vistoria (data em branco no banco — não bloqueia)
                 </li>
               )}
@@ -672,7 +674,7 @@ function UploadFiscalizacao() {
                   <li>
                     Solucionado:{' '}
                     <strong>
-                      {fmt(arquivo.analise.porStatus.solucionado)}
+                      {fmtNumero(arquivo.analise.porStatus.solucionado)}
                     </strong>
                   </li>
                 )}
@@ -680,7 +682,7 @@ function UploadFiscalizacao() {
                   <li>
                     Legislação Atendida:{' '}
                     <strong>
-                      {fmt(arquivo.analise.porStatus.legAtendida)}
+                      {fmtNumero(arquivo.analise.porStatus.legAtendida)}
                     </strong>
                   </li>
                 )}
@@ -688,19 +690,19 @@ function UploadFiscalizacao() {
                   <li>
                     Em andamento:{' '}
                     <strong>
-                      {fmt(arquivo.analise.porStatus.emAndamento)}
+                      {fmtNumero(arquivo.analise.porStatus.emAndamento)}
                     </strong>
                   </li>
                 )}
                 {arquivo.analise.porStatus.semStatus > 0 && (
                   <li className="text-amber-700">
                     Sem status:{' '}
-                    <strong>{fmt(arquivo.analise.porStatus.semStatus)}</strong>
+                    <strong>{fmtNumero(arquivo.analise.porStatus.semStatus)}</strong>
                   </li>
                 )}
                 <li className="pt-0.5 text-gray-500">
                   Com não conformidade:{' '}
-                  <strong>{fmt(arquivo.analise.comNaoConformidade)}</strong>
+                  <strong>{fmtNumero(arquivo.analise.comNaoConformidade)}</strong>
                 </li>
               </ul>
             </div>
@@ -714,46 +716,46 @@ function UploadFiscalizacao() {
             <div className="text-xs text-gray-700 space-y-1">
               <div className="flex justify-between">
                 <span>Total de laudos</span>
-                <strong className="tabular-nums">{fmt(arquivo.analise.linhas.length)}</strong>
+                <strong className="tabular-nums">{fmtNumero(arquivo.analise.linhas.length)}</strong>
               </div>
               <div className="flex justify-between text-gray-500 pl-3">
                 <span>= Com não conformidade (col. O = X)</span>
-                <span className="tabular-nums">{fmt(arquivo.analise.comNaoConformidade)}</span>
+                <span className="tabular-nums">{fmtNumero(arquivo.analise.comNaoConformidade)}</span>
               </div>
               {arquivo.analise.validacao.ncEmAndamento > 0 && (
                 <div className="flex justify-between text-gray-400 pl-6">
                   <span>Em andamento</span>
-                  <span className="tabular-nums">{fmt(arquivo.analise.validacao.ncEmAndamento)}</span>
+                  <span className="tabular-nums">{fmtNumero(arquivo.analise.validacao.ncEmAndamento)}</span>
                 </div>
               )}
               {arquivo.analise.validacao.ncSolucionado > 0 && (
                 <div className="flex justify-between text-gray-400 pl-6">
                   <span>Solucionado</span>
-                  <span className="tabular-nums">{fmt(arquivo.analise.validacao.ncSolucionado)}</span>
+                  <span className="tabular-nums">{fmtNumero(arquivo.analise.validacao.ncSolucionado)}</span>
                 </div>
               )}
               {arquivo.analise.validacao.ncSemStatus > 0 && (
                 <div className="flex justify-between text-amber-600 pl-6">
                   <span>NC sem status definido</span>
-                  <span className="tabular-nums">{fmt(arquivo.analise.validacao.ncSemStatus)}</span>
+                  <span className="tabular-nums">{fmtNumero(arquivo.analise.validacao.ncSemStatus)}</span>
                 </div>
               )}
               <div className="flex justify-between text-gray-500 pl-3">
                 <span>+ Sem não conformidade</span>
                 <span className="tabular-nums">
-                  {fmt(arquivo.analise.linhas.length - arquivo.analise.comNaoConformidade)}
+                  {fmtNumero(arquivo.analise.linhas.length - arquivo.analise.comNaoConformidade)}
                 </span>
               </div>
               {arquivo.analise.validacao.semNcLegAtendida > 0 && (
                 <div className="flex justify-between text-gray-400 pl-6">
                   <span>Legislação Atendida</span>
-                  <span className="tabular-nums">{fmt(arquivo.analise.validacao.semNcLegAtendida)}</span>
+                  <span className="tabular-nums">{fmtNumero(arquivo.analise.validacao.semNcLegAtendida)}</span>
                 </div>
               )}
               {arquivo.analise.validacao.semNcSemStatus > 0 && (
                 <div className="flex justify-between text-amber-600 pl-6">
                   <span>Sem status (sem NC)</span>
-                  <span className="tabular-nums">{fmt(arquivo.analise.validacao.semNcSemStatus)}</span>
+                  <span className="tabular-nums">{fmtNumero(arquivo.analise.validacao.semNcSemStatus)}</span>
                 </div>
               )}
             </div>
@@ -763,7 +765,7 @@ function UploadFiscalizacao() {
           {arquivo.analise.solucionadoSemData > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-sm p-4">
               <p className="text-xs text-amber-800">
-                ⚠️ <strong>{fmt(arquivo.analise.solucionadoSemData)}</strong> laudo(s) marcado(s)
+                ⚠️ <strong>{fmtNumero(arquivo.analise.solucionadoSemData)}</strong> laudo(s) marcado(s)
                 como Solucionado sem data de encerramento — corrija no Consolidador antes de
                 importar, se possível. Não bloqueia a importação.
               </p>
@@ -794,7 +796,7 @@ function UploadFiscalizacao() {
                 className="flex-1 py-2 bg-red text-white text-xs font-semibold rounded-sm hover:opacity-90 transition-opacity"
               >
                 Substituir os dados (
-                {fmt(arquivo.analise.linhas.length)} laudos)
+                {fmtNumero(arquivo.analise.linhas.length)} laudos)
               </button>
             </div>
           </div>
@@ -879,10 +881,10 @@ function HistoricoImportacoes() {
                 {s.nome_arquivo || '—'}
               </td>
               <td className="py-2 pr-4 text-right tabular-nums font-semibold">
-                {fmt(s.total_linhas)}
+                {fmtNumero(s.total_linhas)}
               </td>
               <td className="py-2 pr-4 text-right tabular-nums text-gray-500">
-                {fmt(s.duplicados_removidos)}
+                {fmtNumero(s.duplicados_removidos)}
               </td>
               <td
                 className="py-2 text-right tabular-nums text-amber-700"
@@ -897,191 +899,5 @@ function HistoricoImportacoes() {
         </tbody>
       </table>
     </div>
-  )
-}
-
-function fmt(n) {
-  return (n || 0).toLocaleString('pt-BR')
-}
-
-/* ------------------------------------------------------------------ */
-/* Conteúdo do pop-up de ajuda do Sistema Geo                              */
-/* ------------------------------------------------------------------ */
-/* ------------------------------------------------------------------ */
-/* Conteúdo do pop-up de ajuda da Fiscalização                          */
-/* ------------------------------------------------------------------ */
-function AjudaFiscalizacao() {
-  return (
-    <>
-      <p className="text-gray-600">
-        Ao enviar a planilha, o sistema faz uma série de tratamentos
-        automáticos.{' '}
-        <strong>Nada é gravado no banco antes da sua confirmação</strong> —
-        primeiro você vê o resumo e confere os números.
-      </p>
-
-      <Regra titulo="1. Qual arquivo enviar">
-        Envie o arquivo exportado pelo{' '}
-        <strong>Consolidador de Fiscalização</strong> (ferramenta HTML externa).
-        O arquivo deve conter a aba{' '}
-        <strong>"DADOS_CONSOLIDADOS"</strong> com cabeçalho na linha 1 e dados
-        a partir da linha 2. Se essa aba não for encontrada, o sistema
-        interrompe com erro.
-      </Regra>
-
-      <Regra titulo="2. Quais colunas são lidas e por quê pela posição">
-        As colunas são lidas <strong>pela posição</strong>, no formato do
-        Consolidador de Fiscalização (29 colunas de dados + 9 auxiliares):
-        PROCESSOS/VIA (A), permissionária (D), data da vistoria (F),
-        subprefeitura (H), classificação viária (I), área m² (J),{' '}
-        <strong>indicador de NC</strong> "Obras com Falhas" (O), tipos de falha
-        individuais (P–X e AA), status em andamento/legislação/solucionado
-        (Y, Z, AB) e data de encerramento (AC). Colunas auxiliares (AD em
-        diante: FONTE, ANO, MES…) são ignoradas automaticamente.
-      </Regra>
-
-      <Regra titulo="3. Limpeza de cada célula">
-        Espaços nas pontas são removidos. Células só com traços (
-        <code>---</code>, <code>--</code>) ou vazias viram valor nulo.
-        Permissionária <strong>NORCREST</strong> é sempre normalizada para
-        maiúsculas — "Norcrest S/A" vira "NORCREST S/A" — para o agrupamento
-        funcionar corretamente.
-      </Regra>
-
-      <Regra titulo="4. Datas">
-        A data da vistoria e a data de encerramento são padronizadas para{' '}
-        <strong>AAAA-MM-DD</strong>, aceitando data do Excel, número serial,
-        texto DD/MM/AAAA ou já em ISO. Data inválida vira nulo (não bloqueia
-        a importação, mas aparece no resumo).
-      </Regra>
-
-      <Regra titulo="5. Campos booleanos (falhas e status)">
-        Aceita <code>X</code>, <code>SIM</code>, <code>S</code>,{' '}
-        <code>1</code>, <code>TRUE</code> e <code>VERDADEIRO</code> como{' '}
-        <strong>verdadeiro</strong>; qualquer outro valor (inclusive célula
-        vazia) é falso. Funciona com os marcadores "X" típicos das planilhas
-        e com TRUE/FALSE exportados pelo consolidador.
-      </Regra>
-
-      <Regra titulo="6. Área m²">
-        Aceita número direto ou texto no formato brasileiro{' '}
-        <strong>"1.234,56"</strong> (ponto de milhar, vírgula decimal).
-        Valores não numéricos viram nulo.
-      </Regra>
-
-      <Regra titulo="7. Linhas sem PROCESSOS/VIA">
-        São <strong>descartadas</strong> (contadas no resumo). O
-        PROCESSOS/VIA é a chave de tudo — sem ele a linha não pode ser
-        identificada.
-      </Regra>
-
-      <Regra titulo="8. Deduplicação por PROCESSOS/VIA">
-        Se o mesmo PROCESSOS/VIA aparecer em mais de uma linha, mantém-se{' '}
-        <strong>a de data de vistoria mais recente</strong>. Sem data perde;
-        em empate, vence a última do arquivo. O total de duplicatas removidas
-        aparece no resumo.
-      </Regra>
-
-      <Regra titulo="9. Status simultâneos">
-        Se uma linha tiver mais de um status marcado (ex.: Solucionado E Em
-        andamento), o banco aplica a precedência:{' '}
-        <strong>Solucionado {">"} Legislação Atendida {">"} Em andamento</strong>.
-        O distribuição mostrada no resumo já segue essa mesma regra.
-      </Regra>
-
-      <Regra titulo="10. Gravação com rede de segurança">
-        Antes de apagar qualquer coisa, o sistema faz um{' '}
-        <strong>teste de permissão de escrita</strong> (insere e remove uma
-        linha de teste). Se você não tiver permissão, ele aborta{' '}
-        <strong>sem apagar nada</strong>. Em seguida substitui todos os dados
-        em lotes e registra a importação no histórico (quem, quando, totais).
-      </Regra>
-
-      <Regra titulo="11. E se a janela fechar no meio?">
-        A importação roda no seu navegador — se a aba fechar ou a internet
-        cair no meio, o banco fica <strong>incompleto</strong>. A recuperação
-        é simples: <strong>reenvie a mesma planilha</strong>. O navegador pede
-        confirmação se você tentar fechar durante o envio.
-      </Regra>
-    </>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/* Conteúdo do pop-up de ajuda do Sistema Geo                              */
-/* ------------------------------------------------------------------ */
-function AjudaSistemaGeo() {
-  return (
-    <>
-      <p className="text-gray-600">
-        Ao enviar a planilha, o sistema faz uma série de tratamentos
-        automáticos.{' '}
-        <strong>Nada é gravado no banco antes da sua confirmação</strong> —
-        primeiro você vê o resumo e classifica o que for novo.
-      </p>
-
-      <Regra titulo="1. Qual aba e quais colunas são lidas">
-        Usa a <strong>primeira aba</strong> da planilha (se existir uma aba
-        chamada "DadosSistemaGeo", ela tem preferência). Cabeçalho na linha 1,
-        dados a partir da linha 2. As colunas são lidas{' '}
-        <strong>pela posição</strong>, nesta ordem: processo, tipo de processo,
-        permissionária, executora, data de cadastro, etapa, subprefeitura,
-        status e tipo de obra.
-      </Regra>
-
-      <Regra titulo="2. Limpeza de cada célula">
-        Espaços em branco nas pontas são removidos. Células só com traços (
-        <code>---</code>, <code>--</code>) ou vazias viram "sem valor".
-      </Regra>
-
-      <Regra titulo="3. Datas">
-        A data de cadastro é padronizada para <strong>AAAA-MM-DD</strong>,
-        aceitando data do Excel, número serial, texto DD/MM/AAAA ou já em ISO.
-      </Regra>
-
-      <Regra titulo="4. Rótulos legíveis">
-        Tipo de processo, etapa e tipo de obra são traduzidos do código bruto
-        para o nome legível (ex.: <code>MANUTENCAO_CORRETIVA</code> →
-        "Manutenção Corretiva"). Códigos desconhecidos mantêm o valor original.
-      </Regra>
-
-      <Regra titulo="5. Linhas sem nº de processo">
-        São <strong>descartadas</strong> (e contadas no resumo). O nº de
-        processo é a chave de tudo.
-      </Regra>
-
-      <Regra titulo="6. Deduplicação por processo">
-        A planilha repete o mesmo processo (uma linha por etapa). Mantém-se{' '}
-        <strong>uma linha por processo</strong>: vence a de{' '}
-        <strong>data de cadastro mais recente</strong>. Sem data perde; em
-        empate, vence a última do arquivo.
-      </Regra>
-
-      <Regra titulo="7. Status e tipos de processo novos">
-        Cada status e cada tipo de processo é comparado com o catálogo do banco.
-        Os já conhecidos recebem nome e grupo automaticamente. Os{' '}
-        <strong>novos</strong> aparecem para você classificar antes de importar
-        — o botão de importar só libera depois. A classificação fica salva para
-        as próximas vezes.
-      </Regra>
-
-      <Regra titulo="8. Gravação com rede de segurança">
-        Antes de apagar qualquer coisa, o sistema faz um{' '}
-        <strong>teste de permissão de escrita</strong> (insere e remove uma
-        linha de teste). Se você não tiver permissão, ele aborta{' '}
-        <strong>sem apagar nada</strong>. Em seguida substitui todos os dados em
-        lotes e registra a importação no histórico (quem, quando, totais).
-      </Regra>
-
-      <Regra titulo="9. E se a janela fechar no meio?">
-        A importação roda no seu navegador — se a aba fechar ou a internet cair
-        no meio, o banco fica <strong>incompleto</strong> (só com as linhas já
-        enviadas). Nada se corrompe, e a recuperação é simples:{' '}
-        <strong>reenvie a mesma planilha</strong>, que o processo recomeça e
-        restaura tudo. Importação interrompida não entra no histórico. Por
-        garantia, o navegador pede confirmação se você tentar fechar durante o
-        envio.
-      </Regra>
-    </>
   )
 }
