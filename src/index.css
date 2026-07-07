@@ -18,3 +18,12 @@ body {
   background: #ffffff;
   font-family: inherit;
 }
+
+/* Recharts 3 liga o accessibilityLayer por padrão: o SVG do gráfico vira
+   focável (tabIndex=0) e o navegador desenha um contorno preto ao CLICAR.
+   Esconde o contorno só no foco por mouse/toque; a navegação por teclado
+   (Tab) continua mostrando o indicador (:focus-visible) — é justamente o
+   ganho de acessibilidade da v3. */
+.recharts-wrapper svg:focus:not(:focus-visible) {
+  outline: none;
+}

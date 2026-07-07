@@ -509,6 +509,17 @@
   progresso** (`BarraProgresso.jsx`), nunca para decidir quando parar. Cada
   página tem retry com backoff. Aceita `onProgress(carregadas, total)`. Seleciona
   só as colunas usadas (lista `GEO_COLS` no `App.jsx`).
+- **Clique em gráfico (Recharts 3) usa `activeLabel`, NÃO `activePayload`
+  (07/07/2026, M4 PR 3.1):** no Recharts 3 o `onClick` do gráfico (nível
+  `<BarChart>` etc.) deixou de receber o estado interno da v2 — `activePayload`
+  não existe mais; o evento traz `activeLabel` (valor do eixo de categoria) e
+  `activeTooltipIndex`. Padrão para drill-down por clique:
+  `const nome = e?.activeLabel ?? top[e?.activeTooltipIndex]?.nome`.
+  Quebrou o drill-down de executoras (`PaginaFisc5Executoras.jsx`) na migração.
+  Além disso a v3 liga `accessibilityLayer` por padrão (SVG focável): o contorno
+  de foco ao CLICAR é suprimido via `:focus:not(:focus-visible)` no `index.css`
+  (Tab/teclado continua mostrando o contorno — não remover essa regra nem
+  desligar o accessibilityLayer).
 - **Tooltip padrão dos gráficos:** todos os gráficos (Recharts) usam o
   componente compartilhado `src/components/charts/ChartTooltip.jsx` — card
   branco, título em navy, bolinhas de cor por série e valores alinhados.
