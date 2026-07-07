@@ -35,6 +35,22 @@
   }
 }
 
+/*
+  Tailwind CSS v4 removeu do preflight a regra `button, [role="button"] {
+  cursor: pointer }` que o v3 tinha — sem ela, todo <button> (a maioria dos
+  cliques do dashboard) volta ao cursor padrão do navegador (seta), que é
+  "default", não "pointer". Bug achado pelo usuário na validação da M4
+  (07/07/2026): passou despercebido nos screenshots de validação porque
+  cursor não aparece em captura de tela, só ao passar o mouse de verdade.
+  Restaura o comportamento do v3.
+*/
+@layer base {
+  button,
+  [role='button'] {
+    cursor: pointer;
+  }
+}
+
 body {
   font-family:
     'Segoe UI',

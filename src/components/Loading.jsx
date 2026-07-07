@@ -156,7 +156,7 @@ export function LoadingInline({
 }) {
   return (
     <div
-      className={`flex flex-col items-center justify-center gap-3 ${height}`}
+      className={`w-full h-full flex flex-col items-center justify-center gap-3 ${height}`}
     >
       <Spinner size="md" />
       <p className="text-xs text-gray-500 font-medium">{mensagem}</p>

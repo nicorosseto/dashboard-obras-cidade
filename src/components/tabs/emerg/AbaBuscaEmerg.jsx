@@ -100,6 +100,7 @@ export default function AbaBuscaEmerg({ linhas, vistoriaMap, filtrosAtivos = fal
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Ex.: 6012.2024/0001234-5 ou parte do número…"
+              aria-label="Número do processo"
               className="w-full pl-9 pr-10 py-2 text-sm border border-grey-line rounded-lg focus:outline-hidden focus:ring-2 focus:ring-navy/30 focus:border-navy"
               autoFocus
             />

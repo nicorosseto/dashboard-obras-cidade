@@ -132,9 +132,9 @@ export default function EditorMotivos({ grupos = [], salvando = false, onSalvar,
           {[{ id: 'todos', label: `Todos (${todos.length})` }, { id: 'pendentes', label: `Pendentes (${pendentes})` }, { id: 'invalidos', label: `Inválidos (${invalidos})` }].map((f) => (
             <button key={f.id} onClick={() => trocarFiltro(f.id)} className={`px-2 py-1 rounded-sm font-semibold ${filtro === f.id ? 'bg-navy text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{f.label}</button>
           ))}
-          <input value={busca} onChange={(e) => trocarBusca(e.target.value)} placeholder="Buscar grupo…" className="ml-auto border border-gray-200 rounded-sm px-2 py-1 text-xs w-32" />
+          <input value={busca} onChange={(e) => trocarBusca(e.target.value)} placeholder="Buscar grupo…" aria-label="Buscar grupo de motivo" className="ml-auto border border-gray-200 rounded-sm px-2 py-1 text-xs w-32" />
           <div className="flex items-center gap-1">
-            <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && criarGrupo()} placeholder="Novo grupo…" className="border border-gray-200 rounded-sm px-2 py-1 text-xs w-28" />
+            <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && criarGrupo()} placeholder="Novo grupo…" aria-label="Nome do novo grupo" className="border border-gray-200 rounded-sm px-2 py-1 text-xs w-28" />
             <button onClick={criarGrupo} className="px-2 py-1 rounded-sm bg-green-600 text-white font-semibold hover:bg-green-700">+ Criar</button>
           </div>
         </div>
@@ -283,18 +283,18 @@ function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, dispatch }) {
             {(g.palavras || []).length === 0 && <span className="text-[10px] text-gray-300">(nenhuma — usa o vocabulário automático)</span>}
             {(g.palavras || []).map((p) => (
               <span key={p} className="text-[10px] bg-navy/10 text-navy rounded-sm px-1.5 py-0.5 flex items-center gap-1">
-                {p}<button onClick={() => dispatch(g.termo, g._novo, 'rmPalavra', p)} className="text-navy/50 hover:text-red">×</button>
+                {p}<button onClick={() => dispatch(g.termo, g._novo, 'rmPalavra', p)} className="text-navy/50 hover:text-red" aria-label={`Remover palavra-chave ${p}`}>×</button>
               </span>
             ))}
             <input
               value={novaPalavra} onChange={(e) => setNovaPalavra(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { dispatch(g.termo, g._novo, 'addPalavra', novaPalavra); setNovaPalavra('') } }}
-              placeholder="+ palavra" className="text-[10px] border border-gray-200 rounded-sm px-1.5 py-0.5 w-24"
+              placeholder="+ palavra" aria-label="Nova palavra-chave" className="text-[10px] border border-gray-200 rounded-sm px-1.5 py-0.5 w-24"
             />
           </div>
           {/* textos do grupo */}
           <div>
-            <input value={buscaTexto} onChange={(e) => setBuscaTexto(e.target.value)} placeholder="Buscar no texto da natureza…" className="text-[11px] border border-gray-200 rounded-sm px-2 py-1 w-full mb-1" />
+            <input value={buscaTexto} onChange={(e) => setBuscaTexto(e.target.value)} placeholder="Buscar no texto da natureza…" aria-label="Buscar no texto da natureza" className="text-[11px] border border-gray-200 rounded-sm px-2 py-1 w-full mb-1" />
             <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-sm divide-y divide-gray-50">
               {textos.length === 0 && <p className="px-2 py-3 text-center text-[11px] text-gray-400">Nenhum texto.</p>}
               {textos.map((t) => {

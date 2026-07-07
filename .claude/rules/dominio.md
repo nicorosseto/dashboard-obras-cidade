@@ -305,6 +305,20 @@
   `XLSX.read()` são operações atômicas — não emitem eventos de progresso. A barra
   determinada mostrava 0% durante toda a leitura (parecia travada). Solução: barra
   indeterminada (animate-pulse) sem percentual enquanto `progresso < 100`.
+  ✅ **`LoadingInline` desalinhado, grudado no canto (achado 07/07/2026, bug
+  pré-existente desde a introdução do componente — não é regressão de nenhuma
+  fase recente):** o `<div>` raiz não tinha `w-full`/`h-full`; dentro de um pai
+  flex-**row** (`<main className="flex-1 flex ...">`, usado nos `<Suspense
+  fallback>` de módulos lazy — Emergências, Apresentação, Configurações…), o
+  componente ficava do tamanho do próprio conteúdo (spinner + texto) em vez de
+  preencher o espaço disponível, então o `items-center justify-center` interno
+  centralizava dentro de uma caixa minúscula grudada à esquerda, não na tela
+  toda. Correção: `w-full h-full` na `className` raiz do `LoadingInline`
+  (`src/components/Loading.jsx`) — inofensivo nos demais usos (dentro de `div`
+  soltas ou `flex-col`, onde já ocupava a largura por padrão). Regra: todo
+  componente de "estado vazio/loading" que pode aparecer dentro de um pai
+  flex-row precisa de `w-full` (e `h-full` se o eixo cruzado for a altura)
+  para a centralização interna fazer sentido.
 - **Ambientes (produção vs. teste):** a variável `VITE_APP_ENV`
   (`production` | `preview` | `development`) identifica o ambiente. Quando não é
   produção, o componente `AvisoAmbiente` (`src/components/AvisoAmbiente.jsx`, lógica
