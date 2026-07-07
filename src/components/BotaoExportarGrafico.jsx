@@ -20,7 +20,7 @@ export default function BotaoExportarGrafico({ dados, colunas, titulo, modulo })
     <button
       onClick={exportar}
       title={`Exportar dados: ${titulo}`}
-      className="p-1 rounded text-gray-400 hover:text-navy hover:bg-grey-bg transition-colors"
+      className="p-1 rounded-sm text-gray-400 hover:text-navy hover:bg-grey-bg transition-colors"
     >
       <svg
         className="w-4 h-4"

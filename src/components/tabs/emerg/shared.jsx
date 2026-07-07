@@ -45,7 +45,7 @@ export function StatusBadgeEmerg({ status }) {
     'Em andamento': 'bg-amber-50 text-amber-700',
   }
   return (
-    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${cores[status] || 'bg-gray-100 text-gray-600'}`}>
+    <span className={`px-1.5 py-0.5 rounded-sm text-[10px] font-semibold ${cores[status] || 'bg-gray-100 text-gray-600'}`}>
       {status}
     </span>
   )
@@ -58,12 +58,12 @@ export function PaginacaoBusca({ pag, total, onChange, count }) {
       <span>{count.toLocaleString('pt-BR')} resultados</span>
       <div className="flex items-center gap-2">
         <button onClick={() => onChange(pag - 1)} disabled={pag === 0}
-          className="px-2 py-1 rounded border border-grey-line disabled:opacity-30 hover:bg-grey-bg">
+          className="px-2 py-1 rounded-sm border border-grey-line disabled:opacity-30 hover:bg-grey-bg">
           ‹ Anterior
         </button>
         <span className="font-semibold text-navy">{pag + 1} / {total}</span>
         <button onClick={() => onChange(pag + 1)} disabled={pag + 1 >= total}
-          className="px-2 py-1 rounded border border-grey-line disabled:opacity-30 hover:bg-grey-bg">
+          className="px-2 py-1 rounded-sm border border-grey-line disabled:opacity-30 hover:bg-grey-bg">
           Próxima ›
         </button>
       </div>

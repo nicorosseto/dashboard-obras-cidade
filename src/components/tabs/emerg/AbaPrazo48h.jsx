@@ -171,7 +171,7 @@ export default function AbaPrazo48h({ rows, temPosicionamento }) {
           <div className="flex flex-wrap justify-center gap-3 mt-1">
             {dadosSituacao.map((d) => (
               <span key={d.nome} className="inline-flex items-center gap-1.5 text-[11px] text-gray-600">
-                <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: COR_SITUACAO[d.nome] }} />
+                <span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: COR_SITUACAO[d.nome] }} />
                 {d.nome}: <strong>{fmtNumero(d.valor)}</strong> ({d.pct.toFixed(1)}%)
               </span>
             ))}
@@ -207,7 +207,7 @@ export default function AbaPrazo48h({ rows, temPosicionamento }) {
               {fmtNumero(sorted.length)} processos · prazo = início da obra (ou cadastro) + 48h. Vencido = "Informada" após o prazo.
             </p>
           </div>
-          <button onClick={exportar} title="Exportar como Excel (.xlsx)" className="text-xs px-3 py-1.5 border border-navy text-navy rounded hover:bg-navy hover:text-white transition-colors inline-flex items-center gap-1 shrink-0">
+          <button onClick={exportar} title="Exportar como Excel (.xlsx)" className="text-xs px-3 py-1.5 border border-navy text-navy rounded-sm hover:bg-navy hover:text-white transition-colors inline-flex items-center gap-1 shrink-0">
             ⬇ Exportar Excel
           </button>
         </div>
@@ -243,24 +243,24 @@ export default function AbaPrazo48h({ rows, temPosicionamento }) {
 
         <div className="flex flex-wrap items-center gap-4 text-[11px] text-gray-600">
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 rounded-sm bg-red" />
+            <span className="inline-block w-3 h-3 rounded-xs bg-red" />
             Atraso <strong>real</strong> (pelo aviso de início)
             {kpis.vencReal > 0 && <span className="text-gray-400">· {fmtNumero(kpis.vencReal)}</span>}
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 rounded-sm border-2 border-dashed border-amber-500 bg-amber-50" />
+            <span className="inline-block w-3 h-3 rounded-xs border-2 border-dashed border-amber-500 bg-amber-50" />
             Atraso <strong>estimado</strong> (pela data de cadastro)
             {kpis.vencEstimado > 0 && <span className="text-gray-400">· {fmtNumero(kpis.vencEstimado)}</span>}
           </span>
         </div>
 
         {!temPosicionamento && (
-          <div className="bg-amber-50 border border-amber-200 rounded p-2.5 text-[11px] text-amber-800">
+          <div className="bg-amber-50 border border-amber-200 rounded-sm p-2.5 text-[11px] text-amber-800">
             Nenhuma planilha de <strong>posicionamento de obras</strong> foi carregada. Os prazos abaixo são <strong>estimados</strong> pela data de cadastro.
           </div>
         )}
 
-        <div className="overflow-x-auto rounded border border-grey-line">
+        <div className="overflow-x-auto rounded-sm border border-grey-line">
           <table className="w-full text-xs border-collapse">
             <thead>
               <tr className="bg-navy text-white text-left">
@@ -307,7 +307,7 @@ export default function AbaPrazo48h({ rows, temPosicionamento }) {
                     </td>
                     <td className="p-2 whitespace-nowrap text-center">
                       {it._dias_atraso != null ? (
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${it._estimado ? 'bg-amber-50 text-amber-700 border border-dashed border-amber-400' : 'bg-red/10 text-red'}`}
+                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold ${it._estimado ? 'bg-amber-50 text-amber-700 border border-dashed border-amber-400' : 'bg-red/10 text-red'}`}
                           title={it._estimado ? 'Atraso estimado (pela data de cadastro)' : 'Atraso real (pelo aviso de início)'}>
                           {fmtNumero(it._dias_atraso)}d
                         </span>
@@ -315,15 +315,15 @@ export default function AbaPrazo48h({ rows, temPosicionamento }) {
                     </td>
                     <td className="p-2 whitespace-nowrap text-center">
                       {it._vencido ? (
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${it._estimado ? 'bg-amber-100 text-amber-800 border border-dashed border-amber-400' : 'bg-red/10 text-red'}`}>
+                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-semibold ${it._estimado ? 'bg-amber-100 text-amber-800 border border-dashed border-amber-400' : 'bg-red/10 text-red'}`}>
                           Vencido{it._estimado ? ' (est.)' : ''}
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">Dentro do prazo</span>
+                        <span className="px-2 py-0.5 rounded-sm text-[10px] font-semibold bg-emerald-50 text-emerald-700">Dentro do prazo</span>
                       )}
                     </td>
                     <td className="p-2 text-center border-l-2 border-gray-200">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${it._possui_vistoria === 'Sim' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`px-2 py-0.5 rounded-sm text-[10px] font-semibold ${it._possui_vistoria === 'Sim' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                         {it._possui_vistoria}
                       </span>
                     </td>

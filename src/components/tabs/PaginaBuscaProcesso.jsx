@@ -75,7 +75,7 @@ export function CampoBusca({ busca, onChange, placeholder, totalResultados, tota
               value={busca}
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder || 'Ex.: 6012.2024/0001234-5 ou parte do número…'}
-              className="w-full pl-9 pr-10 py-2 text-sm border border-grey-line rounded-lg focus:outline-none focus:ring-2 focus:ring-navy/30 focus:border-navy"
+              className="w-full pl-9 pr-10 py-2 text-sm border border-grey-line rounded-lg focus:outline-hidden focus:ring-2 focus:ring-navy/30 focus:border-navy"
               autoFocus
             />
             {busca && (
@@ -143,7 +143,7 @@ function TabelaFisc({ rows }) {
 
   return (
     <div>
-      <div className="overflow-x-auto rounded border border-grey-line">
+      <div className="overflow-x-auto rounded-sm border border-grey-line">
         <table className="w-full text-xs border-collapse">
           <thead>
             <tr className="bg-navy text-white text-left">
@@ -171,7 +171,7 @@ function TabelaFisc({ rows }) {
                   </td>
                   <td className="p-2 text-center">
                     {r.tem_nao_conformidade
-                      ? <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red/10 text-red">Sim</span>
+                      ? <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-semibold bg-red/10 text-red">Sim</span>
                       : <span className="text-gray-400">—</span>
                     }
                   </td>
@@ -213,7 +213,7 @@ function TabelaGeo({ rows }) {
 
   return (
     <div>
-      <div className="overflow-x-auto rounded border border-grey-line">
+      <div className="overflow-x-auto rounded-sm border border-grey-line">
         <table className="w-full text-xs border-collapse">
           <thead>
             <tr className="bg-navy text-white text-left">
@@ -264,7 +264,7 @@ function StatusBadgeFisc({ status }) {
     'Legislacao Atendida': 'bg-slate-100 text-slate-600',
   }
   return (
-    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${cores[status] || 'bg-gray-100 text-gray-600'}`}>
+    <span className={`px-1.5 py-0.5 rounded-sm text-[10px] font-semibold ${cores[status] || 'bg-gray-100 text-gray-600'}`}>
       {status}
     </span>
   )
@@ -279,7 +279,7 @@ function Paginacao({ pag, total, onChange, count }) {
         <button
           onClick={() => onChange(pag - 1)}
           disabled={pag === 0}
-          className="px-2 py-1 rounded border border-grey-line disabled:opacity-30 hover:bg-grey-bg"
+          className="px-2 py-1 rounded-sm border border-grey-line disabled:opacity-30 hover:bg-grey-bg"
         >
           ‹ Anterior
         </button>
@@ -287,7 +287,7 @@ function Paginacao({ pag, total, onChange, count }) {
         <button
           onClick={() => onChange(pag + 1)}
           disabled={pag + 1 >= total}
-          className="px-2 py-1 rounded border border-grey-line disabled:opacity-30 hover:bg-grey-bg"
+          className="px-2 py-1 rounded-sm border border-grey-line disabled:opacity-30 hover:bg-grey-bg"
         >
           Próxima ›
         </button>

@@ -78,7 +78,7 @@ export function ControlePaginacao({
           type="button"
           onClick={anterior}
           disabled={verTodas || pagina === 0}
-          className="w-7 h-7 flex items-center justify-center rounded border border-grey-line text-navy hover:bg-navy/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="w-7 h-7 flex items-center justify-center rounded-sm border border-grey-line text-navy hover:bg-navy/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           title="Página anterior"
           aria-label="Página anterior"
         >
@@ -88,7 +88,7 @@ export function ControlePaginacao({
           type="button"
           onClick={proxima}
           disabled={verTodas || pagina >= totalPaginas - 1}
-          className="w-7 h-7 flex items-center justify-center rounded border border-grey-line text-navy hover:bg-navy/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="w-7 h-7 flex items-center justify-center rounded-sm border border-grey-line text-navy hover:bg-navy/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           title="Próxima página"
           aria-label="Próxima página"
         >

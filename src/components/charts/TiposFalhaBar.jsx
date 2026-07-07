@@ -20,7 +20,7 @@ export default function TiposFalhaBar({ titulo, dados, acoes }) {
           <h3 className="text-sm font-semibold text-navy flex-1 text-center uppercase tracking-wide">
             {titulo}
           </h3>
-          {acoes && <div className="flex-shrink-0">{acoes}</div>}
+          {acoes && <div className="shrink-0">{acoes}</div>}
         </div>
       )}
       <ResponsiveContainer

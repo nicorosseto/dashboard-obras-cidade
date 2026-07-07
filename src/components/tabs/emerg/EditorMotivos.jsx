@@ -130,12 +130,12 @@ export default function EditorMotivos({ grupos = [], salvando = false, onSalvar,
         {/* Filtros + busca + novo grupo */}
         <div className="flex items-center gap-2 px-5 py-2 border-b border-gray-50 text-[11px] flex-wrap">
           {[{ id: 'todos', label: `Todos (${todos.length})` }, { id: 'pendentes', label: `Pendentes (${pendentes})` }, { id: 'invalidos', label: `Inválidos (${invalidos})` }].map((f) => (
-            <button key={f.id} onClick={() => trocarFiltro(f.id)} className={`px-2 py-1 rounded font-semibold ${filtro === f.id ? 'bg-navy text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{f.label}</button>
+            <button key={f.id} onClick={() => trocarFiltro(f.id)} className={`px-2 py-1 rounded-sm font-semibold ${filtro === f.id ? 'bg-navy text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{f.label}</button>
           ))}
-          <input value={busca} onChange={(e) => trocarBusca(e.target.value)} placeholder="Buscar grupo…" className="ml-auto border border-gray-200 rounded px-2 py-1 text-xs w-32" />
+          <input value={busca} onChange={(e) => trocarBusca(e.target.value)} placeholder="Buscar grupo…" className="ml-auto border border-gray-200 rounded-sm px-2 py-1 text-xs w-32" />
           <div className="flex items-center gap-1">
-            <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && criarGrupo()} placeholder="Novo grupo…" className="border border-gray-200 rounded px-2 py-1 text-xs w-28" />
-            <button onClick={criarGrupo} className="px-2 py-1 rounded bg-green-600 text-white font-semibold hover:bg-green-700">+ Criar</button>
+            <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && criarGrupo()} placeholder="Novo grupo…" className="border border-gray-200 rounded-sm px-2 py-1 text-xs w-28" />
+            <button onClick={criarGrupo} className="px-2 py-1 rounded-sm bg-green-600 text-white font-semibold hover:bg-green-700">+ Criar</button>
           </div>
         </div>
 
@@ -160,16 +160,16 @@ export default function EditorMotivos({ grupos = [], salvando = false, onSalvar,
           <div className="flex items-center gap-2 text-[11px] text-gray-500">
             {totalPags > 1 && (
               <>
-                <button onClick={() => setPag((p) => Math.max(0, p - 1))} disabled={pagAtual === 0} className="px-2 py-1 rounded border border-gray-200 disabled:opacity-40">‹ Anterior</button>
+                <button onClick={() => setPag((p) => Math.max(0, p - 1))} disabled={pagAtual === 0} className="px-2 py-1 rounded-sm border border-gray-200 disabled:opacity-40">‹ Anterior</button>
                 <span>Pág. {pagAtual + 1}/{totalPags}</span>
-                <button onClick={() => setPag((p) => Math.min(totalPags - 1, p + 1))} disabled={pagAtual >= totalPags - 1} className="px-2 py-1 rounded border border-gray-200 disabled:opacity-40">Próxima ›</button>
+                <button onClick={() => setPag((p) => Math.min(totalPags - 1, p + 1))} disabled={pagAtual >= totalPags - 1} className="px-2 py-1 rounded-sm border border-gray-200 disabled:opacity-40">Próxima ›</button>
                 <span className="text-gray-400">({lista.length.toLocaleString('pt-BR')} grupos)</span>
               </>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={onClose} className="px-3 py-1.5 text-xs text-gray-600 border border-gray-200 rounded hover:bg-gray-50">Cancelar</button>
-            <button onClick={salvar} disabled={salvando} className="px-4 py-1.5 text-xs font-semibold text-white bg-navy rounded hover:bg-navy-light disabled:opacity-60">
+            <button onClick={onClose} className="px-3 py-1.5 text-xs text-gray-600 border border-gray-200 rounded-sm hover:bg-gray-50">Cancelar</button>
+            <button onClick={salvar} disabled={salvando} className="px-4 py-1.5 text-xs font-semibold text-white bg-navy rounded-sm hover:bg-navy-light disabled:opacity-60">
               {salvando ? 'Salvando…' : 'Salvar classificação'}
             </button>
           </div>
@@ -189,10 +189,10 @@ function SeletorGrupo({ alvos, onPick, onCancel, placeholder = 'Buscar grupo…'
   }, [alvos, q])
   return (
     <div className="absolute right-0 z-20 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl w-60 p-1.5">
-      <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} className="w-full text-[11px] border border-gray-200 rounded px-2 py-1 mb-1" />
+      <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} className="w-full text-[11px] border border-gray-200 rounded-sm px-2 py-1 mb-1" />
       <div className="max-h-44 overflow-y-auto">
         {filtrados.map((a) => (
-          <button key={a.termo} onClick={() => onPick(a.termo)} className="block w-full text-left text-[11px] px-2 py-1 hover:bg-amber-50 rounded truncate">{a.rotulo}</button>
+          <button key={a.termo} onClick={() => onPick(a.termo)} className="block w-full text-left text-[11px] px-2 py-1 hover:bg-amber-50 rounded-sm truncate">{a.rotulo}</button>
         ))}
         {filtrados.length === 0 && <p className="text-[11px] text-gray-400 px-2 py-1">Nada encontrado.</p>}
       </div>
@@ -237,7 +237,7 @@ function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, dispatch }) {
               autoFocus value={nome} onChange={(e) => setNome(e.target.value)}
               onBlur={() => { dispatch(g.termo, g._novo, 'rotulo', nome.trim() || g.rotulo); setEditandoNome(false) }}
               onKeyDown={(e) => { if (e.key === 'Enter') { dispatch(g.termo, g._novo, 'rotulo', nome.trim() || g.rotulo); setEditandoNome(false) } }}
-              className="text-xs font-semibold border border-amber-300 rounded px-1.5 py-0.5 w-full max-w-xs"
+              className="text-xs font-semibold border border-amber-300 rounded-sm px-1.5 py-0.5 w-full max-w-xs"
             />
           ) : (
             <span className="text-xs font-semibold text-gray-800 cursor-pointer hover:text-navy" onClick={() => { setNome(g.rotulo); setEditandoNome(true) }} title="Clique para renomear">
@@ -245,8 +245,8 @@ function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, dispatch }) {
             </span>
           )}
           <span className="text-[10px] text-gray-400 ml-2">{(g.qtd || 0).toLocaleString('pt-BR')} processo(s)</span>
-          {!g.classificado && <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded ml-1">NOVO</span>}
-          {g._novo && <span className="text-[9px] font-bold text-green-700 bg-green-50 px-1.5 py-0.5 rounded ml-1">CRIADO</span>}
+          {!g.classificado && <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-sm ml-1">NOVO</span>}
+          {g._novo && <span className="text-[9px] font-bold text-green-700 bg-green-50 px-1.5 py-0.5 rounded-sm ml-1">CRIADO</span>}
         </div>
 
         {/* toggle válido/inválido */}
@@ -260,11 +260,11 @@ function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, dispatch }) {
           {fundirAlvo ? (
             <div className="flex items-center gap-1 text-[10px]">
               <span className="text-gray-500 truncate max-w-[90px]" title={rotAlvo(fundirAlvo)}>→ {rotAlvo(fundirAlvo)}</span>
-              <button onClick={() => { dispatch(g.termo, g._novo, 'fundir', fundirAlvo); setFundirAlvo(null) }} className="w-5 h-5 rounded bg-green-600 text-white font-bold hover:bg-green-700" title="Confirmar fusão">✓</button>
-              <button onClick={() => setFundirAlvo(null)} className="w-5 h-5 rounded border border-gray-200 text-gray-400 hover:text-red" title="Cancelar">✕</button>
+              <button onClick={() => { dispatch(g.termo, g._novo, 'fundir', fundirAlvo); setFundirAlvo(null) }} className="w-5 h-5 rounded-sm bg-green-600 text-white font-bold hover:bg-green-700" title="Confirmar fusão">✓</button>
+              <button onClick={() => setFundirAlvo(null)} className="w-5 h-5 rounded-sm border border-gray-200 text-gray-400 hover:text-red" title="Cancelar">✕</button>
             </div>
           ) : (
-            <button onClick={() => setFundirAberto((v) => !v)} className="text-[10px] border border-gray-200 rounded px-1.5 py-1 text-gray-500 hover:bg-gray-50" title="Fundir este grupo em outro">Fundir…</button>
+            <button onClick={() => setFundirAberto((v) => !v)} className="text-[10px] border border-gray-200 rounded-sm px-1.5 py-1 text-gray-500 hover:bg-gray-50" title="Fundir este grupo em outro">Fundir…</button>
           )}
           {fundirAberto && !fundirAlvo && (
             <SeletorGrupo alvos={outros} placeholder="Fundir em…" onPick={(alvo) => { setFundirAlvo(alvo); setFundirAberto(false) }} onCancel={() => setFundirAberto(false)} />
@@ -272,7 +272,7 @@ function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, dispatch }) {
         </div>
 
         {/* excluir */}
-        <button onClick={() => dispatch(g.termo, g._novo, 'excluir')} className="text-[10px] text-red border border-red/30 rounded px-1.5 py-1 hover:bg-red/5 shrink-0" title="Excluir grupo">Excluir</button>
+        <button onClick={() => dispatch(g.termo, g._novo, 'excluir')} className="text-[10px] text-red border border-red/30 rounded-sm px-1.5 py-1 hover:bg-red/5 shrink-0" title="Excluir grupo">Excluir</button>
       </div>
 
       {aberto && (
@@ -282,20 +282,20 @@ function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, dispatch }) {
             <span className="text-[10px] text-gray-400 uppercase font-semibold">Palavras-chave:</span>
             {(g.palavras || []).length === 0 && <span className="text-[10px] text-gray-300">(nenhuma — usa o vocabulário automático)</span>}
             {(g.palavras || []).map((p) => (
-              <span key={p} className="text-[10px] bg-navy/10 text-navy rounded px-1.5 py-0.5 flex items-center gap-1">
+              <span key={p} className="text-[10px] bg-navy/10 text-navy rounded-sm px-1.5 py-0.5 flex items-center gap-1">
                 {p}<button onClick={() => dispatch(g.termo, g._novo, 'rmPalavra', p)} className="text-navy/50 hover:text-red">×</button>
               </span>
             ))}
             <input
               value={novaPalavra} onChange={(e) => setNovaPalavra(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { dispatch(g.termo, g._novo, 'addPalavra', novaPalavra); setNovaPalavra('') } }}
-              placeholder="+ palavra" className="text-[10px] border border-gray-200 rounded px-1.5 py-0.5 w-24"
+              placeholder="+ palavra" className="text-[10px] border border-gray-200 rounded-sm px-1.5 py-0.5 w-24"
             />
           </div>
           {/* textos do grupo */}
           <div>
-            <input value={buscaTexto} onChange={(e) => setBuscaTexto(e.target.value)} placeholder="Buscar no texto da natureza…" className="text-[11px] border border-gray-200 rounded px-2 py-1 w-full mb-1" />
-            <div className="max-h-48 overflow-y-auto border border-gray-100 rounded divide-y divide-gray-50">
+            <input value={buscaTexto} onChange={(e) => setBuscaTexto(e.target.value)} placeholder="Buscar no texto da natureza…" className="text-[11px] border border-gray-200 rounded-sm px-2 py-1 w-full mb-1" />
+            <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-sm divide-y divide-gray-50">
               {textos.length === 0 && <p className="px-2 py-3 text-center text-[11px] text-gray-400">Nenhum texto.</p>}
               {textos.map((t) => {
                 const movidoPara = moves[normNatureza(t.texto)]
@@ -308,7 +308,7 @@ function GrupoLinha({ g, aberto, alvos, moves, onToggleAberto, dispatch }) {
                       ? <span className="text-[10px] text-green-700 shrink-0">→ {rotAlvo(movidoPara)}</span>
                       : (
                         <div className="relative shrink-0">
-                          <button onClick={() => setMoverTextoAtivo(ativo ? null : t.texto)} className="text-[10px] border border-gray-200 rounded px-1 py-0.5 text-gray-500 hover:bg-gray-50" title="Mover este texto para outro grupo">mover →</button>
+                          <button onClick={() => setMoverTextoAtivo(ativo ? null : t.texto)} className="text-[10px] border border-gray-200 rounded-sm px-1 py-0.5 text-gray-500 hover:bg-gray-50" title="Mover este texto para outro grupo">mover →</button>
                           {ativo && (
                             <SeletorGrupo alvos={outros} placeholder="Mover para…" onPick={(alvo) => { dispatch(g.termo, g._novo, 'moverTexto', { texto: t.texto, alvo }); setMoverTextoAtivo(null) }} onCancel={() => setMoverTextoAtivo(null)} />
                           )}
