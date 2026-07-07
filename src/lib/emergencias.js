@@ -1,6 +1,5 @@
 // Lógica pura do módulo de Emergências: constantes, parsing, normalização,
 // agregações e helpers do SLA 48h. Sem JSX, sem React, sem chamadas ao Supabase.
-import * as XLSX from 'xlsx'
 import { fmtData, consolidarNorcrest } from './aggregations.js'
 import { toIsoDate } from './datas.js'
 import { SUBPREFEITURAS } from '../data/subprefeituras-sp.js'
@@ -973,7 +972,11 @@ export function enrichRow(r, vistoriaMap) {
 
 // Export Excel com suporte a transform por coluna e auto-largura baseada em dados.
 // Mantido separado do exportarXLSX.js genérico por ter assinatura diferente (transform).
-export function exportXLSX(rows, columns, filename, sheetName = 'Dados') {
+// xlsx via import dinâmico: este arquivo está no grafo de boot do App (que
+// importa agruparMotivos/resolverDefs) e o import estático pré-carregava o
+// vendor inteiro no boot.
+export async function exportXLSX(rows, columns, filename, sheetName = 'Dados') {
+  const XLSX = await import('xlsx')
   const data = rows.map((r) => {
     const o = {}
     for (const c of columns) {
