@@ -220,7 +220,15 @@ function GraficoNCPermissionarias({ dados, onClickPerm }) {
         layout="vertical"
         margin={{ top: 4, right: 48, left: 8, bottom: 4 }}
         onClick={(e) => {
-          const nome = e?.activePayload?.[0]?.payload?.nome
+          // Recharts 3: o onClick do gráfico não entrega mais `activePayload`
+          // (era o estado interno da v2); o que existe agora é `activeLabel`
+          // (valor do eixo de categoria = nome da permissionária) e
+          // `activeTooltipIndex` (fallback pelo índice na lista).
+          const nome =
+            e?.activeLabel ??
+            (typeof e?.activeTooltipIndex === 'number'
+              ? top[e.activeTooltipIndex]?.nome
+              : null)
           if (nome) onClickPerm(nome)
         }}
       >

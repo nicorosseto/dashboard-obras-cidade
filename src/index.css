@@ -18,3 +18,17 @@ body {
   background: #ffffff;
   font-family: inherit;
 }
+
+/* Recharts 3 liga o accessibilityLayer por padrão e espalha tabindex por
+   DEZENAS de elementos internos (svg, camadas g.recharts-zIndex-layer_*,
+   fatias path.recharts-sector…). O clique foca o elemento interno mais
+   próximo — não o svg — e o navegador desenha um contorno preto em volta
+   dele (na barra, o contorno sai do tamanho da área de plotagem inteira).
+   Por isso a regra cobre o wrapper e QUALQUER descendente. Esconde o
+   contorno só no foco por mouse/toque; a navegação por teclado (Tab)
+   continua mostrando o indicador (:focus-visible) — é justamente o ganho
+   de acessibilidade da v3. */
+.recharts-wrapper:focus:not(:focus-visible),
+.recharts-wrapper :focus:not(:focus-visible) {
+  outline: none;
+}
