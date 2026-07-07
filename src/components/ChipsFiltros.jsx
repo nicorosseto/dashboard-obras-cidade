@@ -7,7 +7,7 @@ export default function ChipsFiltros({ chips, onLimparTodos }) {
       {chips.map((c) => (
         <span
           key={c.id}
-          className="inline-flex items-center gap-1 text-[10px] bg-white border border-navy/30 text-navy px-2 py-0.5 rounded-full shadow-sm max-w-[160px]"
+          className="inline-flex items-center gap-1 text-[10px] bg-white border border-navy/30 text-navy px-2 py-0.5 rounded-full shadow-xs max-w-[160px]"
         >
           <span className="truncate">{c.label}</span>
           <button

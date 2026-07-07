@@ -46,7 +46,7 @@ export default function LinhaTemporal({ titulo, rows }) {
           titulo={titulo}
           modulo="fiscalizacao"
         />
-        <div className="inline-flex rounded border border-grey-line overflow-hidden">
+        <div className="inline-flex rounded-sm border border-grey-line overflow-hidden">
           {OPCOES.map((o) => (
             <button
               key={o.key}

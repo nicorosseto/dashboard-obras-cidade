@@ -121,7 +121,7 @@ function TooltipExecutoras({ active, payload, label, permissionaria, metricaLabe
   if (!active || !payload?.length) return null
   const valor = payload[0]?.value ?? 0
   return (
-    <div className="bg-white border border-grey-line rounded shadow-card p-2 text-xs min-w-[160px] max-w-[260px]">
+    <div className="bg-white border border-grey-line rounded-sm shadow-card p-2 text-xs min-w-[160px] max-w-[260px]">
       <div className="font-semibold text-navy mb-1 truncate">{label}</div>
       {permissionaria && (
         <div className="text-slate-400 text-[10px] mb-1 truncate">
@@ -367,14 +367,14 @@ function TabelaExecutoras({ rows }) {
             <button
               disabled={pag === 0}
               onClick={() => setPagina(pag - 1)}
-              className="px-2 py-1 rounded border border-slate-200 disabled:opacity-30 hover:bg-slate-50"
+              className="px-2 py-1 rounded-sm border border-slate-200 disabled:opacity-30 hover:bg-slate-50"
             >
               ‹
             </button>
             <button
               disabled={pag >= totalPag - 1}
               onClick={() => setPagina(pag + 1)}
-              className="px-2 py-1 rounded border border-slate-200 disabled:opacity-30 hover:bg-slate-50"
+              className="px-2 py-1 rounded-sm border border-slate-200 disabled:opacity-30 hover:bg-slate-50"
             >
               ›
             </button>
@@ -453,7 +453,7 @@ export default function PaginaFisc5Executoras({ rows }) {
     <div className="space-y-4">
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-lg shadow-sm p-4">
           <p className="text-[11px] text-gray-500 uppercase tracking-wide">
             Laudos com executora (Sistema Geo)
           </p>
@@ -464,7 +464,7 @@ export default function PaginaFisc5Executoras({ rows }) {
             {pct(totalComExecutora, rows.length)}% do total
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-lg shadow-sm p-4">
           <p className="text-[11px] text-gray-500 uppercase tracking-wide">
             Sem executora (não no Sistema Geo)
           </p>
@@ -475,7 +475,7 @@ export default function PaginaFisc5Executoras({ rows }) {
             {pct(totalSemExecutora, rows.length)}% do total
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-lg shadow-sm p-4">
           <p className="text-[11px] text-gray-500 uppercase tracking-wide">
             Executoras únicas
           </p>
@@ -490,7 +490,7 @@ export default function PaginaFisc5Executoras({ rows }) {
         /* ── Detalhe: executoras de uma permissionária ── */
         <div className="space-y-4">
           {/* Cabeçalho + voltar */}
-          <div className="bg-white rounded-lg shadow p-5">
+          <div className="bg-white rounded-lg shadow-sm p-5">
             <div className="flex items-center gap-3 mb-1">
               <button
                 onClick={() => setPermSel(null)}
@@ -508,7 +508,7 @@ export default function PaginaFisc5Executoras({ rows }) {
           </div>
 
           {/* Gráfico top executoras com seletor de métrica */}
-          <div className="bg-white rounded-lg shadow p-5">
+          <div className="bg-white rounded-lg shadow-sm p-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <h4 className="text-sm font-semibold text-navy">
                 Top 10 executoras
@@ -523,7 +523,7 @@ export default function PaginaFisc5Executoras({ rows }) {
           </div>
 
           {/* Tabela completa */}
-          <div className="bg-white rounded-lg shadow p-5">
+          <div className="bg-white rounded-lg shadow-sm p-5">
             <h4 className="text-sm font-semibold text-navy mb-3">
               Ranking completo
             </h4>
@@ -534,7 +534,7 @@ export default function PaginaFisc5Executoras({ rows }) {
         /* ── Visão geral: gráfico NC por permissionária + tabela ── */
         <div className="space-y-4">
           {/* Gráfico NC por permissionária com instrução de drill-down */}
-          <div className="bg-white rounded-lg shadow p-5">
+          <div className="bg-white rounded-lg shadow-sm p-5">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 mb-4">
               <div>
                 <h4 className="text-sm font-semibold text-navy">
@@ -562,7 +562,7 @@ export default function PaginaFisc5Executoras({ rows }) {
           </div>
 
           {/* Tabela de permissionárias */}
-          <div className="bg-white rounded-lg shadow p-5">
+          <div className="bg-white rounded-lg shadow-sm p-5">
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-semibold text-slate-800">
                 Permissionárias

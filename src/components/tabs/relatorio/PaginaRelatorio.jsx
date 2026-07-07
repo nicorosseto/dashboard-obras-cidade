@@ -104,7 +104,7 @@ export default function PaginaRelatorio({ geo, fisc, emerg, carregandoGeo }) {
               <select
                 value={permissionaria}
                 onChange={(e) => setPermissionaria(e.target.value)}
-                className={`rounded-md border px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-teal-400 ${permissionaria ? 'border-teal-500 bg-teal-50 text-teal-900' : 'border-gray-300 text-gray-600'}`}
+                className={`rounded-md border px-2.5 py-1.5 text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-teal-400 ${permissionaria ? 'border-teal-500 bg-teal-50 text-teal-900' : 'border-gray-300 text-gray-600'}`}
                 title="Ajusta a apresentação inteira para os dados desta permissionária"
               >
                 <option value="">Todas as permissionárias</option>
@@ -153,7 +153,7 @@ export default function PaginaRelatorio({ geo, fisc, emerg, carregandoGeo }) {
                 key={c.id}
                 className="inline-flex items-center gap-1.5 text-[11px] text-gray-600"
               >
-                <span className={`w-3 h-3 rounded-sm border-2 ${c.borda}`} />
+                <span className={`w-3 h-3 rounded-xs border-2 ${c.borda}`} />
                 {c.icone} {c.rotulo}
               </span>
             ))}
@@ -166,7 +166,7 @@ export default function PaginaRelatorio({ geo, fisc, emerg, carregandoGeo }) {
                   key={s.n}
                   onClick={() => irParaSlide(s.n)}
                   title={s.titulo}
-                  className={`min-w-[32px] h-8 px-1 rounded text-[11px] font-semibold border-2 ${s.catInfo.borda} text-gray-600 hover:bg-grey-bg transition-colors`}
+                  className={`min-w-[32px] h-8 px-1 rounded-sm text-[11px] font-semibold border-2 ${s.catInfo.borda} text-gray-600 hover:bg-grey-bg transition-colors`}
                 >
                   {s.n}
                 </button>

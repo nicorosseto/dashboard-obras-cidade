@@ -250,7 +250,7 @@ export default function PaginaGeo3Subprefeitura({
                 className="flex items-center gap-1 text-[10px] text-gray-600"
               >
                 <div
-                  className="w-2.5 h-2.5 rounded-sm shrink-0"
+                  className="w-2.5 h-2.5 rounded-xs shrink-0"
                   style={{ background: COR_REGIAO[d.regiao] || '#888' }}
                 />
                 <span>Região {d.regiao}</span>

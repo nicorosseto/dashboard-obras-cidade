@@ -289,7 +289,7 @@ function PainelAnosLado({ painel }) {
         {painel.itens.map((it, i) => (
           <div
             key={it.ano}
-            className="flex items-center justify-between gap-3 px-2 py-0.5 text-[11px] font-bold text-white rounded-sm"
+            className="flex items-center justify-between gap-3 px-2 py-0.5 text-[11px] font-bold text-white rounded-xs"
             style={{ backgroundColor: CORES_ANO[i % CORES_ANO.length] }}
           >
             <span>{it.ano}:</span>
@@ -328,7 +328,7 @@ function CabecalhoSlide({ slide }) {
             {titulo}
           </h3>
           {slide.permSelecionada && (
-            <span className="inline-flex items-center gap-1 bg-teal-700 text-white text-[11px] font-bold px-2.5 py-0.5 rounded mt-1.5 mr-2">
+            <span className="inline-flex items-center gap-1 bg-teal-700 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-sm mt-1.5 mr-2">
               Permissionária: {slide.permSelecionada}
             </span>
           )}
@@ -950,7 +950,7 @@ export default function SlideRenderer({ slide, campos, onCampo }) {
             onClick={baixarImagem}
             disabled={baixandoImg}
             title="Baixar imagem do slide (PNG)"
-            className="p-1 rounded text-gray-400 hover:text-navy hover:bg-grey-bg transition-colors disabled:opacity-50"
+            className="p-1 rounded-sm text-gray-400 hover:text-navy hover:bg-grey-bg transition-colors disabled:opacity-50"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -987,7 +987,7 @@ export default function SlideRenderer({ slide, campos, onCampo }) {
               value={campos?.[slide.input.campo] ?? ''}
               onChange={(e) => onCampo?.(slide.input.campo, e.target.value)}
               placeholder="0,00"
-              className="w-32 rounded border border-teal-300 px-2 py-1 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="w-32 rounded-sm border border-teal-300 px-2 py-1 text-sm text-navy focus:outline-hidden focus:ring-2 focus:ring-teal-400"
             />
             <span className="text-[10px] text-teal-800">
               usado nos cálculos deste slide — fica salvo neste navegador.

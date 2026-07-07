@@ -53,7 +53,7 @@ function CardOutros({ outros, total }) {
           <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
             {outros.detalhe.map(({ status, qtd }) => (
               <div key={status} className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: STATUS_COLOR[status] || STATUS_PADRAO }} />
+                <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{ background: STATUS_COLOR[status] || STATUS_PADRAO }} />
                 <span className="flex-1 truncate text-gray-700">{status}</span>
                 <span className="text-gray-500 font-semibold shrink-0">{fmtNumero(qtd)}</span>
               </div>
@@ -126,7 +126,7 @@ export default function AbaGeral({ total, linhas: linhasRaw, cruzada }) {
             <tr>
               {/* Coluna Permissionária ordenável */}
               <th
-                className="text-left p-2 font-semibold text-navy cursor-pointer select-none hover:bg-navy/5 rounded"
+                className="text-left p-2 font-semibold text-navy cursor-pointer select-none hover:bg-navy/5 rounded-sm"
                 onClick={() => handleSort('permissionaria')}
               >
                 Permissionária
@@ -136,7 +136,7 @@ export default function AbaGeral({ total, linhas: linhasRaw, cruzada }) {
               {colunasComTotal.map((s) => (
                 <th
                   key={s}
-                  className="text-right p-2 font-semibold cursor-pointer select-none hover:bg-navy/5 rounded whitespace-nowrap"
+                  className="text-right p-2 font-semibold cursor-pointer select-none hover:bg-navy/5 rounded-sm whitespace-nowrap"
                   style={{ color: s === '_total' ? '#1F3864' : corCol(s) }}
                   onClick={() => handleSort(s)}
                 >

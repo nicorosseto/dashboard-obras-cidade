@@ -322,13 +322,13 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
 
       {/* Filtro de data por AIO (dentro da aba) + aviso dos filtros laterais */}
       {processosBase.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm px-4 py-2.5 flex items-center gap-3 flex-wrap text-xs">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-xs px-4 py-2.5 flex items-center gap-3 flex-wrap text-xs">
           <span className="font-semibold text-navy uppercase tracking-wide text-[11px]">Filtro por data (AIO)</span>
           <label className="flex items-center gap-1 text-gray-500">De
-            <input type="date" value={dataIni} onChange={(e) => { setDataIni(e.target.value); setPag(0) }} className="border border-gray-200 rounded px-2 py-1" />
+            <input type="date" value={dataIni} onChange={(e) => { setDataIni(e.target.value); setPag(0) }} className="border border-gray-200 rounded-sm px-2 py-1" />
           </label>
           <label className="flex items-center gap-1 text-gray-500">Até
-            <input type="date" value={dataFim} onChange={(e) => { setDataFim(e.target.value); setPag(0) }} className="border border-gray-200 rounded px-2 py-1" />
+            <input type="date" value={dataFim} onChange={(e) => { setDataFim(e.target.value); setPag(0) }} className="border border-gray-200 rounded-sm px-2 py-1" />
           </label>
           {(dataIni || dataFim) && <button onClick={() => { setDataIni(''); setDataFim(''); setPag(0) }} className="text-[11px] text-red hover:underline">limpar</button>}
           <span className="text-gray-400 ml-auto">Considera o aviso de início (AIO), ou a data de cadastro na falta. A data da barra lateral não se aplica nesta aba.</span>
@@ -379,7 +379,7 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
           </div>
 
           {/* Gráficos */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-xs p-4">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-bold text-navy uppercase tracking-wide">Linha do tempo — motivos inválidos</h3>
               <BotaoExportarGrafico dados={serieTempo} colunas={[{ key: 'label', label: 'Mês' }, { key: 'qtd', label: 'Inválidos' }]} titulo="motivos-linha-do-tempo" modulo="emergencias" />
@@ -399,7 +399,7 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Top permissionárias (com drill-down por unidade da NORCREST) */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-xs p-4">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
                   {norcrestDrill ? 'NORCREST — inválidos por unidade' : 'Permissionárias com mais inválidos'}
@@ -421,7 +421,7 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
             </div>
 
             {/* Por status (donut) */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-xs p-4">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-bold text-navy uppercase tracking-wide">Inválidos por status</h3>
                 <BotaoExportarGrafico dados={porStatus} colunas={[{ key: 'status', label: 'Status' }, { key: 'qtd', label: 'Qtd' }]} titulo="motivos-por-status" modulo="emergencias" />
@@ -447,7 +447,7 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
 
           {/* Card: motivos inválidos mais recorrentes (clicáveis) */}
           {cardMotivos.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-xs p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-base">🔎</span>
                 <h3 className="text-sm font-bold text-navy uppercase tracking-wide">Motivos inválidos mais recorrentes</h3>
@@ -460,11 +460,11 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
                     <li key={g.termo}>
                       <button
                         onClick={() => setMotivoAberto(g.rotulo)}
-                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-amber-50 text-left group transition-colors"
+                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-amber-50 text-left group transition-colors"
                       >
                         <span className="w-5 text-[11px] font-bold text-amber-600 shrink-0">{i + 1}º</span>
                         <span className="flex-1 text-xs text-gray-700 truncate group-hover:text-navy" title={g.rotulo}>{g.rotulo}</span>
-                        <div className="w-24 h-1.5 bg-gray-100 rounded overflow-hidden shrink-0">
+                        <div className="w-24 h-1.5 bg-gray-100 rounded-sm overflow-hidden shrink-0">
                           <div className="h-full bg-red" style={{ width: `${Math.max(4, pct)}%` }} />
                         </div>
                         <span className="w-24 text-right text-[11px] text-gray-500 tabular-nums shrink-0">
@@ -480,7 +480,7 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
           )}
 
           {/* Tabela */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-xs overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
                 Processos ({sorted.length.toLocaleString('pt-BR')})
@@ -509,7 +509,7 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
                       <td className="px-3 py-1.5 text-gray-700 max-w-[160px] truncate" title={r._permissionaria}>{r._permissionaria}</td>
                       <td className="px-3 py-1.5">
                         {r.status
-                          ? <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600">{r.status}</span>
+                          ? <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-semibold bg-gray-100 text-gray-600">{r.status}</span>
                           : <span className="text-gray-400">—</span>}
                       </td>
                       <td className="px-3 py-1.5 whitespace-nowrap">
@@ -518,7 +518,7 @@ export default function AbaMotivosInvalidos({ grupos = [], linhas = [], filtros 
                           : <span className="text-gray-400 italic">Sem aviso de início</span>}
                       </td>
                       <td className="px-3 py-1.5 whitespace-nowrap">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red/10 text-red">{r._rotulo}</span>
+                        <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-semibold bg-red/10 text-red">{r._rotulo}</span>
                       </td>
                       <td className="px-3 py-1.5 text-gray-600 max-w-[220px] truncate" title={r.natureza}>{r.natureza || '—'}</td>
                       <td className="px-3 py-1.5 text-gray-600 max-w-[160px] truncate" title={r.logradouro}>{r.logradouro || '—'}</td>
