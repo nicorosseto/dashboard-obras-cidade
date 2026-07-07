@@ -10,6 +10,7 @@ import {
 } from 'recharts'
 import { fmtNumero } from '../../lib/aggregations.js'
 import ChartTooltip from './ChartTooltip.jsx'
+import { NAVY } from '../../lib/cores.js'
 
 export default function TiposFalhaBar({ titulo, dados, acoes }) {
   // dados: [{ nome, laudos }] - ja ordenados desc
@@ -45,11 +46,11 @@ export default function TiposFalhaBar({ titulo, dados, acoes }) {
             width={140}
           />
           <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
-          <Bar dataKey="laudos" fill="#1F3864" radius={[0, 3, 3, 0]}>
+          <Bar dataKey="laudos" fill={NAVY} radius={[0, 3, 3, 0]}>
             <LabelList
               dataKey="laudos"
               position="right"
-              style={{ fontSize: 11, fill: '#1F3864', fontWeight: 'bold' }}
+              style={{ fontSize: 11, fill: NAVY, fontWeight: 'bold' }}
               formatter={fmtNumero}
             />
           </Bar>

@@ -3,11 +3,12 @@
 import { fmtData, consolidarNorcrest } from './aggregations.js'
 import { toIsoDate } from './datas.js'
 import { SUBPREFEITURAS } from '../data/subprefeituras-sp.js'
+import { NAVY, RED } from './cores.js'
 
 // ── Aparência ────────────────────────────────────────────────────────
 export const STATUS_COLOR = {
   Encerrada: '#1F7A4D',
-  Informada: '#C00000',
+  Informada: RED,
   Cancelada: '#6B7280',
   Revisão: '#F59E0B',
   Revisao: '#F59E0B',
@@ -16,9 +17,9 @@ export const STATUS_COLOR = {
   Processando: '#3B82F6',
   'Processando Interferência': '#60A5FA',
   'Processando Interferencia': '#60A5FA',
-  Outros: '#1F3864',
+  Outros: NAVY,
 }
-export const STATUS_PADRAO = '#1F3864'
+export const STATUS_PADRAO = NAVY
 export const BATCH_SIZE = 2000
 
 // Status fixos exibidos individualmente nos filtros e gráficos de Emergências.
@@ -27,7 +28,7 @@ export const BATCH_SIZE = 2000
 // agrupamos o resto — sem depender de limiar dinâmico.
 export const STATUS_FIXOS_EMERG = ['Encerrada', 'Informada', 'Cancelada', 'Revisão']
 export const STATUS_OUTROS_LABEL = 'Outros'
-export const STATUS_OUTROS_COR = '#1F3864'
+export const STATUS_OUTROS_COR = NAVY
 
 // A partir das linhas, devolve { fixos, outros } onde:
 //  - fixos: [{ status, qtd }] na ordem de STATUS_FIXOS_EMERG (qtd pode ser 0)

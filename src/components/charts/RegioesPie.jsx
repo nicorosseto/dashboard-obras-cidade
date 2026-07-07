@@ -8,13 +8,14 @@ import {
 } from 'recharts'
 import { fmtNumero } from '../../lib/aggregations.js'
 import ChartTooltip from './ChartTooltip.jsx'
+import { NAVY, NAVY_LIGHT, NAVY_MID, RED } from '../../lib/cores.js'
 
 const CORES = {
-  Leste: '#1F3864',
-  Sul: '#2E4F7F',
-  Central: '#4472C4',
+  Leste: NAVY,
+  Sul: NAVY_LIGHT,
+  Central: NAVY_MID,
   Oeste: '#8FAADC',
-  Norte: '#C00000',
+  Norte: RED,
 }
 
 export default function RegioesPie({ titulo, dados, acoes }) {

@@ -1,5 +1,6 @@
 import { fmtNumero, fmtDataHora, fmtDataSP } from '../lib/aggregations.js'
 import { useState, useCallback } from 'react'
+import { NAVY, NAVY_LIGHT } from '../lib/cores.js'
 
 function IconMap({ className = 'w-10 h-10' }) {
   return (
@@ -299,8 +300,8 @@ export default function Home({
           <div className={`grid gap-6${nModCards >= 4 ? ' sm:grid-cols-2 lg:grid-cols-4' : nModCards === 3 ? ' sm:grid-cols-2 lg:grid-cols-3' : nModCards === 2 ? ' sm:grid-cols-2' : ''}`}>
             {temGeo && (
               <ModuleCard
-                gradientFrom="#1F3864"
-                gradientTo="#2E4F7F"
+                gradientFrom={NAVY}
+                gradientTo={NAVY_LIGHT}
                 icon={<IconMap />}
                 titulo="Dados Sistema Geo"
                 descricao="Visualização e acompanhamento das obras registradas no sistema Sistema Geo por subprefeitura, permissionária e status."
