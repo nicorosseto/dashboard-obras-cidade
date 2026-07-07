@@ -198,6 +198,7 @@ function CampoSenha({
           onMouseLeave={() => setMostrar(false)}
           tabIndex={-1}
           className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 select-none"
+          aria-label={mostrar ? 'Ocultar senha' : 'Mostrar senha'}
         >
           {mostrar ? (
             <svg
@@ -205,6 +206,7 @@ function CampoSenha({
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -219,6 +221,7 @@ function CampoSenha({
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"

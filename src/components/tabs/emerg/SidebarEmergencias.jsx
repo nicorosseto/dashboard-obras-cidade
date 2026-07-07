@@ -20,10 +20,11 @@ function BlocoFiltro({ titulo, children, defaultOpen = false, bloqueado = false 
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
         className="w-full flex items-center justify-between text-[10px] uppercase tracking-wider text-gray-500 font-bold border-b border-grey-line pb-1 mb-2 hover:text-navy"
       >
         <span>{titulo}</span>
-        <span className="text-[8px]">{open ? '▼' : '▶'}</span>
+        <span className="text-[8px]" aria-hidden="true">{open ? '▼' : '▶'}</span>
       </button>
       {open && children}
     </div>
@@ -264,6 +265,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
         <input
           type="text"
           placeholder="Buscar..."
+          aria-label="Buscar permissionária"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 mb-2 focus:outline-hidden focus:ring-1 focus:ring-navy"
