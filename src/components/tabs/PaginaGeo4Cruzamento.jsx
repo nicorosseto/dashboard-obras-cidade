@@ -10,10 +10,9 @@ import ThSort from '../ThSort.jsx'
 import MapaSP from '../charts/MapaSP.jsx'
 import { LoadingInline } from '../Loading.jsx'
 import { CampoBusca } from './PaginaBuscaProcesso.jsx'
+import { NAVY, RED } from '../../lib/cores.js'
 
 // ── Constantes de cor ─────────────────────────────────────────────────────────
-const NAVY    = '#1F3864'
-const RED     = '#C00000'
 const VERDE   = '#16a34a'
 const AMBER   = '#d97706'
 const VIOLET  = '#7c3aed'

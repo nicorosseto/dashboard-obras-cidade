@@ -1,3 +1,5 @@
+import { NAVY, NAVY_LIGHT } from '../lib/cores.js'
+
 const ABAS_FISC = [
   { id: 1, label: 'Visão Geral', icon: '👁️' },
   { id: 2, label: 'Evolução Temporal', icon: '📈' },
@@ -20,8 +22,8 @@ export default function PageTabs({
   showAdmin = false,
   secaoAtiva = 'fiscalizacao',
   abasPermitidas,
-  accentFrom = '#1F3864',
-  accentTo = '#2E4F7F',
+  accentFrom = NAVY,
+  accentTo = NAVY_LIGHT,
 }) {
   const todas = secaoAtiva === 'sistemaGeo' ? ABAS_GEO : ABAS_FISC
   const abas = abasPermitidas

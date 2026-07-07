@@ -17,6 +17,7 @@ import {
   fmtNumero,
 } from '../../lib/aggregations.js'
 import ChartTooltip from './ChartTooltip.jsx'
+import { NAVY, RED } from '../../lib/cores.js'
 
 const OPCOES = [
   { key: 'anual', label: 'Anual' },
@@ -84,14 +85,14 @@ export default function LinhaTemporal({ titulo, rows }) {
             type="monotone"
             dataKey="leg_atendida"
             name="Legislação Atendida"
-            stroke="#1F3864"
+            stroke={NAVY}
             strokeWidth={2}
           >
             {showLabels && (
               <LabelList
                 dataKey="leg_atendida"
                 position="top"
-                style={{ fontSize: 10, fill: '#1F3864' }}
+                style={{ fontSize: 10, fill: NAVY }}
                 formatter={fmtNumero}
               />
             )}
@@ -100,14 +101,14 @@ export default function LinhaTemporal({ titulo, rows }) {
             type="monotone"
             dataKey="nao_atendida"
             name="Legislação Não Atendida"
-            stroke="#C00000"
+            stroke={RED}
             strokeWidth={2}
           >
             {showLabels && (
               <LabelList
                 dataKey="nao_atendida"
                 position="bottom"
-                style={{ fontSize: 10, fill: '#C00000' }}
+                style={{ fontSize: 10, fill: RED }}
                 formatter={fmtNumero}
               />
             )}

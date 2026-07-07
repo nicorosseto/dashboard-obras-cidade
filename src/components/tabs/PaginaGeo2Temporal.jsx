@@ -21,6 +21,7 @@ import {
   fmtNumero,
 } from '../../lib/aggregations.js'
 import ChartTooltip from '../charts/ChartTooltip.jsx'
+import { NAVY, NAVY_MID } from '../../lib/cores.js'
 
 const MESES_ABREV = [
   'Jan',
@@ -44,12 +45,12 @@ function formatarMes(mesStr) {
 
 // Paleta de cores por ano (2020 em diante)
 const COR_POR_ANO = {
-  2020: '#4472C4',
+  2020: NAVY_MID,
   2021: '#5B9BD5',
   2022: '#ED7D31',
   2023: '#7030A0',
   2024: '#E91E63',
-  2025: '#1F3864',
+  2025: NAVY,
   2026: '#3F51B5',
   2027: '#26A69A',
 }
@@ -127,8 +128,8 @@ export default function PaginaGeo2Temporal({ rows }) {
           >
             <defs>
               <linearGradient id="totalGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#1F3864" stopOpacity={0.55} />
-                <stop offset="100%" stopColor="#1F3864" stopOpacity={0.05} />
+                <stop offset="0%" stopColor={NAVY} stopOpacity={0.55} />
+                <stop offset="100%" stopColor={NAVY} stopOpacity={0.05} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
@@ -145,10 +146,10 @@ export default function PaginaGeo2Temporal({ rows }) {
             <Area
               type="monotone"
               dataKey="value"
-              stroke="#1F3864"
+              stroke={NAVY}
               strokeWidth={2.5}
               fill="url(#totalGradient)"
-              dot={{ r: 4, fill: '#1F3864' }}
+              dot={{ r: 4, fill: NAVY }}
               activeDot={{ r: 6 }}
             >
               {modo === 'anual' && (
@@ -156,7 +157,7 @@ export default function PaginaGeo2Temporal({ rows }) {
                   dataKey="value"
                   position="top"
                   formatter={fmtNumero}
-                  style={{ fontSize: 11, fill: '#1F3864', fontWeight: 'bold' }}
+                  style={{ fontSize: 11, fill: NAVY, fontWeight: 'bold' }}
                 />
               )}
             </Area>

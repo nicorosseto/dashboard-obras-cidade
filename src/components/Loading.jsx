@@ -1,3 +1,5 @@
+import { NAVY } from '../lib/cores.js'
+
 // ─── Injeta keyframes CSS uma única vez ──────────────────────────────
 const STYLE_ID = '__loading_styles'
 if (typeof document !== 'undefined' && !document.getElementById(STYLE_ID)) {
@@ -36,7 +38,7 @@ export function TopProgressBar() {
         className="h-full bg-navy shadow-xs"
         style={{
           animation: 'topbar-fill 3s ease-out forwards',
-          boxShadow: '0 0 6px 0 #1F3864aa',
+          boxShadow: `0 0 6px 0 ${NAVY}aa`,
         }}
       />
     </div>
@@ -46,7 +48,7 @@ export function TopProgressBar() {
 // ────────────────────────────────────────────────────────────────────
 // Spinner SVG animado
 // ────────────────────────────────────────────────────────────────────
-export function Spinner({ size = 'md', color = '#1F3864' }) {
+export function Spinner({ size = 'md', color = NAVY }) {
   const dim = { sm: 18, md: 32, lg: 52, xl: 64 }[size] ?? 32
   const stroke = { sm: 2.5, md: 3, lg: 3.5, xl: 4 }[size] ?? 3
   const r = dim / 2 - stroke * 1.5

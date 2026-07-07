@@ -44,7 +44,8 @@ dashboard-obras-cidade/
 │   ├── lib/                    # Lógica não-visual
 │   │   ├── supabase.js         # Conexão com o Supabase
 │   │   ├── auth.js             # Login/logout
-│   │   └── aggregations.js     # Cálculos, KPIs, formatação de datas
+│   │   ├── aggregations.js     # Cálculos, KPIs, formatação de datas
+│   │   └── cores.js            # Paleta institucional em JS (gráficos, gradientes) — Fase M5
 │   └── data/                   # Dados estáticos (GeoJSON de SP)
 ├── scripts/                    # Scripts Python de importação de dados (.py/.ipynb)
 ├── supabase/                   # Scripts SQL do banco

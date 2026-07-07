@@ -524,6 +524,17 @@
   **qualquer descendente**: `.recharts-wrapper :focus:not(:focus-visible)`.
   Tab/teclado continua mostrando o contorno — não remover essa regra nem
   desligar o accessibilityLayer.
+- **Paleta institucional em JS — `src/lib/cores.js` (Fase M5, 07/07/2026):**
+  fonte única para `NAVY`/`NAVY_LIGHT`/`NAVY_MID`/`RED` (espelham o `@theme` de
+  `index.css`), usada onde o Tailwind não serve — props de cor do Recharts,
+  gradientes inline, defaults de componente. Antes eram ~150 hex literais
+  duplicados em 24 arquivos. **Novo gráfico/componente que usa navy ou red em
+  JS: importar de `cores.js`, nunca reescrever o hex.** ⚠️ Nem toda cor
+  duplicada do `@theme` virou constante: `norcrest` (`#7030A0`) e `accent`
+  (`#ED7D31`) se repetem por coincidência em 2 lugares cada (ex.: cor
+  arbitrária de "ano" ou "região" num gráfico), sem representar a identidade
+  da NORCREST/accent — nomear a constante como tal acoplaria conceitos
+  independentes sem necessidade; ficaram como hex literal de propósito.
 - **Tooltip padrão dos gráficos:** todos os gráficos (Recharts) usam o
   componente compartilhado `src/components/charts/ChartTooltip.jsx` — card
   branco, título em navy, bolinhas de cor por série e valores alinhados.
