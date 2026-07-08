@@ -27,12 +27,28 @@ async function getDriver() {
   return _driver
 }
 
+// Espera algum dos seletores aparecer no DOM (conteúdo das abas é lazy —
+// o chunk pode ainda estar baixando quando o mini-tour dispara).
+async function esperarAlgumAlvo(seletores, timeoutMs = 3000) {
+  const fim = Date.now() + timeoutMs
+  while (Date.now() < fim) {
+    if (seletores.some((s) => document.querySelector(s))) return true
+    await new Promise((r) => setTimeout(r, 150))
+  }
+  return false
+}
+
 // Inicia um tour. Devolve false se o tour não existe ou nenhum passo está
 // disponível (sem permissão/alvo). `aoTerminar(concluiu)` é chamado uma vez
 // quando o tour fecha — concluiu=true se chegou ao último passo.
 export async function iniciarTour(tourId, permissoes, { aoTerminar } = {}) {
   const tour = TOURS[tourId]
   if (!tour) return false
+  // Espera o conteúdo lazy montar antes do filtro final por presença no DOM.
+  const alvosDeclarados = (tour.passos ?? [])
+    .filter((p) => p.alvo && (!p.permissao || permissoes?.has(p.permissao)))
+    .map((p) => p.alvo)
+  if (alvosDeclarados.length > 0) await esperarAlgumAlvo(alvosDeclarados)
   const passos = passosDisponiveis(tour, permissoes)
   if (passos.length === 0) return false
 

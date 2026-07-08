@@ -288,6 +288,7 @@ export default function ExportModal({
           setOpen(true)
         }}
         title="Exportar dados"
+        data-tour="exportar-flutuante"
         className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-navy text-white shadow-lg
                    opacity-40 hover:opacity-100 hover:scale-110 hover:shadow-xl
                    transition-all duration-200 flex items-center justify-center"
