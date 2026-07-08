@@ -55,6 +55,8 @@ const PaginaBuscaProcesso = lazy(() => import('./components/tabs/PaginaBuscaProc
 const PaginaEmergencias = lazy(() => import('./components/tabs/PaginaEmergencias.jsx'))
 import { LoadingPage, LoadingInline } from './components/Loading.jsx'
 import AlterarSenhaModal from './components/AlterarSenhaModal.jsx'
+import ConviteTour from './components/tour/ConviteTour.jsx'
+import { carregarToursVistos, marcarTourVisto, iniciarTour } from './lib/tour.js'
 import BarraProgresso from './components/BarraProgresso.jsx'
 import AvisoAtualizacao from './components/AvisoAtualizacao.jsx'
 
@@ -175,6 +177,8 @@ export default function App() {
   const [paginaAtiva, setPaginaAtiva] = useState(1)
   const [mostrarAlterarSenha, setMostrarAlterarSenha] = useState(false)
   const [abaEmergencias, setAbaEmergencias] = useState('geral')
+  // Tour guiado: null = indisponível/carregando (nunca oferece); Set = pronto
+  const [toursVistos, setToursVistos] = useState(null)
   const [totalInformadasEmerg, setTotalInformadasEmerg] = useState(0)
 
   // ── Emergências data (carregadas junto com os demais módulos) ──────
@@ -235,6 +239,29 @@ export default function App() {
       cancelado = true
     }
   }, [session])
+
+  // ── Tour guiado: quais tours este usuário já viu/dispensou ────────
+  // Falha fechada: se a consulta falhar (ex.: SQL 19 ainda não rodado no
+  // banco), toursVistos fica null e NENHUM convite aparece — o botão "?"
+  // de rever continua funcionando normalmente.
+  useEffect(() => {
+    if (!session?.user) {
+      setToursVistos(null)
+      return
+    }
+    carregarToursVistos()
+      .then(setToursVistos)
+      .catch(() => setToursVistos(null))
+  }, [session])
+
+  function registrarTourVisto(tourId, status) {
+    setToursVistos((prev) => {
+      const s = new Set(prev ?? [])
+      s.add(tourId)
+      return s
+    })
+    marcarTourVisto(session?.user?.id, tourId, status)
+  }
 
   // ── Expiração da sessão ───────────────────────────────────────────
   // Desloga sozinho após SESSAO_MAX_HORAS do login (checa ao abrir e a
@@ -812,10 +839,29 @@ export default function App() {
 
   // ── Home (após login, antes de escolher seção) ────────────────────
   if (mostrarHome) {
+    // Convite do tour: só no 1º acesso (tour_visto), nunca por cima da troca
+    // de senha obrigatória e só com as permissões já resolvidas.
+    const oferecerTourHome =
+      !mostrarAlterarSenha &&
+      !profile?.primeiro_acesso &&
+      permissoes instanceof Set &&
+      toursVistos instanceof Set &&
+      !toursVistos.has('home')
     return (
       <>
         {sistemaGeoCarregando && <BarraProgresso {...geoProgresso} />}
         {avisoAtualizacao}
+        {oferecerTourHome && (
+          <ConviteTour
+            titulo="Primeira vez por aqui?"
+            texto="Posso te mostrar rapidinho o que cada parte desta tela faz — leva menos de um minuto. Cada módulo também terá o próprio tour na primeira visita."
+            onAceitar={() => {
+              registrarTourVisto('home', 'concluido')
+              iniciarTour('home', permissoes)
+            }}
+            onRecusar={() => registrarTourVisto('home', 'dispensado')}
+          />
+        )}
         <Home
           onNavigate={handleHomeNavigate}
           totalProtocolos={sistemaGeoLinhas.length}
@@ -833,6 +879,7 @@ export default function App() {
           geoProgresso={geoProgresso}
           emgVencidas48h={temEmerg ? emgVencidas48h : 0}
           totalEmergencias={temEmerg ? emergLinhas.length : 0}
+          onIniciarTour={() => iniciarTour('home', permissoes)}
         />
       </>
     )

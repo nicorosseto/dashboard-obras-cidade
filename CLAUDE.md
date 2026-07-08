@@ -58,7 +58,8 @@ valem para todo o trabalho; ignorá-los já causou erros de processo.
 6. **Lembrar do checklist de execução** (detalhado na seção 2): notificar toda PR ·
    atualizar docs ao terminar (incl. **diário de bordo**) · trailer `Co-Authored-By`
    em todo commit · nova aba/módulo não-exclusiva do admin → atualizar catálogo de
-   permissões.
+   permissões · nova tela/aba/botão visível → atualizar o **tour guiado**
+   (regra em `dominio.md`, "Tour guiado").
 7. **Só então** proceder com a tarefa.
 
 > Não pular nenhum passo — viola-lo causa erros de processo (PR não notificada,
