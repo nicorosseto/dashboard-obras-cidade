@@ -611,6 +611,33 @@
     (PptxGenJS, gráficos nativos editáveis) e PDF, ambos com seleção de slides; Fase
     C: editor de modelos persistindo em `relatorio_modelos` (tabela já criada).
 
+- **Tour guiado (onboarding interativo — PR 1 em 08/07/2026, #273):** tours passo
+  a passo com a biblioteca **driver.js** (~6 kB gzip, lazy — só carrega quando um
+  tour dispara; zero custo no boot). Arquitetura: `src/lib/tourRegistro.js`
+  (registro central `TOURS` + `passosDisponiveis()`, módulo puro/testável),
+  `src/lib/tour.js` (motor: lazy-load, popover institucional `.obras-tour` no
+  `index.css`, persistência), `src/lib/toursConteudo/` (1 arquivo por tour com os
+  passos), `src/components/tour/` (`ConviteTour` + `BotaoTour` "?"). Persistência
+  na tabela **`tour_visto`** (`supabase/schema/19-tour-guiado.sql`, RLS: cada
+  usuário só a própria linha) — o convite aparece UMA vez por usuário (em
+  qualquer navegador); "Agora não" grava `dispensado` e não pergunta de novo; o
+  botão "?" re-executa quando quiser. **Segurança/robustez:** cada passo pode
+  declarar `permissao` (filtrada em tempo de execução — usuário nunca vê tour do
+  que não tem acesso) e alvo ausente no DOM é **pulado** sem erro (lazy-loading,
+  tela estreita, botão condicional); consulta a `tour_visto` falhou (ex.: SQL 19
+  não rodado) → **falha fechada**, nenhum convite aparece. Guard: convite não
+  dispara por cima da troca de senha obrigatória do 1º acesso.
+  ⚠️ **REGRA OBRIGATÓRIA (como a do catálogo de permissões):** toda nova tela,
+  aba, módulo, botão ou gráfico relevante exige, no MESMO PR: (1) atributo
+  `data-tour="…"` no elemento; (2) criar/ajustar os passos em
+  `src/lib/toursConteudo/` (com a `permissao` certa se o recurso for gateado);
+  (3) atualizar `src/tests/tour.test.js` — a lista `COBERTURA_EXIGIDA` trava
+  área sem tour (teste vermelho). Alvos SEMPRE via `[data-tour="…"]`, nunca
+  classe CSS (refactor de estilo quebraria o tour). Item correspondente no
+  checklist de PR de `github.md`. Tours dos módulos: PRs 2–4 do plano (tour de
+  entrada no 1º acesso ao módulo + mini-tours por aba no 1º clique, ids
+  `<modulo>` / `<modulo>.<aba>`).
+
 ## Glossário de domínio
 
 - **Permissionária:** empresa autorizada a operar em via pública (ex.: NORCREST).

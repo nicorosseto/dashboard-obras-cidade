@@ -1,0 +1,94 @@
+// Motor do tour guiado (onboarding interativo).
+//
+// - Biblioteca: driver.js (~5 kB gzip, sem dependências), carregada LAZY —
+//   só quando um tour dispara; custo zero no bundle de boot.
+// - Conteúdo dos tours: src/lib/toursConteudo/ (registro em tourRegistro.js).
+// - Persistência: tabela `tour_visto` (supabase/schema/19-tour-guiado.sql),
+//   RLS por usuário — o tour é oferecido uma única vez por usuário,
+//   em qualquer navegador/máquina.
+// - Permissões: cada passo pode declarar `permissao`; o filtro roda em
+//   tempo de execução (passosDisponiveis) — nunca mostramos ao usuário
+//   um recurso que ele não tem.
+
+import { supabase } from './supabase.js'
+import { TOURS, passosDisponiveis } from './tourRegistro.js'
+
+export { TOURS }
+
+let _driver = null
+async function getDriver() {
+  if (!_driver) {
+    const [mod] = await Promise.all([
+      import('driver.js'),
+      import('driver.js/dist/driver.css'),
+    ])
+    _driver = mod.driver
+  }
+  return _driver
+}
+
+// Inicia um tour. Devolve false se o tour não existe ou nenhum passo está
+// disponível (sem permissão/alvo). `aoTerminar(concluiu)` é chamado uma vez
+// quando o tour fecha — concluiu=true se chegou ao último passo.
+export async function iniciarTour(tourId, permissoes, { aoTerminar } = {}) {
+  const tour = TOURS[tourId]
+  if (!tour) return false
+  const passos = passosDisponiveis(tour, permissoes)
+  if (passos.length === 0) return false
+
+  const driver = await getDriver()
+  let avisado = false
+  const instancia = driver({
+    showProgress: passos.length > 1,
+    progressText: '{{current}} de {{total}}',
+    nextBtnText: 'Próximo →',
+    prevBtnText: '← Anterior',
+    doneBtnText: 'Concluir',
+    overlayOpacity: 0.6,
+    stagePadding: 6,
+    popoverClass: 'obras-tour',
+    steps: passos.map((p) => ({
+      element: p.alvo,
+      popover: { title: p.titulo, description: p.texto },
+    })),
+    onDestroyStarted: () => {
+      if (!avisado) {
+        avisado = true
+        const concluiu = instancia.isLastStep()
+        if (aoTerminar) aoTerminar(concluiu)
+      }
+      instancia.destroy()
+    },
+  })
+  instancia.drive()
+  return true
+}
+
+// ── Persistência (tabela tour_visto) ────────────────────────────────
+// Em caso de erro (ex.: SQL 19 ainda não rodado no banco), as funções
+// falham FECHADAS: carregarToursVistos lança (o App trata não oferecendo
+// nenhum convite) e marcarTourVisto engole o erro (não trava a UI).
+
+export async function carregarToursVistos() {
+  const { data, error } = await supabase.from('tour_visto').select('tour_id')
+  if (error) throw error
+  return new Set((data ?? []).map((r) => r.tour_id))
+}
+
+export async function marcarTourVisto(userId, tourId, status = 'concluido') {
+  if (!userId) return
+  try {
+    await supabase.from('tour_visto').upsert(
+      {
+        user_id: userId,
+        tour_id: tourId,
+        status,
+        versao: TOURS[tourId]?.versao ?? 1,
+        visto_em: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,tour_id' }
+    )
+  } catch {
+    // não-crítico: no pior caso o convite reaparece no próximo login
+  }
+}
