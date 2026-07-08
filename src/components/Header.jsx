@@ -287,7 +287,7 @@ export default function Header({
           </div>
         )}
         {mostrarAbasCruzamento && (
-          <nav className="flex items-center gap-1 overflow-x-auto" data-tour="header-abas">
+          <nav className="flex items-center gap-4 overflow-x-auto" data-tour="header-abas">
             {abasCruzamentoPermitidas(permissoes, ABAS_CRUZAMENTO).map((a) => (
               <button
                 key={a.id}
@@ -295,11 +295,11 @@ export default function Header({
                 title={a.label}
                 aria-label={a.label}
                 aria-current={abaCruzamentoAtiva === a.id ? 'page' : undefined}
-                className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 transition-all relative whitespace-nowrap ${
+                className={`flex items-center gap-1.5 text-sm font-semibold py-2 transition-all relative whitespace-nowrap ${
                   abaCruzamentoAtiva === a.id ? 'text-white' : 'text-white/60 hover:text-white'
                 }`}
               >
-                <span>{a.icon}</span>
+                <span className="text-lg">{a.icon}</span>
                 <span className="hidden sm:inline">{a.label}</span>
                 {abaCruzamentoAtiva === a.id && (
                   <div
