@@ -228,6 +228,29 @@
   `linhas`/`setLinhas`/`obras`/`setObras`/`carregando`/`emgProgresso` por prop (os
   uploads atualizam o estado do App via setters; o cache é invalidado no
   `confirmarUpload`). `emergCarregadasRef` evita recarga.
+- **Hooks de carga de dados em `src/hooks/` (08/07/2026, Frente 3, Etapa 5):**
+  os 5 blocos de carga que viviam soltos no `App.jsx` viraram 4 hooks
+  próprios: `useCargaFiscalizacao`, `useCargaSistemaGeo`, `useCargaEmergencias`
+  e `useAvisoAtualizacao` (este combina os 3 efeitos de `datasModulos`: busca
+  inicial, listener do evento `obras:upload-concluido` e o polling de
+  3 min). Cada um preserva exatamente a lógica anterior (cache
+  stale-while-revalidate, refs de guarda contra dupla carga, `try/finally`,
+  `setTimeout(0)` antes de `gravarCache`). ⚠️ **Assimetria proposital no
+  logout:** `useCargaFiscalizacao`/`useCargaSistemaGeo` expõem `reset()`
+  (chamado por `handleSignOut`, zera dados + ref de guarda); **Emergências
+  NÃO tem `reset()`** — `handleSignOut` nunca zerou esse estado, então um
+  próximo login (mesma aba, sem F5) reaproveita os dados de Emergências do
+  usuário anterior até o cache/versão mudar. Isso é comportamento **herdado**
+  do código pré-refactor, não uma decisão nova — se for corrigido algum dia,
+  registrar aqui e em "Registro de erros e correções" (`docs/progresso.md`).
+  ⚠️ **Regra para novo hook que declara estado lido por código mais acima no
+  componente** (ex.: `tourBloqueado` lê `sistemaGeoCarregando`/`emergCarregando`):
+  a chamada do hook precisa ficar **antes** de qualquer leitura desse valor no
+  `App.jsx` (logo após `session`/`permissoes`) — colocá-la mais abaixo, "perto
+  de onde faz mais sentido lógico", gera `ReferenceError: Cannot access '...'
+  before initialization` (temporal dead zone) só na hora de navegar para o
+  módulo, não pego pelos testes automatizados (só funções puras, não cobrem
+  hooks React). Achado e corrigido nesta mesma extração — ver `progresso.md`.
 - **Upload de emergências em modal (23/06/2026):** os painéis de upload (planilha
   principal + posicionamento) saíram do corpo da tela (ocupavam muito espaço) e
   foram para um **modal** acionado pelo botão "Atualizar dados" (canto superior

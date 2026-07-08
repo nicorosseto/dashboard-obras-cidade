@@ -112,6 +112,27 @@ o fluxo de login).
 > ao desktop e quer tentar. Não é uma pendência a perseguir sozinho; é uma decisão
 > dele revisitar quando fizer sentido.
 
+> **⚠️ Achado (08/07/2026):** o MCP `playwright` (`browser_run_code_unsafe`,
+> `browser_navigate`, etc.) **falhou** numa sessão web com
+> `Error: Chromium distribution 'chrome' is not found at
+> /opt/google/chrome/chrome` — ele tenta abrir o canal "chrome" do sistema,
+> que não existe no ambiente remoto (só o Chromium pré-instalado do próprio
+> Claude Code, em `/opt/pw-browsers/`). **Contorno que funcionou:** não usar
+> o MCP `playwright` para esse tipo de validação; em vez disso, rodar um
+> script Node avulso (via `Bash`) usando o pacote **`playwright` global do
+> ambiente** (`/opt/node22/lib/node_modules/playwright`, resolvido com
+> `require('/opt/node22/lib/node_modules/playwright')`) com
+> `chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' })`
+> — mesmo Chromium, caminho explícito. Serviu para validar UI real (login,
+> navegação entre módulos, spinners) com a REST API do Supabase **mockada**
+> via `page.route()` — técnica útil para qualquer refatoração que mexa em
+> `useEffect`/carga de dados (não coberta pelos testes Vitest, que só testam
+> funções puras). ⚠️ Ao mockar chamadas `.single()`/`.maybeSingle()` do
+> supabase-js: o PostgREST real devolve um **objeto**, não array — o mock
+> precisa checar o header `Accept: application/vnd.pgrst.object+json` e
+> responder com `data[0]` (não `data`), senão `profile?.role` etc. vêm
+> `undefined` e a lógica de admin/permissões quebra silenciosamente.
+
 ---
 
 ## 5. Pesquisa que motivou a configuração (02/07/2026)
