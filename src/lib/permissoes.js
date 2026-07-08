@@ -1,4 +1,7 @@
-import { supabase } from './supabase.js'
+// ⚠️ Sem import estático do supabase.js aqui: ele lança erro no topo do
+// módulo quando faltam as variáveis de ambiente, o que quebrava os testes
+// em node (CI) que importam só o catálogo puro (ex.: tour.test.js). O
+// carregarPermissoes importa sob demanda — é async e só roda no navegador.
 
 // Espelho do catálogo do banco (supabase/schema/06-permissoes.sql + 12).
 // Admin recebe todas; usuário comum recebe as do seu perfil de acesso.
@@ -55,6 +58,7 @@ export const PERMISSAO_POR_ABA = {
 // Admin não consulta o banco: enxerga tudo por definição.
 export async function carregarPermissoes(isAdmin) {
   if (isAdmin) return new Set(TODAS_PERMISSOES)
+  const { supabase } = await import('./supabase.js')
   const { data, error } = await supabase.rpc('minhas_permissoes')
   if (error) throw error
   return new Set(data || [])

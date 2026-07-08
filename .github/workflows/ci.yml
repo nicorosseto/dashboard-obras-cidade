@@ -23,6 +23,14 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
+      # Valores dummy exigidos pelo src/lib/supabase.js (lança erro sem eles).
+      # Sem isso: (1) qualquer teste que importe um módulo que puxe o supabase
+      # quebra; (2) desde o Vite 8, o minificador elimina o app inteiro como
+      # código morto e o build "passa" gerando um bundle vazio (~19 kB) — o
+      # check de build ficava sem valor. Detalhe em .claude/rules/arquitetura.md.
+      - name: Criar .env.local dummy
+        run: printf 'VITE_SUPABASE_URL=https://exemplo-dummy.supabase.co\nVITE_SUPABASE_PUBLISHABLE_KEY=chave-dummy\n' > .env.local
+
       - name: Lint
         run: npm run lint
 
