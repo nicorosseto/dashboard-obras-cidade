@@ -42,6 +42,9 @@ import {
   totaisDiarios,
   comparativoAnualPorMes,
   processosPorRegiao,
+  ultimaAtualizacao,
+  contarFiltrosAtivos,
+  toggleSubSelecionada,
 } from '../lib/aggregations.js'
 
 // ── Fixtures ────────────────────────────────────────────────────────────
@@ -403,5 +406,56 @@ describe('processosPorRegiao', () => {
   it('linhas sem subprefeitura mapeável caem em "Não classificado"', () => {
     const r = processosPorRegiao(GEO)
     expect(r.find((x) => x.regiao === 'Não classificado')).toMatchObject({ count: 1 })
+  })
+})
+
+describe('ultimaAtualizacao', () => {
+  it('pega o maior data_inicio (fisc) x data_cadastro (geo)', () => {
+    const fisc = [{ data_inicio: '2024-01-10' }, { data_inicio: '2024-03-05' }]
+    const geo = [{ data_cadastro: '2024-02-20' }]
+    expect(ultimaAtualizacao(fisc, geo)).toBe('2024-03-05')
+  })
+  it('geo mais recente que fisc', () => {
+    expect(ultimaAtualizacao([{ data_inicio: '2024-01-01' }], [{ data_cadastro: '2024-06-01' }])).toBe('2024-06-01')
+  })
+  it('sem nenhuma data devolve null', () => {
+    expect(ultimaAtualizacao([{}], [{}])).toBeNull()
+  })
+})
+
+describe('contarFiltrosAtivos', () => {
+  it('conta período + campos Set + extras', () => {
+    const filtros = {
+      dataIni: '2024-01-01',
+      dataFim: null,
+      permissionarias: new Set(['A', 'B']),
+      subprefeituras: new Set(),
+      temNc: true,
+    }
+    const n = contarFiltrosAtivos(filtros, {
+      camposSet: ['permissionarias', 'subprefeituras'],
+      extras: [(f) => f.temNc !== null],
+    })
+    // 1 (período) + 2 (permissionarias) + 0 (subprefeituras) + 1 (temNc) = 4
+    expect(n).toBe(4)
+  })
+  it('sem nenhum filtro ativo devolve 0', () => {
+    const filtros = { dataIni: null, dataFim: null, permissionarias: new Set() }
+    expect(contarFiltrosAtivos(filtros, { camposSet: ['permissionarias'] })).toBe(0)
+  })
+})
+
+describe('toggleSubSelecionada', () => {
+  it('seleciona uma subprefeitura nova, substituindo a seleção anterior', () => {
+    const r = toggleSubSelecionada(new Set(['SE']), 'PI')
+    expect(Array.from(r)).toEqual(['PI'])
+  })
+  it('clicar de novo na única selecionada limpa o filtro', () => {
+    const r = toggleSubSelecionada(new Set(['SE']), 'SE')
+    expect(r.size).toBe(0)
+  })
+  it('clicar numa subprefeitura com múltiplas selecionadas troca para só ela', () => {
+    const r = toggleSubSelecionada(new Set(['SE', 'PI']), 'PI')
+    expect(Array.from(r)).toEqual(['PI'])
   })
 })
