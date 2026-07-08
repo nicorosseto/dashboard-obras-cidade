@@ -190,6 +190,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
   if (!aberto) {
     return (
       <aside
+        data-tour="sidebar-filtros"
         className="w-14 shrink-0 bg-white border-r border-grey-line flex flex-col items-center py-4 cursor-pointer hover:bg-navy/5 transition-colors select-none"
         onClick={onToggle}
         title="Abrir filtros"
@@ -209,7 +210,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
   }
 
   return (
-    <aside className="w-60 shrink-0 bg-white border-r border-grey-line overflow-y-auto p-3 space-y-3">
+    <aside data-tour="sidebar-filtros" className="w-60 shrink-0 bg-white border-r border-grey-line overflow-y-auto p-3 space-y-3">
       <div className="flex items-center justify-between border-b-2 border-navy pb-2 mb-1">
         <div className="flex items-center gap-2 text-sm font-bold text-navy uppercase tracking-wide">
           <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

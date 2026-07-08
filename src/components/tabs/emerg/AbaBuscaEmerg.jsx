@@ -85,7 +85,7 @@ export default function AbaBuscaEmerg({ linhas, vistoriaMap, filtrosAtivos = fal
   ]
 
   return (
-    <div className="bg-white rounded-md shadow-card p-4 space-y-4">
+    <div className="bg-white rounded-md shadow-card p-4 space-y-4" data-tour="busca-campo">
       <div>
         <h3 className="text-sm font-bold text-navy uppercase tracking-wide mb-3">Busca por Número de Processo</h3>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -111,6 +111,7 @@ export default function AbaBuscaEmerg({ linhas, vistoriaMap, filtrosAtivos = fal
           <button
             onClick={handleFiltrar}
             title="Listar os processos com os filtros da barra lateral aplicados"
+            data-tour="busca-filtrar"
             className="shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-navy text-white hover:bg-navy-light transition-colors"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
