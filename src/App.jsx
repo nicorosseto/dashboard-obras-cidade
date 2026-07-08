@@ -263,25 +263,34 @@ export default function App() {
     marcarTourVisto(session?.user?.id, tourId, status)
   }
 
-  // ── Tour do módulo atual (Sistema Geo/Fiscalização) ───────────────────
+  // ── Tour do módulo/aba atual ────────────────────────────────────────
   // Convite no 1º acesso ao módulo; mini-tour automático no 1º clique de
-  // cada aba (só depois do tour de entrada resolvido). Emergências,
-  // Apresentação, Configurações e Análise Integrada: PRs 3–4 do plano.
-  const tourModuloId =
-    !mostrarHome &&
-    !mostrarEmergencias &&
-    !mostrarRelatorio &&
-    paginaAtiva !== 5 &&
-    !(secaoAtiva === 'sistemaGeo' && paginaAtiva === 4)
-      ? secaoAtiva
-      : null
-  const tourAbaId =
-    tourModuloId && paginaAtiva !== 1 ? `${tourModuloId}.${paginaAtiva}` : null
-  // Não disparar tour com a carga do Sistema Geo em andamento (gráficos vazios).
+  // cada aba (só depois do tour de entrada resolvido). Cobre Sistema Geo,
+  // Fiscalização, Análise Integrada e Emergências. Apresentação e
+  // Configurações: PR 4 do plano. Análise Integrada e Emergências usam
+  // aba ativa em string (não numérica) — daí o cálculo por caso abaixo.
+  const emAnaliseIntegrada = secaoAtiva === 'sistemaGeo' && paginaAtiva === 4
+  const { tourModuloId, tourAbaId } = (() => {
+    if (mostrarHome || mostrarRelatorio || paginaAtiva === 5)
+      return { tourModuloId: null, tourAbaId: null }
+    if (mostrarEmergencias) {
+      const aba = abaEmergencias !== 'geral' ? `emergencias.${abaEmergencias}` : null
+      return { tourModuloId: 'emergencias', tourAbaId: aba }
+    }
+    if (emAnaliseIntegrada) {
+      const aba = abaAtivaCruzamento !== 'visao-geral' ? `cruzamento.${abaAtivaCruzamento}` : null
+      return { tourModuloId: 'cruzamento', tourAbaId: aba }
+    }
+    const aba = paginaAtiva !== 1 ? `${secaoAtiva}.${paginaAtiva}` : null
+    return { tourModuloId: secaoAtiva, tourAbaId: aba }
+  })()
+  // Não disparar tour com a carga do Sistema Geo/Emergências em andamento
+  // (gráficos ainda vazios).
   const tourBloqueado =
     mostrarAlterarSenha ||
     !!profile?.primeiro_acesso ||
-    (secaoAtiva === 'sistemaGeo' && sistemaGeoCarregando)
+    (secaoAtiva === 'sistemaGeo' && sistemaGeoCarregando) ||
+    (mostrarEmergencias && emergCarregando)
 
   const oferecerTourModulo =
     !!tourModuloId &&
@@ -949,6 +958,17 @@ export default function App() {
             }
           />
         )}
+        {oferecerTourModulo && (
+          <ConviteTour
+            titulo="Conhecer o módulo Emergências?"
+            texto="Primeira vez neste módulo — posso mostrar as abas, os filtros da barra lateral e os botões de atualização, em menos de um minuto."
+            onAceitar={() => {
+              registrarTourVisto(tourModuloId, 'concluido')
+              iniciarTour(tourModuloId, permissoes)
+            }}
+            onRecusar={() => registrarTourVisto(tourModuloId, 'dispensado')}
+          />
+        )}
         <Header
           paginaAtiva={0}
           onPagina={() => {}}
@@ -957,6 +977,7 @@ export default function App() {
           showAdmin={isAdmin}
           secaoAtiva={secaoAtiva}
           onHome={handleHome}
+          onIniciarTour={tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined}
           onAlterarSenha={() => setMostrarAlterarSenha(true)}
           abasPermitidas={[]}
           modules={modules}
@@ -1090,7 +1111,7 @@ export default function App() {
       )}
       {oferecerTourModulo && (
         <ConviteTour
-          titulo={`Conhecer o módulo ${secaoAtiva === 'sistemaGeo' ? 'Sistema Geo' : 'Fiscalização'}?`}
+          titulo={`Conhecer ${emAnaliseIntegrada ? 'a Análise Integrada' : `o módulo ${secaoAtiva === 'sistemaGeo' ? 'Sistema Geo' : 'Fiscalização'}`}?`}
           texto="Primeira vez neste módulo — posso mostrar as abas, os filtros da barra lateral e como usar os gráficos, em menos de um minuto."
           onAceitar={() => {
             registrarTourVisto(tourModuloId, 'concluido')

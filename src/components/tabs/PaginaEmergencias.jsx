@@ -551,7 +551,7 @@ export default function PaginaEmergencias({
           />
         )}
 
-        <div className="flex-1 p-4 space-y-4 min-w-0 overflow-y-auto">
+        <div className="flex-1 p-4 space-y-4 min-w-0 overflow-y-auto" data-tour="conteudo-modulo">
           {/* Barra de progresso do carregamento */}
           {carregando && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-3">
@@ -579,6 +579,7 @@ export default function PaginaEmergencias({
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setModalManual(true)}
+                data-tour="emerg-manual"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-sm border border-grey-line text-navy hover:bg-grey-bg transition-colors"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -591,6 +592,7 @@ export default function PaginaEmergencias({
               </button>
               <button
                 onClick={() => setModalUpload(true)}
+                data-tour="emerg-atualizar"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-sm border border-navy text-navy hover:bg-navy hover:text-white transition-colors"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
