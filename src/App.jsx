@@ -265,17 +265,22 @@ export default function App() {
 
   // ── Tour do módulo/aba atual ────────────────────────────────────────
   // Convite no 1º acesso ao módulo; mini-tour automático no 1º clique de
-  // cada aba (só depois do tour de entrada resolvido). Cobre Sistema Geo,
-  // Fiscalização, Análise Integrada e Emergências. Apresentação e
-  // Configurações: PR 4 do plano. Análise Integrada e Emergências usam
-  // aba ativa em string (não numérica) — daí o cálculo por caso abaixo.
+  // cada aba (só depois do tour de entrada resolvido). Cobre todos os
+  // módulos: Sistema Geo, Fiscalização, Análise Integrada, Emergências,
+  // Apresentação (linear, sem sub-abas) e Configurações. Análise Integrada
+  // e Emergências usam aba ativa em string (não numérica) — daí o cálculo
+  // por caso abaixo.
   const emAnaliseIntegrada = secaoAtiva === 'sistemaGeo' && paginaAtiva === 4
   const { tourModuloId, tourAbaId } = (() => {
-    if (mostrarHome || mostrarRelatorio || paginaAtiva === 5)
-      return { tourModuloId: null, tourAbaId: null }
+    if (mostrarHome) return { tourModuloId: null, tourAbaId: null }
+    if (mostrarRelatorio) return { tourModuloId: 'relatorio', tourAbaId: null }
     if (mostrarEmergencias) {
       const aba = abaEmergencias !== 'geral' ? `emergencias.${abaEmergencias}` : null
       return { tourModuloId: 'emergencias', tourAbaId: aba }
+    }
+    if (paginaAtiva === 5) {
+      const aba = abaAdmin !== 0 ? `configuracoes.${abaAdmin}` : null
+      return { tourModuloId: 'configuracoes', tourAbaId: aba }
     }
     if (emAnaliseIntegrada) {
       const aba = abaAtivaCruzamento !== 'visao-geral' ? `cruzamento.${abaAtivaCruzamento}` : null
@@ -1040,6 +1045,17 @@ export default function App() {
             }
           />
         )}
+        {oferecerTourModulo && (
+          <ConviteTour
+            titulo="Conhecer o módulo Apresentação?"
+            texto="Primeira vez neste módulo — posso mostrar o seletor de permissionária, o índice de slides e os downloads, em menos de um minuto."
+            onAceitar={() => {
+              registrarTourVisto(tourModuloId, 'concluido')
+              iniciarTour(tourModuloId, permissoes)
+            }}
+            onRecusar={() => registrarTourVisto(tourModuloId, 'dispensado')}
+          />
+        )}
         <Header
           paginaAtiva={0}
           onPagina={() => {}}
@@ -1048,6 +1064,7 @@ export default function App() {
           showAdmin={isAdmin}
           secaoAtiva={secaoAtiva}
           onHome={handleHome}
+          onIniciarTour={tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined}
           onAlterarSenha={() => setMostrarAlterarSenha(true)}
           abasPermitidas={[]}
           modules={modules}
@@ -1058,7 +1075,7 @@ export default function App() {
           onAbaAdmin={() => {}}
           onAbrirConfiguracoes={handleAbrirConfiguracoes}
         />
-        <main className="flex-1 flex overflow-hidden">
+        <main className="flex-1 flex overflow-hidden" data-tour="conteudo-modulo">
           <ErrorBoundary modulo="Apresentação">
             <Suspense fallback={<LoadingInline mensagem="Carregando Apresentação..." />}>
               <PaginaRelatorio
@@ -1111,7 +1128,7 @@ export default function App() {
       )}
       {oferecerTourModulo && (
         <ConviteTour
-          titulo={`Conhecer ${emAnaliseIntegrada ? 'a Análise Integrada' : `o módulo ${secaoAtiva === 'sistemaGeo' ? 'Sistema Geo' : 'Fiscalização'}`}?`}
+          titulo={`Conhecer ${emAnaliseIntegrada ? 'a Análise Integrada' : paginaAtiva === 5 ? 'as Configurações' : `o módulo ${secaoAtiva === 'sistemaGeo' ? 'Sistema Geo' : 'Fiscalização'}`}?`}
           texto="Primeira vez neste módulo — posso mostrar as abas, os filtros da barra lateral e como usar os gráficos, em menos de um minuto."
           onAceitar={() => {
             registrarTourVisto(tourModuloId, 'concluido')
