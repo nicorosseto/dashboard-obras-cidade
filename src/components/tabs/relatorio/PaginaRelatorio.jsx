@@ -104,6 +104,7 @@ export default function PaginaRelatorio({ geo, fisc, emerg, carregandoGeo }) {
               <select
                 value={permissionaria}
                 onChange={(e) => setPermissionaria(e.target.value)}
+                data-tour="relatorio-permissionaria"
                 className={`rounded-md border px-2.5 py-1.5 text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-teal-400 ${permissionaria ? 'border-teal-500 bg-teal-50 text-teal-900' : 'border-gray-300 text-gray-600'}`}
                 title="Ajusta a apresentação inteira para os dados desta permissionária"
               >
@@ -116,12 +117,14 @@ export default function PaginaRelatorio({ geo, fisc, emerg, carregandoGeo }) {
               </select>
               <button
                 onClick={() => setIndiceAberto((v) => !v)}
+                data-tour="relatorio-indice"
                 className="px-3 py-1.5 rounded-md border border-gray-300 text-xs font-semibold text-gray-600 hover:bg-grey-bg transition-colors"
               >
                 Ir para slide…
               </button>
               <button
                 onClick={baixarTodos}
+                data-tour="relatorio-baixar-todos"
                 className="px-3 py-1.5 rounded-md bg-teal-700 text-white text-xs font-semibold hover:bg-teal-600 transition-colors"
                 title="Um arquivo .xlsx com uma aba por slide de dados (listas completas, sem janela)"
               >
@@ -147,7 +150,7 @@ export default function PaginaRelatorio({ geo, fisc, emerg, carregandoGeo }) {
           )}
 
           {/* Legenda das 3 categorias de slide */}
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 pt-3 border-t border-gray-100">
+          <div data-tour="relatorio-legenda" className="flex flex-wrap gap-x-4 gap-y-1 mt-3 pt-3 border-t border-gray-100">
             {Object.values(CATEGORIA).map((c) => (
               <span
                 key={c.id}
