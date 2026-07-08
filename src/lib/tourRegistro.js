@@ -8,11 +8,34 @@
 // o esquecimento — aba nova sem tour = teste vermelho.
 
 import { TOUR_HOME } from './toursConteudo/tourHome.js'
+import {
+  TOUR_SISTEMA_GEO,
+  TOUR_SISTEMA_GEO_ABA2,
+  TOUR_SISTEMA_GEO_ABA3,
+  TOUR_SISTEMA_GEO_ABA6,
+} from './toursConteudo/tourSistemaGeo.js'
+import {
+  TOUR_FISCALIZACAO,
+  TOUR_FISCALIZACAO_ABA2,
+  TOUR_FISCALIZACAO_ABA3,
+  TOUR_FISCALIZACAO_ABA4,
+  TOUR_FISCALIZACAO_ABA6,
+  TOUR_FISCALIZACAO_ABA7,
+} from './toursConteudo/tourFiscalizacao.js'
 
 export const TOURS = {
   home: TOUR_HOME,
-  // PRs futuras: sistemaGeo, fiscalizacao, cruzamento, emergencias,
-  // relatorio, configuracoes — e mini-tours por aba (ex.: 'sistemaGeo.2').
+  sistemaGeo: TOUR_SISTEMA_GEO,
+  'sistemaGeo.2': TOUR_SISTEMA_GEO_ABA2,
+  'sistemaGeo.3': TOUR_SISTEMA_GEO_ABA3,
+  'sistemaGeo.6': TOUR_SISTEMA_GEO_ABA6,
+  fiscalizacao: TOUR_FISCALIZACAO,
+  'fiscalizacao.2': TOUR_FISCALIZACAO_ABA2,
+  'fiscalizacao.3': TOUR_FISCALIZACAO_ABA3,
+  'fiscalizacao.4': TOUR_FISCALIZACAO_ABA4,
+  'fiscalizacao.6': TOUR_FISCALIZACAO_ABA6,
+  'fiscalizacao.7': TOUR_FISCALIZACAO_ABA7,
+  // PRs futuras: cruzamento, emergencias, relatorio, configuracoes.
 }
 
 // Filtra os passos de um tour para o usuário atual:

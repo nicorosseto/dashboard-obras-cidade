@@ -90,7 +90,7 @@ export default function MapaSP({
     : ''
 
   return (
-    <div className="bg-white rounded-md shadow-card p-4 h-full flex flex-col">
+    <div className="bg-white rounded-md shadow-card p-4 h-full flex flex-col" data-tour="mapa-sp">
       {titulo && (
         <h3 className="text-sm font-semibold text-navy mb-2 text-center uppercase tracking-wide">
           {titulo}

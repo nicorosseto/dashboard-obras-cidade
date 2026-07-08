@@ -8,18 +8,37 @@
 // .claude/rules/dominio.md, seção "Tour guiado").
 import { describe, it, expect } from 'vitest'
 import { TOURS, passosDisponiveis } from '../lib/tourRegistro.js'
-import { TODAS_PERMISSOES } from '../lib/permissoes.js'
+import { TODAS_PERMISSOES, PERMISSAO_POR_ABA } from '../lib/permissoes.js'
 
 // Áreas que JÁ devem ter tour. Cresce a cada PR do plano:
-//   PR 2: 'sistemaGeo', 'fiscalizacao' · PR 3: 'cruzamento', 'emergencias'
-//   PR 4: 'relatorio', 'configuracoes'
-const COBERTURA_EXIGIDA = ['home']
+//   PR 3: 'cruzamento', 'emergencias' · PR 4: 'relatorio', 'configuracoes'
+const COBERTURA_EXIGIDA = ['home', 'sistemaGeo', 'fiscalizacao']
+
+// Abas de PERMISSAO_POR_ABA que NÃO exigem mini-tour próprio, com o motivo.
+const ABAS_SEM_TOUR_PROPRIO = {
+  'fiscalizacao.1': 'aba inicial — coberta pelo tour de entrada do módulo',
+  'sistemaGeo.1': 'aba inicial — coberta pelo tour de entrada do módulo',
+  'sistemaGeo.4': 'Análise Integrada é módulo próprio (tour na PR 3)',
+}
 
 describe('cobertura dos tours', () => {
   it.each(COBERTURA_EXIGIDA)('a área "%s" tem tour registrado', (id) => {
     expect(TOURS[id]).toBeDefined()
     expect(TOURS[id].passos.length).toBeGreaterThan(0)
   })
+
+  // 🔒 Trava: toda aba do catálogo de permissões precisa de mini-tour
+  // (ou de uma exceção justificada acima). Aba nova sem tour = vermelho.
+  for (const [secao, abas] of Object.entries(PERMISSAO_POR_ABA)) {
+    for (const abaId of Object.keys(abas)) {
+      const tourId = `${secao}.${abaId}`
+      if (ABAS_SEM_TOUR_PROPRIO[tourId]) continue
+      it(`a aba ${tourId} tem mini-tour registrado`, () => {
+        expect(TOURS[tourId], `falta tour para a aba ${tourId}`).toBeDefined()
+        expect(TOURS[tourId].passos.length).toBeGreaterThan(0)
+      })
+    }
+  }
 })
 
 describe('estrutura dos tours registrados', () => {
