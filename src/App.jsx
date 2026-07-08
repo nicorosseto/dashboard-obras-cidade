@@ -177,7 +177,8 @@ export default function App() {
   const [paginaAtiva, setPaginaAtiva] = useState(1)
   const [mostrarAlterarSenha, setMostrarAlterarSenha] = useState(false)
   const [abaEmergencias, setAbaEmergencias] = useState('geral')
-  // Tour guiado: null = indisponível/carregando (nunca oferece); Set = pronto
+  // Tour guiado: null = indisponível/carregando (nunca oferece); Map (tour_id
+  // -> status 'concluido'|'dispensado') = pronto
   const [toursVistos, setToursVistos] = useState(null)
   const [totalInformadasEmerg, setTotalInformadasEmerg] = useState(0)
 
@@ -256,9 +257,9 @@ export default function App() {
 
   function registrarTourVisto(tourId, status) {
     setToursVistos((prev) => {
-      const s = new Set(prev ?? [])
-      s.add(tourId)
-      return s
+      const m = new Map(prev ?? [])
+      m.set(tourId, status)
+      return m
     })
     marcarTourVisto(session?.user?.id, tourId, status)
   }
@@ -302,14 +303,17 @@ export default function App() {
     !!TOURS[tourModuloId] &&
     !tourBloqueado &&
     permissoes instanceof Set &&
-    toursVistos instanceof Set &&
+    toursVistos instanceof Map &&
     !toursVistos.has(tourModuloId)
 
   useEffect(() => {
     if (!tourAbaId || !TOURS[tourAbaId]) return
     if (tourBloqueado) return
-    if (!(permissoes instanceof Set) || !(toursVistos instanceof Set)) return
-    if (!toursVistos.has(tourModuloId)) return // primeiro o tour de entrada
+    if (!(permissoes instanceof Set) || !(toursVistos instanceof Map)) return
+    // Só auto-dispara o mini-tour da aba se o tour de entrada do módulo foi
+    // CONCLUÍDO — se o usuário dispensou ("Agora não"), respeitamos a
+    // recusa também nas abas, em vez de insistir aba por aba.
+    if (toursVistos.get(tourModuloId) !== 'concluido') return
     if (toursVistos.has(tourAbaId)) return
     registrarTourVisto(tourAbaId, 'concluido')
     iniciarTour(tourAbaId, permissoes)
@@ -903,12 +907,26 @@ export default function App() {
       !mostrarAlterarSenha &&
       !profile?.primeiro_acesso &&
       permissoes instanceof Set &&
-      toursVistos instanceof Set &&
+      toursVistos instanceof Map &&
       !toursVistos.has('home')
     return (
       <>
         {sistemaGeoCarregando && <BarraProgresso {...geoProgresso} />}
         {avisoAtualizacao}
+        {mostrarAlterarSenha && (
+          <AlterarSenhaModal
+            obrigatorio={!!profile?.primeiro_acesso}
+            onConcluido={() => {
+              setMostrarAlterarSenha(false)
+              setProfile((p) => (p ? { ...p, primeiro_acesso: false } : p))
+            }}
+            onFechar={
+              profile?.primeiro_acesso
+                ? undefined
+                : () => setMostrarAlterarSenha(false)
+            }
+          />
+        )}
         {oferecerTourHome && (
           <ConviteTour
             titulo="Primeira vez por aqui?"

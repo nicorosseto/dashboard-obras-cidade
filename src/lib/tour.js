@@ -85,10 +85,13 @@ export async function iniciarTour(tourId, permissoes, { aoTerminar } = {}) {
 // falham FECHADAS: carregarToursVistos lança (o App trata não oferecendo
 // nenhum convite) e marcarTourVisto engole o erro (não trava a UI).
 
+// Devolve um Map tour_id -> status ('concluido' | 'dispensado'). O status
+// importa: um tour de entrada DISPENSADO não deve disparar automaticamente
+// os mini-tours das abas do módulo (só um tour CONCLUÍDO libera o próximo).
 export async function carregarToursVistos() {
-  const { data, error } = await supabase.from('tour_visto').select('tour_id')
+  const { data, error } = await supabase.from('tour_visto').select('tour_id, status')
   if (error) throw error
-  return new Set((data ?? []).map((r) => r.tour_id))
+  return new Map((data ?? []).map((r) => [r.tour_id, r.status]))
 }
 
 export async function marcarTourVisto(userId, tourId, status = 'concluido') {
