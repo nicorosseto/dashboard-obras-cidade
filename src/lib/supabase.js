@@ -175,3 +175,19 @@ export async function versaoTabela(table, colData = 'created_at') {
     return null
   }
 }
+
+// Data/hora do último upload de cada módulo (lida dos snapshots de
+// importação). Usada na Home (cards "Atualizado em") e no polling que avisa
+// quando outro usuário atualizou os dados. (Fase M5, Frente 3, Etapa 4 —
+// extraído de App.jsx.)
+export async function fetchDatasModulos() {
+  const [{ data: snap }, { data: emgSnap }] = await Promise.all([
+    supabase.from('importacoes_snapshots').select('fonte, uploaded_at').order('uploaded_at', { ascending: false }),
+    supabase.from('emergencias_snapshots').select('uploaded_at').order('uploaded_at', { ascending: false }).limit(1),
+  ])
+  return {
+    sistemaGeo: snap?.find((s) => s.fonte === 'sistemaGeo')?.uploaded_at ?? null,
+    fiscalizacoes: snap?.find((s) => s.fonte === 'fiscalizacoes')?.uploaded_at ?? null,
+    emergencias: emgSnap?.[0]?.uploaded_at ?? null,
+  }
+}

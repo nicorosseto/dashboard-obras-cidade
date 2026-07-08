@@ -30,6 +30,7 @@ import {
   resolverDefs,
   classificarMotivo,
   agruparMotivos,
+  contarEmgVencidas48h,
   evolucaoMotivosPorMes,
   normNatureza,
   slugTermo,
@@ -752,5 +753,38 @@ describe('evolucaoMotivosPorMes', () => {
   it('devolve vazio sem datas', () => {
     expect(evolucaoMotivosPorMes([{ _data_base: null }])).toEqual([])
     expect(evolucaoMotivosPorMes([])).toEqual([])
+  })
+})
+
+// ── contarEmgVencidas48h ─────────────────────────────────────────────────
+describe('contarEmgVencidas48h', () => {
+  const AGORA = Date.UTC(2026, 0, 10, 12, 0, 0) // 10/01/2026 12h UTC
+
+  it('conta só "Informada" com prazo (data_inicio_obra + 48h) já vencido', () => {
+    const linhas = [
+      { status: 'Informada', num_processo: '111', data_cadastro: '2026-01-01' },
+      { status: 'Solucionado', num_processo: '222', data_cadastro: '2026-01-01' },
+    ]
+    const obras = [{ codigo_aio: '111', data_inicio_obra: '2026-01-07' }] // vence 09/01 12h
+    expect(contarEmgVencidas48h(linhas, obras, AGORA)).toBe(1)
+  })
+
+  it('usa data_cadastro como fallback quando não há posicionamento', () => {
+    const linhas = [{ status: 'Informada', num_processo: '333', data_cadastro: '2026-01-07' }]
+    expect(contarEmgVencidas48h(linhas, [], AGORA)).toBe(1)
+  })
+
+  it('não conta quando ainda dentro do prazo', () => {
+    const linhas = [{ status: 'Informada', num_processo: '444', data_cadastro: '2026-01-09' }]
+    expect(contarEmgVencidas48h(linhas, [], AGORA)).toBe(0)
+  })
+
+  it('ignora linha sem nenhuma data-base', () => {
+    const linhas = [{ status: 'Informada', num_processo: '555', data_cadastro: null }]
+    expect(contarEmgVencidas48h(linhas, [], AGORA)).toBe(0)
+  })
+
+  it('retorna 0 para lista vazia', () => {
+    expect(contarEmgVencidas48h([], [], AGORA)).toBe(0)
   })
 })

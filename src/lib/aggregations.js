@@ -625,3 +625,39 @@ export function processosPorRegiao(rows, mapRegiao = SIGLA_TO_REGIAO) {
     }))
     .sort((a, b) => b.count - a.count)
 }
+
+// ----------------------------------------------------------------------------
+// Compartilhado entre módulos (Fase M5, Frente 3, Etapa 4 — extraído de App.jsx)
+// ----------------------------------------------------------------------------
+
+// Data da atualização mais recente entre as duas bases: máximo entre
+// `data_inicio` (Fiscalização) e `data_cadastro` (Sistema Geo).
+export function ultimaAtualizacao(rowsFisc, rowsGeo) {
+  let maior = ''
+  for (const r of rowsFisc) {
+    if (r.data_inicio && r.data_inicio > maior) maior = r.data_inicio
+  }
+  for (const r of rowsGeo) {
+    if (r.data_cadastro && r.data_cadastro > maior) maior = r.data_cadastro
+  }
+  return maior || null
+}
+
+// Conta quantos filtros da barra lateral estão ativos — usado no badge da
+// aba "Busca por Processo". `camposSet`: nomes de campos do tipo Set (soma
+// o .size de cada um); `extras`: funções opcionais (filtros, ex.: temNc)
+// que somam 1 quando retornam true.
+export function contarFiltrosAtivos(filtros, { camposSet = [], extras = [] } = {}) {
+  let n = filtros.dataIni || filtros.dataFim ? 1 : 0
+  for (const campo of camposSet) n += filtros[campo]?.size ?? 0
+  for (const extra of extras) if (extra(filtros)) n += 1
+  return n
+}
+
+// Clique numa subprefeitura do mapa: seleciona só ela; clicar de novo na
+// mesma (quando é a única selecionada) limpa o filtro. Devolve o próximo
+// Set — quem chama decide em qual campo do objeto de filtros gravar.
+export function toggleSubSelecionada(atual, sigla) {
+  if (atual.size === 1 && atual.has(sigla)) return new Set()
+  return new Set([sigla])
+}
