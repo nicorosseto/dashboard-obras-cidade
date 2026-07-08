@@ -46,6 +46,10 @@ const TRECHOS = [
     'network request failed',
     'Falha de conexão. Verifique a internet e tente de novo.',
   ],
+  [
+    'violates foreign key constraint',
+    'Não foi possível excluir: este registro está vinculado a outros dados do sistema.',
+  ],
 ]
 
 export function traduzErro(mensagem) {
