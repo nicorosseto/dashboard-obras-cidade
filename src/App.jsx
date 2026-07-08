@@ -1,6 +1,5 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
-import { supabase, fetchAll, versaoTabela, fetchDatasModulos } from './lib/supabase.js'
-import { lerCache, gravarCache } from './lib/cache.js'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { supabase } from './lib/supabase.js'
 import {
   signOut,
   getProfile,
@@ -25,7 +24,6 @@ import {
   contarFiltrosAtivos,
   toggleSubSelecionada,
 } from './lib/aggregations.js'
-import { traduzErro } from './lib/mensagens.js'
 import Header from './components/Header.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import SidebarSistemaGeo from './components/SidebarSistemaGeo.jsx'
@@ -34,6 +32,10 @@ import { FILTROS_GEO_VAZIOS } from './lib/filtrosGeo.js'
 import { FILTROS_CRUZAMENTO_VAZIOS } from './lib/filtrosCruzamento.js'
 import { carregarPermissoes, abasPermitidas } from './lib/permissoes.js'
 import { agruparMotivos, resolverDefs, contarEmgVencidas48h } from './lib/emergencias.js'
+import { useCargaFiscalizacao } from './hooks/useCargaFiscalizacao.js'
+import { useCargaSistemaGeo } from './hooks/useCargaSistemaGeo.js'
+import { useCargaEmergencias } from './hooks/useCargaEmergencias.js'
+import { useAvisoAtualizacao } from './hooks/useAvisoAtualizacao.js'
 import KPIStrip from './components/KPIStrip.jsx'
 import KPIStripGeo from './components/KPIStripGeo.jsx'
 import ExportModal from './components/ExportModal.jsx'
@@ -128,12 +130,6 @@ const FILTROS_VAZIOS = {
   temNc: null,
 }
 
-// Colunas do sistemaGeo usadas pelo dashboard (exclui 'etapa' e 'created_at').
-const GEO_COLS =
-  'id,processo,tipo_processo,tipo_processo_nome,permissionaria,executora,' +
-  'data_cadastro,etapa_nome,subprefeitura,status,status_nome,status_unificado,' +
-  'tipo_obra,tipo_obra_nome'
-
 // Faixa informativa exibida quando há filtro de período ativo e existem
 // registros sem data (que, por não terem data, ficam de fora do recorte).
 function AvisoSemData({ n }) {
@@ -156,21 +152,37 @@ export default function App() {
   // null = permissões ainda carregando; Set = pronto (admin recebe todas)
   const [permissoes, setPermissoes] = useState(null)
 
+  // ── Carga de dados dos módulos (Frente 3, Etapa 5 — hooks em src/hooks/) ──
+  // Precisa vir logo após `session`/`permissoes` (acima): código mais abaixo
+  // (ex.: `tourBloqueado`) já lê `sistemaGeoCarregando`/`emergCarregando`.
+  const { todasLinhas, carregando, erro, reset: resetFiscalizacao } = useCargaFiscalizacao(session)
+  const {
+    sistemaGeoLinhas,
+    sistemaGeoCarregando,
+    geoProgresso,
+    reset: resetSistemaGeo,
+  } = useCargaSistemaGeo(session, permissoes)
+  const {
+    emergLinhas,
+    setEmergLinhas,
+    emergObras,
+    setEmergObras,
+    motivoClassif,
+    setMotivoClassif,
+    motivoOverrides,
+    setMotivoOverrides,
+    emergCarregando,
+    emergProgresso,
+  } = useCargaEmergencias(session, permissoes)
+  const { datasModulos, modulosAtualizados, limparModulosAtualizados } = useAvisoAtualizacao(session)
+
   // ── OBRAS data ───────────────────────────────────────────────────
-  const [todasLinhas, setTodasLinhas] = useState([])
-  const [carregando, setCarregando] = useState(false)
-  const [erro, setErro] = useState(null)
   const [filtros, setFiltros] = useState(FILTROS_VAZIOS)
 
   // ── Sistema Geo data ──────────────────────────────────────────────────
-  const [sistemaGeoLinhas, setSistemaGeoLinhas] = useState([])
   const [sistemaGeoFiltros, setSistemaGeoFiltros] = useState(FILTROS_GEO_VAZIOS)
   const [cruzamentoFiltros, setCruzamentoFiltros] = useState(FILTROS_CRUZAMENTO_VAZIOS)
   const [abaAtivaCruzamento, setAbaAtivaCruzamento] = useState('visao-geral')
-  const [sistemaGeoCarregando, setSistemaGeoCarregando] = useState(false)
-  const [geoProgresso, setGeoProgresso] = useState({ carregadas: 0, total: 0 })
-  const sistemaGeoCarregadoRef = useRef(false)
-  const fiscalizacoesCarregadasRef = useRef(false)
 
   // ── Navigation ────────────────────────────────────────────────────
   const [mostrarHome, setMostrarHome] = useState(true)
@@ -185,20 +197,7 @@ export default function App() {
   const [toursVistos, setToursVistos] = useState(null)
   const [totalInformadasEmerg, setTotalInformadasEmerg] = useState(0)
 
-  // ── Emergências data (carregadas junto com os demais módulos) ──────
-  const [emergLinhas, setEmergLinhas] = useState([])
-  const [emergObras, setEmergObras] = useState([])
-  const [motivoClassif, setMotivoClassif] = useState([])
-  const [motivoOverrides, setMotivoOverrides] = useState([])
-  const [emergCarregando, setEmergCarregando] = useState(true)
-  const [emergProgresso, setEmergProgresso] = useState({ carregadas: 0, total: 0 })
-  const emergCarregadasRef = useRef(false)
   const [abaAdmin, setAbaAdmin] = useState(0)
-
-  // ── Datas de atualização por módulo (lidas dos snapshots) ─────────
-  const [datasModulos, setDatasModulos] = useState({ sistemaGeo: null, fiscalizacoes: null, emergencias: null })
-  // Aviso de "dados atualizados por outro usuário" — lista de módulos com atualização
-  const [modulosAtualizados, setModulosAtualizados] = useState([])
 
   // ── Autenticação ──────────────────────────────────────────────────
   useEffect(() => {
@@ -347,184 +346,6 @@ export default function App() {
     const id = setInterval(checar, 60 * 1000)
     return () => clearInterval(id)
   }, [session])
-
-  // ── Datas de atualização por módulo (um registro por fonte) ─────────
-  function atualizarDatasModulos() {
-    return fetchDatasModulos().then(setDatasModulos)
-  }
-
-  useEffect(() => {
-    if (!session) return
-    atualizarDatasModulos().catch(() => {})
-  }, [session])
-
-  // Após upload do próprio usuário: re-fetch para que o polling não dispare
-  // falso positivo ("dados de outro usuário") para quem acabou de importar.
-  useEffect(() => {
-    function handleUploadConcluido() { atualizarDatasModulos().catch(() => {}) }
-    window.addEventListener('obras:upload-concluido', handleUploadConcluido)
-    return () => window.removeEventListener('obras:upload-concluido', handleUploadConcluido)
-  }, [])
-
-  // ── Polling de atualização de dados (a cada 3 min) ───────────────
-  // Checa se outro usuário atualizou os dados enquanto este estava logado.
-  // Compara uploaded_at atual do banco com o que foi carregado na sessão.
-  // Não dispara durante uploads do próprio usuário (datasModulos é atualizado
-  // pelo confirmarUpload → setDatasModulos, então o "novo" upstream === local).
-  useEffect(() => {
-    if (!session) return
-    const INTERVALO_MS = 3 * 60 * 1000
-    const checar = async () => {
-      try {
-        const novo = await fetchDatasModulos()
-        setDatasModulos((prev) => {
-          const atualizados = []
-          if (novo.sistemaGeo && novo.sistemaGeo !== prev.sistemaGeo) atualizados.push('Sistema Geo')
-          if (novo.fiscalizacoes && novo.fiscalizacoes !== prev.fiscalizacoes) atualizados.push('Fiscalização')
-          if (novo.emergencias && novo.emergencias !== prev.emergencias) atualizados.push('Emergências')
-          if (atualizados.length > 0) setModulosAtualizados(atualizados)
-          return prev // não altera datasModulos — mantém a referência local para comparar
-        })
-      } catch {
-        // falha silenciosa — polling não-crítico
-      }
-    }
-    const id = setInterval(checar, INTERVALO_MS)
-    return () => clearInterval(id)
-  }, [session])
-
-  // ── Carga OBRAS (só após login) ─────────────────────────────────
-  useEffect(() => {
-    if (!session) return
-    if (fiscalizacoesCarregadasRef.current) return
-    fiscalizacoesCarregadasRef.current = true
-    setCarregando(true)
-    fetchAll('vw_fiscalizacao_enriquecida')
-      .then(setTodasLinhas)
-      .catch((e) => setErro(traduzErro(e.message || String(e))))
-      .finally(() => setCarregando(false))
-  }, [session])
-
-  // ── Carga Sistema Geo (após login, para popular totais da Home) ──────
-  // Só baixa as ~175k linhas se o usuário tiver alguma aba do Sistema Geo
-  // liberada (espera as permissões carregarem antes de decidir).
-  //
-  // Estratégia "stale-while-revalidate": mostra o cache local na hora
-  // (abertura instantânea) e só rebusca pela rede se a versão da tabela mudou
-  // (ver `versaoTabela`). A barra de progresso só aparece na 1ª carga (sem
-  // cache). O Sistema Geo é atualizado ~1×/mês, então o cache acerta quase sempre.
-  useEffect(() => {
-    if (!session || !permissoes) return
-    const podeGeo = abasPermitidas(permissoes, 'sistemaGeo').length > 0
-    if (!podeGeo) return
-    if (sistemaGeoCarregadoRef.current) return
-    sistemaGeoCarregadoRef.current = true
-
-    let cancelado = false
-
-    async function carregar() {
-      // try/finally garante que o spinner SEMPRE seja liberado, mesmo se a
-      // carga for cancelada por re-render (deps mudam) ou der erro. Antes o
-      // setSistemaGeoCarregando(false) ficava num `if (!cancelado)` e, quando o
-      // effect re-disparava com a carga em voo, o ref bloqueava uma nova carga
-      // e o spinner ficava preso para sempre (só o Shift+F5 resolvia).
-      try {
-        const cache = await lerCache('sistemaGeo')
-        if (cache?.linhas?.length && !cancelado) {
-          setSistemaGeoLinhas(cache.linhas) // mostra na hora
-        }
-
-        const versao = await versaoTabela('sistemaGeo')
-        // Cache fresco (versão bate) → nada a rebaixar.
-        if (cache?.linhas?.length && versao && cache.versao === versao) return
-
-        // Sem cache: mostra a barra de progresso. Com cache obsoleto: revalida
-        // em silêncio (os dados antigos seguem na tela até chegar o novo).
-        const tinhaCache = !!cache?.linhas?.length
-        if (!tinhaCache) setSistemaGeoCarregando(true)
-
-        const linhas = await fetchAll('sistemaGeo', GEO_COLS, 1000, (carregadas, total) =>
-          setGeoProgresso({ carregadas, total })
-        )
-        if (cancelado) return
-        setSistemaGeoLinhas(linhas)
-        // setTimeout cede o event loop para o React re-renderizar (esconder o
-        // spinner) ANTES de gravarCache bloquear a thread com structured clone
-        // de ~175k objetos — sem isso o spinner nunca some.
-        setTimeout(() => gravarCache('sistemaGeo', { versao, linhas }), 0)
-      } catch (e) {
-        console.error('Erro ao carregar sistemaGeo:', e)
-      } finally {
-        setSistemaGeoCarregando(false)
-      }
-    }
-
-    carregar()
-
-    return () => {
-      cancelado = true
-    }
-  }, [session, permissoes])
-
-  // ── Carga Emergências (após login, junto com os demais módulos) ────
-  // Carrega assim que as permissões chegam (não espera o usuário entrar no
-  // módulo) — evita a 2ª espera de carregamento ao abrir Emergências.
-  // Mesma estratégia stale-while-revalidate do Sistema Geo (cache 'emergencias').
-  useEffect(() => {
-    if (!session || !permissoes) return
-    if (!permissoes.has('emerg.ver')) {
-      setEmergCarregando(false)
-      return
-    }
-    if (emergCarregadasRef.current) return
-    emergCarregadasRef.current = true
-
-    let cancelado = false
-
-    async function carregar() {
-      // Mesmo motivo do Sistema Geo: try/finally garante que o emergCarregando
-      // sempre seja liberado, mesmo se a carga for cancelada por re-render ou
-      // der erro. Antes o setEmergCarregando(false) ficava sob `if (!cancelado)`
-      // e o ref-guard prendia a tela de Emergências em "Carregando" para sempre.
-      try {
-        const cache = await lerCache('emergencias')
-        if (cache?.linhas?.length && !cancelado) setEmergLinhas(cache.linhas)
-
-        const versao = await versaoTabela('emergencias')
-        const temCache = !!cache?.linhas?.length
-        if (!(temCache && versao && cache.versao === versao)) {
-          if (!temCache) setEmergCarregando(true)
-          const linhas = await fetchAll('emergencias', '*', 1000, (c, t) => {
-            setEmergProgresso({ carregadas: c, total: t })
-          })
-          if (!cancelado) {
-            setEmergLinhas(linhas)
-            setTimeout(() => gravarCache('emergencias', { versao, linhas }), 0)
-          }
-        }
-
-        // Planilha auxiliar de posicionamento (tabela pequena, sem cache dedicado).
-        const obras = await fetchAll('emergencias_obras', '*', 1000)
-        if (!cancelado) setEmergObras(obras)
-
-        // Classificação dos motivos de natureza (válido/inválido por termo) + overrides.
-        const classif = await fetchAll('motivo_natureza_classificacao', '*', 1000)
-        if (!cancelado) setMotivoClassif(classif)
-        const overrides = await fetchAll('motivo_natureza_override', '*', 1000)
-        if (!cancelado) setMotivoOverrides(overrides)
-      } catch (e) {
-        console.error('Erro ao carregar emergencias:', e)
-      } finally {
-        setEmergCarregando(false)
-      }
-    }
-
-    carregar()
-
-    return () => {
-      cancelado = true
-    }
-  }, [session, permissoes])
 
   // ── Derivados OBRAS ─────────────────────────────────────────────
   const anos = useMemo(() => listaAnos(todasLinhas), [todasLinhas])
@@ -723,16 +544,14 @@ export default function App() {
     setSession(null)
     setProfile(null)
     setPermissoes(null)
-    setTodasLinhas([])
+    resetFiscalizacao()
     setPaginaAtiva(1)
     setMostrarHome(true)
     setMostrarEmergencias(false)
     setMostrarRelatorio(false)
     setFiltros(FILTROS_VAZIOS)
-    setSistemaGeoLinhas([])
+    resetSistemaGeo()
     setSistemaGeoFiltros(FILTROS_GEO_VAZIOS)
-    sistemaGeoCarregadoRef.current = false
-    fiscalizacoesCarregadasRef.current = false
   }
 
   function handleSecaoChange(secao) {
@@ -850,7 +669,7 @@ export default function App() {
     <AvisoAtualizacao
       modulos={modulosAtualizados}
       onRecarregar={() => window.location.reload()}
-      onDescartar={() => setModulosAtualizados([])}
+      onDescartar={limparModulosAtualizados}
     />
   )
 
