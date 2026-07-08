@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
-import { supabase, fetchAll, versaoTabela } from './lib/supabase.js'
+import { supabase, fetchAll, versaoTabela, fetchDatasModulos } from './lib/supabase.js'
 import { lerCache, gravarCache } from './lib/cache.js'
 import {
   signOut,
@@ -21,6 +21,9 @@ import {
   contagemPorSubprefeitura,
   contagemPorSubprefeituraGeo,
   contarSemData,
+  ultimaAtualizacao as calcularUltimaAtualizacao,
+  contarFiltrosAtivos,
+  toggleSubSelecionada,
 } from './lib/aggregations.js'
 import { traduzErro } from './lib/mensagens.js'
 import Header from './components/Header.jsx'
@@ -30,7 +33,7 @@ import SidebarCruzamento from './components/SidebarCruzamento.jsx'
 import { FILTROS_GEO_VAZIOS } from './lib/filtrosGeo.js'
 import { FILTROS_CRUZAMENTO_VAZIOS } from './lib/filtrosCruzamento.js'
 import { carregarPermissoes, abasPermitidas } from './lib/permissoes.js'
-import { agruparMotivos, resolverDefs } from './lib/emergencias.js'
+import { agruparMotivos, resolverDefs, contarEmgVencidas48h } from './lib/emergencias.js'
 import KPIStrip from './components/KPIStrip.jsx'
 import KPIStripGeo from './components/KPIStripGeo.jsx'
 import ExportModal from './components/ExportModal.jsx'
@@ -346,26 +349,19 @@ export default function App() {
   }, [session])
 
   // ── Datas de atualização por módulo (um registro por fonte) ─────────
-  async function fetchDatasModulos() {
-    const [{ data: snap }, { data: emgSnap }] = await Promise.all([
-      supabase.from('importacoes_snapshots').select('fonte, uploaded_at').order('uploaded_at', { ascending: false }),
-      supabase.from('emergencias_snapshots').select('uploaded_at').order('uploaded_at', { ascending: false }).limit(1),
-    ])
-    const geo = snap?.find((s) => s.fonte === 'sistemaGeo')?.uploaded_at ?? null
-    const fisc = snap?.find((s) => s.fonte === 'fiscalizacoes')?.uploaded_at ?? null
-    const emg = emgSnap?.[0]?.uploaded_at ?? null
-    setDatasModulos({ sistemaGeo: geo, fiscalizacoes: fisc, emergencias: emg })
+  function atualizarDatasModulos() {
+    return fetchDatasModulos().then(setDatasModulos)
   }
 
   useEffect(() => {
     if (!session) return
-    fetchDatasModulos().catch(() => {})
+    atualizarDatasModulos().catch(() => {})
   }, [session])
 
   // Após upload do próprio usuário: re-fetch para que o polling não dispare
   // falso positivo ("dados de outro usuário") para quem acabou de importar.
   useEffect(() => {
-    function handleUploadConcluido() { fetchDatasModulos().catch(() => {}) }
+    function handleUploadConcluido() { atualizarDatasModulos().catch(() => {}) }
     window.addEventListener('obras:upload-concluido', handleUploadConcluido)
     return () => window.removeEventListener('obras:upload-concluido', handleUploadConcluido)
   }, [])
@@ -380,18 +376,12 @@ export default function App() {
     const INTERVALO_MS = 3 * 60 * 1000
     const checar = async () => {
       try {
-        const [{ data: snap }, { data: emgSnap }] = await Promise.all([
-          supabase.from('importacoes_snapshots').select('fonte, uploaded_at').order('uploaded_at', { ascending: false }),
-          supabase.from('emergencias_snapshots').select('uploaded_at').order('uploaded_at', { ascending: false }).limit(1),
-        ])
-        const novoGeo = snap?.find((s) => s.fonte === 'sistemaGeo')?.uploaded_at ?? null
-        const novoFisc = snap?.find((s) => s.fonte === 'fiscalizacoes')?.uploaded_at ?? null
-        const novoEmg = emgSnap?.[0]?.uploaded_at ?? null
+        const novo = await fetchDatasModulos()
         setDatasModulos((prev) => {
           const atualizados = []
-          if (novoGeo && novoGeo !== prev.sistemaGeo) atualizados.push('Sistema Geo')
-          if (novoFisc && novoFisc !== prev.fiscalizacoes) atualizados.push('Fiscalização')
-          if (novoEmg && novoEmg !== prev.emergencias) atualizados.push('Emergências')
+          if (novo.sistemaGeo && novo.sistemaGeo !== prev.sistemaGeo) atualizados.push('Sistema Geo')
+          if (novo.fiscalizacoes && novo.fiscalizacoes !== prev.fiscalizacoes) atualizados.push('Fiscalização')
+          if (novo.emergencias && novo.emergencias !== prev.emergencias) atualizados.push('Emergências')
           if (atualizados.length > 0) setModulosAtualizados(atualizados)
           return prev // não altera datasModulos — mantém a referência local para comparar
         })
@@ -577,13 +567,7 @@ export default function App() {
   // Clique no mapa: foca só a subprefeitura clicada; clicar de novo na mesma
   // (quando é a única selecionada) limpa o filtro.
   function selecionarSubFisc(sigla) {
-    setFiltros((f) => {
-      const s = f.subprefeituras
-      if (s.size === 1 && s.has(sigla)) {
-        return { ...f, subprefeituras: new Set() }
-      }
-      return { ...f, subprefeituras: new Set([sigla]) }
-    })
+    setFiltros((f) => ({ ...f, subprefeituras: toggleSubSelecionada(f.subprefeituras, sigla) }))
   }
 
   // ── Derivados Sistema Geo ────────────────────────────────────────────
@@ -627,49 +611,34 @@ export default function App() {
   }, [sistemaGeoLinhas, sistemaGeoFiltros])
 
   // Nº de filtros ativos da barra lateral (para a aba "Busca por Processo").
-  const nFiltrosFisc = useMemo(() => {
-    let n = filtros.dataIni || filtros.dataFim ? 1 : 0
-    n += filtros.permissionarias.size + filtros.subprefeituras.size
-    if (filtros.temNc !== null) n += 1
-    return n
-  }, [filtros])
-  const nFiltrosGeo = useMemo(() => {
-    let n = sistemaGeoFiltros.dataIni || sistemaGeoFiltros.dataFim ? 1 : 0
-    n +=
-      sistemaGeoFiltros.permissionarias.size +
-      sistemaGeoFiltros.subprefeituras.size +
-      sistemaGeoFiltros.tiposProcesso.size +
-      sistemaGeoFiltros.etapas.size +
-      sistemaGeoFiltros.statusUnificados.size +
-      sistemaGeoFiltros.tiposObra.size
-    return n
-  }, [sistemaGeoFiltros])
+  const nFiltrosFisc = useMemo(
+    () =>
+      contarFiltrosAtivos(filtros, {
+        camposSet: ['permissionarias', 'subprefeituras'],
+        extras: [(f) => f.temNc !== null],
+      }),
+    [filtros]
+  )
+  const nFiltrosGeo = useMemo(
+    () =>
+      contarFiltrosAtivos(sistemaGeoFiltros, {
+        camposSet: [
+          'permissionarias',
+          'subprefeituras',
+          'tiposProcesso',
+          'etapas',
+          'statusUnificados',
+          'tiposObra',
+        ],
+      }),
+    [sistemaGeoFiltros]
+  )
 
   // Conta emergências com status "Informada" e prazo 48h vencido (cálculo simplificado).
-  // Usa como base: data_inicio_obra (se existir posicionamento) ou data_cadastro, + 48h.
-  const emgVencidas48h = useMemo(() => {
-    if (!emergLinhas.length) return 0
-    const agora = Date.now()
-    const MS_48H = 48 * 3600 * 1000
-    const obrasMap = new Map()
-    for (const o of emergObras) {
-      const k = String(o.codigo_aio || '').replace(/^0+/, '')
-      if (k) obrasMap.set(k, o)
-    }
-    let count = 0
-    for (const r of emergLinhas) {
-      if (r.status !== 'Informada') continue
-      const k = String(r.num_processo || '').replace(/^0+/, '')
-      const obra = obrasMap.get(k)
-      const baseIso = obra?.data_inicio_obra || r.data_cadastro || null
-      if (!baseIso) continue
-      const [y, mo, d] = String(baseIso).slice(0, 10).split('-').map(Number)
-      if (!y) continue
-      const prazoMs = Date.UTC(y, mo - 1, d, 12, 0, 0) + MS_48H
-      if (agora > prazoMs) count++
-    }
-    return count
-  }, [emergLinhas, emergObras])
+  const emgVencidas48h = useMemo(
+    () => contarEmgVencidas48h(emergLinhas, emergObras),
+    [emergLinhas, emergObras]
+  )
 
   // ── Motivo Inválido (v3): defs/override + grupos/pendências ──
   const motivoDefs = useMemo(() => resolverDefs(motivoClassif), [motivoClassif])
@@ -717,13 +686,7 @@ export default function App() {
   }
 
   function selecionarSubGeo(sigla) {
-    setSistemaGeoFiltros((f) => {
-      const s = f.subprefeituras
-      if (s.size === 1 && s.has(sigla)) {
-        return { ...f, subprefeituras: new Set() }
-      }
-      return { ...f, subprefeituras: new Set([sigla]) }
-    })
+    setSistemaGeoFiltros((f) => ({ ...f, subprefeituras: toggleSubSelecionada(f.subprefeituras, sigla) }))
   }
 
   const isAdmin = profile?.role === 'admin'
@@ -861,17 +824,9 @@ export default function App() {
     [temGeo, temFisc, temCruzamento, temEmerg, temRelatorio]
   )
 
-  // Determina cor do header baseado na seção e página ativa
   // Última atualização = max(data_inicio fisc, data_cadastro geo)
   const ultimaAtualizacao = useMemo(() => {
-    let maior = ''
-    for (const r of todasLinhas) {
-      if (r.data_inicio && r.data_inicio > maior) maior = r.data_inicio
-    }
-    for (const r of sistemaGeoLinhas) {
-      if (r.data_cadastro && r.data_cadastro > maior) maior = r.data_cadastro
-    }
-    return maior || null
+    return calcularUltimaAtualizacao(todasLinhas, sistemaGeoLinhas)
   }, [todasLinhas, sistemaGeoLinhas])
 
   // ── Estados de carregamento inicial ──────────────────────────────
