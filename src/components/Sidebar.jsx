@@ -130,6 +130,7 @@ export default function Sidebar({
   if (!aberto) {
     return (
       <aside
+        data-tour="sidebar-filtros"
         className="w-14 shrink-0 bg-white border-r border-grey-line flex flex-col items-center py-4 cursor-pointer hover:bg-navy/5 transition-colors select-none"
         onClick={() => setAberto(true)}
         title="Abrir filtros"
@@ -160,7 +161,7 @@ export default function Sidebar({
 
   // ── Expandida ────────────────────────────────────────────────────
   return (
-    <aside className="w-60 shrink-0 bg-white border-r border-grey-line flex flex-col h-full">
+    <aside data-tour="sidebar-filtros" className="w-60 shrink-0 bg-white border-r border-grey-line flex flex-col h-full">
       {/* Cabeçalho */}
       <div className="flex items-center justify-between px-3 py-3 border-b-2 border-navy shrink-0">
         <div className="flex items-center gap-2 text-sm font-bold text-navy uppercase tracking-wide">
@@ -286,7 +287,7 @@ export default function Sidebar({
       </Bloco>
 
       {/* Não-Conformidade */}
-      <Bloco titulo="Conformidade" count={ncCount}>
+      <Bloco titulo="Conformidade" count={ncCount} dataTour="filtro-nc">
         <div className="flex gap-1 flex-wrap">
           {[
             { v: null, label: 'Todas' },
@@ -435,10 +436,10 @@ export default function Sidebar({
   )
 }
 
-function Bloco({ titulo, count = 0, children, defaultOpen = false }) {
+function Bloco({ titulo, count = 0, children, defaultOpen = false, dataTour }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div>
+    <div data-tour={dataTour}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}

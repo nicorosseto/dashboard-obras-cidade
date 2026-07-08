@@ -1,4 +1,5 @@
 import PageTabs from './PageTabs.jsx'
+import BotaoTour from './tour/BotaoTour.jsx'
 import ModuleDropdown from './ModuleDropdown.jsx'
 import { signOut, nomeExibicao } from '../lib/auth.js'
 import { NAVY, NAVY_LIGHT } from '../lib/cores.js'
@@ -136,6 +137,7 @@ export default function Header({
   abaAdminAtiva = 0,
   onAbaAdmin = () => {},
   onAbrirConfiguracoes = () => {},
+  onIniciarTour,
   abaCruzamentoAtiva = 'visao-geral',
   onAbaCruzamento = () => {},
   permissoes = null,
@@ -188,7 +190,7 @@ export default function Header({
         </div>
 
         {/* Ícone + título do módulo ativo */}
-        <div className="flex-1 min-w-0 pl-4 flex items-center gap-3">
+        <div className="flex-1 min-w-0 pl-4 flex items-center gap-3" data-tour="header-modulo">
           <div
             className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-white p-1.5"
             style={{ background: accentGradient }}
@@ -202,7 +204,7 @@ export default function Header({
 
         {/* Module dropdown */}
         {modules.length > 0 && (
-          <div className="shrink-0">
+          <div className="shrink-0" data-tour="header-modulos">
             <ModuleDropdown
               modules={modules}
               activeModuleId={mostrarRelatorio ? 'relatorio' : mostrarEmergencias ? 'emergencias' : secaoAtiva}
@@ -221,10 +223,18 @@ export default function Header({
             <span className="text-[10px] text-white/70 max-w-[140px] truncate hidden sm:block">
               {nomeExibicao(user.email)}
             </span>
+            {onIniciarTour && (
+              <BotaoTour
+                onClick={onIniciarTour}
+                variante="escuro"
+                dataTour="header-btn-tour"
+              />
+            )}
             {onAlterarSenha && (
               <button
                 onClick={onAlterarSenha}
                 title="Alterar minha senha"
+                data-tour="header-senha"
                 className="w-8 h-8 flex items-center justify-center rounded-sm bg-white/15 hover:bg-white/30 transition-colors"
               >
                 <svg
@@ -264,7 +274,7 @@ export default function Header({
         </p>
         <div className="flex-1" />
         {mostrarAbasNormal && (
-          <div className="shrink-0">
+          <div className="shrink-0" data-tour="header-abas">
             <PageTabs
               ativa={paginaAtiva}
               onChange={onPagina}
