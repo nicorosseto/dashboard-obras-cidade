@@ -359,7 +359,7 @@ export default function Header({
           </nav>
         )}
         {mostrarAbasAdmin && (
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-4" data-tour="header-abas">
             {[
               { id: 0, label: 'Usuários', icon: '👤' },
               { id: 1, label: 'Perfis de Acesso', icon: '🛡️' },

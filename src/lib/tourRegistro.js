@@ -41,6 +41,13 @@ import {
   TOUR_EMERGENCIAS_MOTIVO_INVALIDO,
   TOUR_EMERGENCIAS_HISTORICO,
 } from './toursConteudo/tourEmergencias.js'
+import { TOUR_RELATORIO } from './toursConteudo/tourRelatorio.js'
+import {
+  TOUR_CONFIGURACOES,
+  TOUR_CONFIGURACOES_PERFIS,
+  TOUR_CONFIGURACOES_ATUALIZAR,
+  TOUR_CONFIGURACOES_LOGS,
+} from './toursConteudo/tourConfiguracoes.js'
 
 export const TOURS = {
   home: TOUR_HOME,
@@ -69,7 +76,11 @@ export const TOURS = {
   'emergencias.busca': TOUR_EMERGENCIAS_BUSCA,
   'emergencias.motivo_invalido': TOUR_EMERGENCIAS_MOTIVO_INVALIDO,
   'emergencias.historico': TOUR_EMERGENCIAS_HISTORICO,
-  // PR 4 do plano: relatorio, configuracoes.
+  relatorio: TOUR_RELATORIO,
+  configuracoes: TOUR_CONFIGURACOES,
+  'configuracoes.1': TOUR_CONFIGURACOES_PERFIS,
+  'configuracoes.2': TOUR_CONFIGURACOES_ATUALIZAR,
+  'configuracoes.3': TOUR_CONFIGURACOES_LOGS,
 }
 
 // Filtra os passos de um tour para o usuário atual:
