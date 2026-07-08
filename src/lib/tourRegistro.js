@@ -22,6 +22,25 @@ import {
   TOUR_FISCALIZACAO_ABA6,
   TOUR_FISCALIZACAO_ABA7,
 } from './toursConteudo/tourFiscalizacao.js'
+import {
+  TOUR_CRUZAMENTO,
+  TOUR_CRUZAMENTO_COBERTURA,
+  TOUR_CRUZAMENTO_STATUS,
+  TOUR_CRUZAMENTO_LINHATEMPO,
+  TOUR_CRUZAMENTO_DIVERGENCIAS,
+  TOUR_CRUZAMENTO_EXECUTORAS,
+  TOUR_CRUZAMENTO_MAPA,
+  TOUR_CRUZAMENTO_BUSCA,
+} from './toursConteudo/tourCruzamento.js'
+import {
+  TOUR_EMERGENCIAS,
+  TOUR_EMERGENCIAS_INFORMADAS,
+  TOUR_EMERGENCIAS_PRAZO48H,
+  TOUR_EMERGENCIAS_DASHBOARD,
+  TOUR_EMERGENCIAS_BUSCA,
+  TOUR_EMERGENCIAS_MOTIVO_INVALIDO,
+  TOUR_EMERGENCIAS_HISTORICO,
+} from './toursConteudo/tourEmergencias.js'
 
 export const TOURS = {
   home: TOUR_HOME,
@@ -35,7 +54,22 @@ export const TOURS = {
   'fiscalizacao.4': TOUR_FISCALIZACAO_ABA4,
   'fiscalizacao.6': TOUR_FISCALIZACAO_ABA6,
   'fiscalizacao.7': TOUR_FISCALIZACAO_ABA7,
-  // PRs futuras: cruzamento, emergencias, relatorio, configuracoes.
+  cruzamento: TOUR_CRUZAMENTO,
+  'cruzamento.cobertura': TOUR_CRUZAMENTO_COBERTURA,
+  'cruzamento.status-cruzado': TOUR_CRUZAMENTO_STATUS,
+  'cruzamento.linha-tempo': TOUR_CRUZAMENTO_LINHATEMPO,
+  'cruzamento.divergencias': TOUR_CRUZAMENTO_DIVERGENCIAS,
+  'cruzamento.executoras': TOUR_CRUZAMENTO_EXECUTORAS,
+  'cruzamento.mapa': TOUR_CRUZAMENTO_MAPA,
+  'cruzamento.busca': TOUR_CRUZAMENTO_BUSCA,
+  emergencias: TOUR_EMERGENCIAS,
+  'emergencias.informadas': TOUR_EMERGENCIAS_INFORMADAS,
+  'emergencias.prazo48h': TOUR_EMERGENCIAS_PRAZO48H,
+  'emergencias.dashboard': TOUR_EMERGENCIAS_DASHBOARD,
+  'emergencias.busca': TOUR_EMERGENCIAS_BUSCA,
+  'emergencias.motivo_invalido': TOUR_EMERGENCIAS_MOTIVO_INVALIDO,
+  'emergencias.historico': TOUR_EMERGENCIAS_HISTORICO,
+  // PR 4 do plano: relatorio, configuracoes.
 }
 
 // Filtra os passos de um tour para o usuário atual:
