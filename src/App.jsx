@@ -56,7 +56,7 @@ const PaginaEmergencias = lazy(() => import('./components/tabs/PaginaEmergencias
 import { LoadingPage, LoadingInline } from './components/Loading.jsx'
 import AlterarSenhaModal from './components/AlterarSenhaModal.jsx'
 import ConviteTour from './components/tour/ConviteTour.jsx'
-import { carregarToursVistos, marcarTourVisto, iniciarTour } from './lib/tour.js'
+import { carregarToursVistos, marcarTourVisto, iniciarTour, TOURS } from './lib/tour.js'
 import BarraProgresso from './components/BarraProgresso.jsx'
 import AvisoAtualizacao from './components/AvisoAtualizacao.jsx'
 
@@ -261,6 +261,50 @@ export default function App() {
       return s
     })
     marcarTourVisto(session?.user?.id, tourId, status)
+  }
+
+  // ── Tour do módulo atual (Sistema Geo/Fiscalização) ───────────────────
+  // Convite no 1º acesso ao módulo; mini-tour automático no 1º clique de
+  // cada aba (só depois do tour de entrada resolvido). Emergências,
+  // Apresentação, Configurações e Análise Integrada: PRs 3–4 do plano.
+  const tourModuloId =
+    !mostrarHome &&
+    !mostrarEmergencias &&
+    !mostrarRelatorio &&
+    paginaAtiva !== 5 &&
+    !(secaoAtiva === 'sistemaGeo' && paginaAtiva === 4)
+      ? secaoAtiva
+      : null
+  const tourAbaId =
+    tourModuloId && paginaAtiva !== 1 ? `${tourModuloId}.${paginaAtiva}` : null
+  // Não disparar tour com a carga do Sistema Geo em andamento (gráficos vazios).
+  const tourBloqueado =
+    mostrarAlterarSenha ||
+    !!profile?.primeiro_acesso ||
+    (secaoAtiva === 'sistemaGeo' && sistemaGeoCarregando)
+
+  const oferecerTourModulo =
+    !!tourModuloId &&
+    !!TOURS[tourModuloId] &&
+    !tourBloqueado &&
+    permissoes instanceof Set &&
+    toursVistos instanceof Set &&
+    !toursVistos.has(tourModuloId)
+
+  useEffect(() => {
+    if (!tourAbaId || !TOURS[tourAbaId]) return
+    if (tourBloqueado) return
+    if (!(permissoes instanceof Set) || !(toursVistos instanceof Set)) return
+    if (!toursVistos.has(tourModuloId)) return // primeiro o tour de entrada
+    if (toursVistos.has(tourAbaId)) return
+    registrarTourVisto(tourAbaId, 'concluido')
+    iniciarTour(tourAbaId, permissoes)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourAbaId, tourBloqueado, toursVistos, permissoes])
+
+  function handleRevisarTour() {
+    const id = tourAbaId && TOURS[tourAbaId] ? tourAbaId : tourModuloId
+    if (id && TOURS[id]) iniciarTour(id, permissoes)
   }
 
   // ── Expiração da sessão ───────────────────────────────────────────
@@ -1044,6 +1088,17 @@ export default function App() {
           }
         />
       )}
+      {oferecerTourModulo && (
+        <ConviteTour
+          titulo={`Conhecer o módulo ${secaoAtiva === 'sistemaGeo' ? 'Sistema Geo' : 'Fiscalização'}?`}
+          texto="Primeira vez neste módulo — posso mostrar as abas, os filtros da barra lateral e como usar os gráficos, em menos de um minuto."
+          onAceitar={() => {
+            registrarTourVisto(tourModuloId, 'concluido')
+            iniciarTour(tourModuloId, permissoes)
+          }}
+          onRecusar={() => registrarTourVisto(tourModuloId, 'dispensado')}
+        />
+      )}
       <Header
         paginaAtiva={paginaAtiva}
         onPagina={setPaginaAtiva}
@@ -1054,6 +1109,7 @@ export default function App() {
         secaoAtiva={secaoAtiva}
         onSecao={handleSecaoChange}
         onHome={handleHome}
+        onIniciarTour={tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined}
         onAlterarSenha={() => setMostrarAlterarSenha(true)}
         mostrarFisc={temFisc}
         mostrarGeo={temGeo}
@@ -1104,7 +1160,7 @@ export default function App() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* KPI strip – hidden on admin */}
           {!isSpecialPage && !(secaoAtiva === 'sistemaGeo' && paginaAtiva === 4) && (
-            <div className="px-4 sm:px-6 py-3 border-b border-grey-line shrink-0">
+            <div className="px-4 sm:px-6 py-3 border-b border-grey-line shrink-0" data-tour="kpis-modulo">
               {secaoAtiva === 'fiscalizacao' ? (
                 <KPIStrip kpis={kpis} />
               ) : sistemaGeoCarregando && sistemaGeoLinhas.length === 0 ? (
@@ -1129,7 +1185,7 @@ export default function App() {
               )}
             </div>
           )}
-          <main className="flex-1 p-4 overflow-auto">
+          <main className="flex-1 p-4 overflow-auto" data-tour="conteudo-modulo">
             {/* Aviso: registros sem data ficam de fora ao filtrar por período */}
             {!isSpecialPage &&
               abaLiberada &&

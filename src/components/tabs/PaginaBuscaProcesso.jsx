@@ -57,7 +57,7 @@ function sortData(rows, key, dir) {
 // ── Campo de busca compartilhado ──────────────────────────────────────────────
 export function CampoBusca({ busca, onChange, placeholder, totalResultados, totalBase, mostrarContador = true, onFiltrar, nFiltrosAtivos = 0 }) {
   return (
-    <div className="bg-white rounded-lg border border-grey-line p-4">
+    <div className="bg-white rounded-lg border border-grey-line p-4" data-tour="busca-campo">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex-1">
           <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
@@ -93,6 +93,7 @@ export function CampoBusca({ busca, onChange, placeholder, totalResultados, tota
           <button
             onClick={onFiltrar}
             title="Listar os processos com os filtros da barra lateral aplicados"
+            data-tour="busca-filtrar"
             className="shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-navy text-white hover:bg-navy-light transition-colors sm:self-end"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
