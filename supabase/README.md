@@ -73,6 +73,19 @@ de rodar** dentro de cada pasta.
 13. **`fixes/sistema-geo-login-obrigatorio.sql`** — endurece a segurança: leitura do
     `sistemaGeo` passa a exigir login e remove a leitura pública de `email_exceptions`
     (a checagem de domínio antes do login foi retirada do sistema).
+14. **`fixes/corrige-exclusao-usuario-access-logs.sql`** ⚠️ **rodar nos 2 bancos
+    (08/07/2026):** sem ele, excluir qualquer usuário que já fez login (ou seja,
+    quase todos) falha com `violates foreign key constraint
+    "access_logs_user_id_fkey"`. Troca a FK de `access_logs.user_id` para
+    `on delete set null` — mantém o histórico de acessos (o `email` já é
+    guardado redundante na própria linha), só solta a referência ao usuário
+    excluído. Idempotente.
+
+> ℹ️ Esta lista numerada nem sempre acompanha 100% os `schema/09-…` a `19-…` (cada
+> um documentado na entrada correspondente do `docs/progresso.md`/`diario-de-bordo.md`
+> quando foi criado) — ela cobre a base do banco desde o zero até a etapa D1. Scripts
+> `fixes/` mais recentes e "obrigatórios de verdade" (não históricos) ficam sinalizados
+> com ⚠️ como acima.
 
 ### Correções realmente opcionais (`fixes/`)
 
