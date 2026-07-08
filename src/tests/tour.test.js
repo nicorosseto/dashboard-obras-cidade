@@ -11,9 +11,11 @@ import { TOURS, passosDisponiveis } from '../lib/tourRegistro.js'
 import { TODAS_PERMISSOES, PERMISSAO_POR_ABA } from '../lib/permissoes.js'
 import { ABAS_CRUZAMENTO } from '../lib/abasCruzamento.js'
 
-// Áreas que JÁ devem ter tour. Cresce a cada PR do plano:
-//   PR 4: 'relatorio', 'configuracoes'
-const COBERTURA_EXIGIDA = ['home', 'sistemaGeo', 'fiscalizacao', 'cruzamento', 'emergencias']
+// Áreas que devem ter tour — plano completo (PRs 1–4).
+const COBERTURA_EXIGIDA = [
+  'home', 'sistemaGeo', 'fiscalizacao', 'cruzamento', 'emergencias',
+  'relatorio', 'configuracoes',
+]
 
 // Abas de PERMISSAO_POR_ABA que NÃO exigem mini-tour próprio, com o motivo.
 const ABAS_SEM_TOUR_PROPRIO = {
@@ -28,6 +30,10 @@ const ABAS_SEM_TOUR_PROPRIO = {
 const ABAS_EMERGENCIAS = [
   'informadas', 'prazo48h', 'dashboard', 'busca', 'motivo_invalido', 'historico',
 ]
+
+// Abas do módulo Configurações (id espelha o array numérico do Header.jsx,
+// bloco mostrarAbasAdmin). 0 (Usuários) é a aba inicial, sem mini-tour próprio.
+const ABAS_CONFIGURACOES = [1, 2, 3]
 
 describe('cobertura dos tours', () => {
   it.each(COBERTURA_EXIGIDA)('a área "%s" tem tour registrado', (id) => {
@@ -61,6 +67,15 @@ describe('cobertura dos tours', () => {
   // 🔒 Trava: toda aba de Emergências (exceto a inicial) precisa de mini-tour.
   for (const abaId of ABAS_EMERGENCIAS) {
     const tourId = `emergencias.${abaId}`
+    it(`a aba ${tourId} tem mini-tour registrado`, () => {
+      expect(TOURS[tourId], `falta tour para a aba ${tourId}`).toBeDefined()
+      expect(TOURS[tourId].passos.length).toBeGreaterThan(0)
+    })
+  }
+
+  // 🔒 Trava: toda aba de Configurações (exceto a inicial) precisa de mini-tour.
+  for (const abaId of ABAS_CONFIGURACOES) {
+    const tourId = `configuracoes.${abaId}`
     it(`a aba ${tourId} tem mini-tour registrado`, () => {
       expect(TOURS[tourId], `falta tour para a aba ${tourId}`).toBeDefined()
       expect(TOURS[tourId].passos.length).toBeGreaterThan(0)
