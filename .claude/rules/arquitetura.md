@@ -46,6 +46,11 @@ dashboard-obras-cidade/
 │   │   ├── auth.js             # Login/logout
 │   │   ├── aggregations.js     # Cálculos, KPIs, formatação de datas
 │   │   └── cores.js            # Paleta institucional em JS (gráficos, gradientes) — Fase M5
+│   ├── hooks/                  # Hooks React de carga de dados (Frente 3, Etapa 5)
+│   │   ├── useCargaFiscalizacao.js  # fetch da vw_fiscalizacao_enriquecida
+│   │   ├── useCargaSistemaGeo.js      # fetch do sistemaGeo (cache stale-while-revalidate)
+│   │   ├── useCargaEmergencias.js   # fetch de emergencias/obras/motivos
+│   │   └── useAvisoAtualizacao.js   # datas por módulo + polling "dados atualizados"
 │   └── data/                   # Dados estáticos (GeoJSON de SP)
 ├── scripts/                    # Scripts Python de importação de dados (.py/.ipynb)
 ├── supabase/                   # Scripts SQL do banco
