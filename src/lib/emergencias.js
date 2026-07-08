@@ -995,3 +995,31 @@ export async function exportXLSX(rows, columns, filename, sheetName = 'Dados') {
   XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0, 31))
   XLSX.writeFile(wb, filename)
 }
+
+// ── Badge "vencidas 48h" (Header/Home) — cálculo simplificado ──────────
+// Conta emergências "Informada" com prazo de 48h vencido, usando como base
+// data_inicio_obra (se houver posicionamento) ou data_cadastro. Mais rápido
+// e mais simples que buildPrazoRows (que enriquece linha a linha para a
+// aba "Prazo 48h") — este é só para o número do badge.
+// (Fase M5, Frente 3, Etapa 4 — extraído de App.jsx)
+export function contarEmgVencidas48h(emergLinhas, emergObras, agora = Date.now()) {
+  if (!emergLinhas.length) return 0
+  const obrasMap = new Map()
+  for (const o of emergObras) {
+    const k = String(o.codigo_aio || '').replace(/^0+/, '')
+    if (k) obrasMap.set(k, o)
+  }
+  let count = 0
+  for (const r of emergLinhas) {
+    if (r.status !== 'Informada') continue
+    const k = String(r.num_processo || '').replace(/^0+/, '')
+    const obra = obrasMap.get(k)
+    const baseIso = obra?.data_inicio_obra || r.data_cadastro || null
+    if (!baseIso) continue
+    const [y, mo, d] = String(baseIso).slice(0, 10).split('-').map(Number)
+    if (!y) continue
+    const prazoMs = Date.UTC(y, mo - 1, d, 12, 0, 0) + MS_48H
+    if (agora > prazoMs) count++
+  }
+  return count
+}
