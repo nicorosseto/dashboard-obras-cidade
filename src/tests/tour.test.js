@@ -9,17 +9,25 @@
 import { describe, it, expect } from 'vitest'
 import { TOURS, passosDisponiveis } from '../lib/tourRegistro.js'
 import { TODAS_PERMISSOES, PERMISSAO_POR_ABA } from '../lib/permissoes.js'
+import { ABAS_CRUZAMENTO } from '../lib/abasCruzamento.js'
 
 // Áreas que JÁ devem ter tour. Cresce a cada PR do plano:
-//   PR 3: 'cruzamento', 'emergencias' · PR 4: 'relatorio', 'configuracoes'
-const COBERTURA_EXIGIDA = ['home', 'sistemaGeo', 'fiscalizacao']
+//   PR 4: 'relatorio', 'configuracoes'
+const COBERTURA_EXIGIDA = ['home', 'sistemaGeo', 'fiscalizacao', 'cruzamento', 'emergencias']
 
 // Abas de PERMISSAO_POR_ABA que NÃO exigem mini-tour próprio, com o motivo.
 const ABAS_SEM_TOUR_PROPRIO = {
   'fiscalizacao.1': 'aba inicial — coberta pelo tour de entrada do módulo',
   'sistemaGeo.1': 'aba inicial — coberta pelo tour de entrada do módulo',
-  'sistemaGeo.4': 'Análise Integrada é módulo próprio (tour na PR 3)',
+  'sistemaGeo.4': 'Análise Integrada é módulo próprio (tour em cruzamento.*)',
 }
+
+// Abas do módulo Emergências (id espelha Header.jsx, bloco mostrarEmergencias
+// — não há constante compartilhada lá, então mantém-se os dois em sincronia).
+// 'geral' fica de fora: é a aba inicial, coberta pelo tour de entrada.
+const ABAS_EMERGENCIAS = [
+  'informadas', 'prazo48h', 'dashboard', 'busca', 'motivo_invalido', 'historico',
+]
 
 describe('cobertura dos tours', () => {
   it.each(COBERTURA_EXIGIDA)('a área "%s" tem tour registrado', (id) => {
@@ -38,6 +46,25 @@ describe('cobertura dos tours', () => {
         expect(TOURS[tourId].passos.length).toBeGreaterThan(0)
       })
     }
+  }
+
+  // 🔒 Trava: toda aba da Análise Integrada (exceto a inicial) precisa de mini-tour.
+  for (const aba of ABAS_CRUZAMENTO) {
+    if (aba.id === 'visao-geral') continue
+    const tourId = `cruzamento.${aba.id}`
+    it(`a aba ${tourId} tem mini-tour registrado`, () => {
+      expect(TOURS[tourId], `falta tour para a aba ${tourId}`).toBeDefined()
+      expect(TOURS[tourId].passos.length).toBeGreaterThan(0)
+    })
+  }
+
+  // 🔒 Trava: toda aba de Emergências (exceto a inicial) precisa de mini-tour.
+  for (const abaId of ABAS_EMERGENCIAS) {
+    const tourId = `emergencias.${abaId}`
+    it(`a aba ${tourId} tem mini-tour registrado`, () => {
+      expect(TOURS[tourId], `falta tour para a aba ${tourId}`).toBeDefined()
+      expect(TOURS[tourId].passos.length).toBeGreaterThan(0)
+    })
   }
 })
 

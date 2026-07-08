@@ -287,7 +287,7 @@ export default function Header({
           </div>
         )}
         {mostrarAbasCruzamento && (
-          <nav className="flex items-center gap-1 overflow-x-auto">
+          <nav className="flex items-center gap-1 overflow-x-auto" data-tour="header-abas">
             {abasCruzamentoPermitidas(permissoes, ABAS_CRUZAMENTO).map((a) => (
               <button
                 key={a.id}
@@ -312,7 +312,7 @@ export default function Header({
           </nav>
         )}
         {mostrarEmergencias && (
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-4" data-tour="header-abas">
             {[
               { id: 'geral', label: 'Visão Geral', icon: '👁️' },
               { id: 'informadas', label: `Informadas${totalInformadasEmerg > 0 ? ` (${totalInformadasEmerg.toLocaleString('pt-BR')})` : ''}`, icon: '🚨' },
