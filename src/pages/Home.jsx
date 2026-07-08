@@ -1,6 +1,7 @@
 import { fmtNumero, fmtDataHora, fmtDataSP } from '../lib/aggregations.js'
 import { useState, useCallback } from 'react'
 import { NAVY, NAVY_LIGHT } from '../lib/cores.js'
+import BotaoTour from '../components/tour/BotaoTour.jsx'
 
 function IconMap({ className = 'w-10 h-10' }) {
   return (
@@ -100,10 +101,11 @@ function IconSettings({ className = 'w-4 h-4' }) {
 
 const MSG_CARREGANDO = 'Aguarde — os dados ainda estão sendo carregados. Em breve todos os módulos estarão disponíveis.'
 
-function ModuleCard({ gradientFrom, gradientTo, icon, titulo, descricao, ultimaAtualizacao, onClick, carregando, onMouseMove, onMouseLeave }) {
+function ModuleCard({ gradientFrom, gradientTo, icon, titulo, descricao, ultimaAtualizacao, onClick, carregando, onMouseMove, onMouseLeave, dataTour }) {
   return (
     <button
       type="button"
+      data-tour={dataTour}
       onClick={carregando ? undefined : onClick}
       onMouseMove={carregando ? onMouseMove : undefined}
       onMouseLeave={carregando ? onMouseLeave : undefined}
@@ -189,6 +191,7 @@ export default function Home({
   temRelatorio = false,
   onAbrirConfiguracoes,
   onSignOut,
+  onIniciarTour,
   sistemaGeoCarregando = false,
   geoProgresso = { carregadas: 0, total: 0 },
   emgVencidas48h = 0,
@@ -239,7 +242,7 @@ export default function Home({
       )}
       {/* Header */}
       <header className="bg-white border-b border-grey-line">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center gap-4">
+        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center gap-4" data-tour="home-cabecalho">
           <div className="w-12 h-12 rounded-xl bg-navy text-white flex items-center justify-center shrink-0">
             <IconMap className="w-7 h-7" />
           </div>
@@ -260,9 +263,11 @@ export default function Home({
               onError={(e) => { e.currentTarget.style.display = 'none' }}
             />
           </div>
+          {onIniciarTour && <BotaoTour onClick={onIniciarTour} dataTour="home-btn-tour" />}
           {onSignOut && (
             <button
               onClick={onSignOut}
+              data-tour="home-sair"
               className="shrink-0 text-xs text-navy/70 hover:text-navy border border-grey-line hover:border-navy px-2 py-1 rounded-sm transition-colors"
             >
               Sair
@@ -304,6 +309,7 @@ export default function Home({
                 gradientTo={NAVY_LIGHT}
                 icon={<IconMap />}
                 titulo="Dados Sistema Geo"
+                dataTour="home-card-sistema-geo"
                 descricao="Visualização e acompanhamento das obras registradas no sistema Sistema Geo por subprefeitura, permissionária e status."
                 ultimaAtualizacao={dataGeo}
                 onClick={() => onNavigate('sistemaGeo')}
@@ -318,6 +324,7 @@ export default function Home({
                 gradientTo="#065f46"
                 icon={<IconClipboard />}
                 titulo="Fiscalização"
+                dataTour="home-card-fiscalizacao"
                 descricao="Acompanhamento das vistorias e laudos realizados pela fiscalização da OBRAS, com análise de não conformidades."
                 ultimaAtualizacao={dataFisc}
                 onClick={() => onNavigate('fiscalizacao')}
@@ -332,6 +339,7 @@ export default function Home({
                 gradientTo="#6d28d9"
                 icon={<IconMerge />}
                 titulo="Análise Integrada"
+                dataTour="home-card-cruzamento"
                 descricao="Reconcilia as bases de Fiscalização e Sistema Geo — identifica o que está nas duas, o que está só em uma delas e divergências de dados."
                 ultimaAtualizacao={dataFisc ?? dataGeo}
                 onClick={() => onNavigate('cruzamento')}
@@ -346,6 +354,7 @@ export default function Home({
                 gradientTo="#14b8a6"
                 icon={<IconSlides />}
                 titulo="Apresentação"
+                dataTour="home-card-relatorio"
                 descricao="Prévia do relatório mensal em slides, espelhando a apresentação institucional, com download dos dados e da imagem de cada slide."
                 ultimaAtualizacao={dataGeo}
                 onClick={() => onNavigate('relatorio')}
@@ -361,6 +370,7 @@ export default function Home({
         {onAbrirEmergencias && (
           <button
             type="button"
+            data-tour="home-card-emergencias"
             onClick={sistemaGeoCarregando ? undefined : onAbrirEmergencias}
             onMouseMove={sistemaGeoCarregando ? handleMouseMove : undefined}
             onMouseLeave={sistemaGeoCarregando ? handleMouseLeave : undefined}
@@ -424,7 +434,7 @@ export default function Home({
 
         {/* KPIs */}
         {(temGeo || temFisc) && (
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4" data-tour="home-kpis">
             {temGeo && (
               <KPI
                 label="Total de Protocolos"
@@ -469,6 +479,7 @@ export default function Home({
           {onAbrirConfiguracoes && (
             <button
               onClick={onAbrirConfiguracoes}
+              data-tour="home-configuracoes"
               className="flex items-center gap-1.5 text-xs text-navy/60 hover:text-navy transition-colors"
             >
               <IconSettings />
