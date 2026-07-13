@@ -2,6 +2,7 @@ import { fmtNumero, fmtDataHora, fmtDataSP } from '../lib/aggregations.js'
 import { useState, useCallback } from 'react'
 import { NAVY, NAVY_LIGHT } from '../lib/cores.js'
 import BotaoTour from '../components/tour/BotaoTour.jsx'
+import Rodape from '../components/Rodape.jsx'
 
 function IconMap({ className = 'w-10 h-10' }) {
   return (
@@ -470,24 +471,18 @@ export default function Home({
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-grey-line py-4 px-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className="text-[10px] text-gray-400">
-            OBRAS · Subprefeituras · Prefeitura de São Paulo
-          </span>
-          {onAbrirConfiguracoes && (
-            <button
-              onClick={onAbrirConfiguracoes}
-              data-tour="home-configuracoes"
-              className="flex items-center gap-1.5 text-xs text-navy/60 hover:text-navy transition-colors"
-            >
-              <IconSettings />
-              Configurações
-            </button>
-          )}
-        </div>
-      </footer>
+      <Rodape>
+        {onAbrirConfiguracoes && (
+          <button
+            onClick={onAbrirConfiguracoes}
+            data-tour="home-configuracoes"
+            className="flex items-center gap-1.5 text-xs text-navy/60 hover:text-navy transition-colors"
+          >
+            <IconSettings />
+            Configurações
+          </button>
+        )}
+      </Rodape>
     </div>
   )
 }

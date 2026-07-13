@@ -19,7 +19,6 @@ const ABAS_GEO = [
 export default function PageTabs({
   ativa,
   onChange,
-  showAdmin = false,
   secaoAtiva = 'fiscalizacao',
   abasPermitidas,
   accentFrom = NAVY,
@@ -52,26 +51,6 @@ export default function PageTabs({
           )}
         </button>
       ))}
-
-      {showAdmin && <div className="w-px h-5 bg-white/30 mx-1" />}
-
-      {showAdmin && (
-        <button
-          onClick={() => onChange(5)}
-          title="Administração"
-          aria-label="Administração"
-          aria-current={ativa === 5 ? 'page' : undefined}
-          className={`flex items-center gap-1.5 text-sm font-semibold py-2 transition-all relative ${
-            ativa === 5 ? 'text-white' : 'text-white/70 hover:text-white'
-          }`}
-        >
-          <span className="text-lg">⚙️</span>
-          <span className="hidden sm:inline">Admin</span>
-          {ativa === 5 && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5" style={underlineStyle} />
-          )}
-        </button>
-      )}
     </nav>
   )
 }
