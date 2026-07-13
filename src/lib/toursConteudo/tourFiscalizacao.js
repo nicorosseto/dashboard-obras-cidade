@@ -18,9 +18,9 @@ export const TOUR_FISCALIZACAO = {
       alvo: '[data-tour="header-abas"]',
       titulo: 'Abas do módulo',
       texto:
-        'Visão Geral, Evolução Temporal, Distribuição Espacial, Detalhes, ' +
-        'Executoras e Busca por Processo. Na primeira vez que você abrir uma ' +
-        'aba, um mini-tour explica o que ela mostra.',
+        'Visão Geral, Evolução Temporal, Distribuição Espacial, Executoras e ' +
+        'Busca por Processo. Na primeira vez que você abrir uma aba, um ' +
+        'mini-tour explica o que ela mostra.',
     },
     {
       alvo: '[data-tour="header-modulos"]',
@@ -122,22 +122,6 @@ export const TOUR_FISCALIZACAO_ABA3 = {
       texto:
         'Ao lado do mapa: a distribuição das obras por região da cidade e os ' +
         'tipos de falha encontrados nas vistorias.',
-    },
-  ],
-}
-
-export const TOUR_FISCALIZACAO_ABA4 = {
-  id: 'fiscalizacao.4',
-  versao: 1,
-  titulo: 'Fiscalização — Detalhes',
-  passos: [
-    {
-      alvo: '[data-tour="conteudo-modulo"]',
-      titulo: 'Detalhes 📋',
-      texto:
-        'Visão detalhada das vistorias filtradas: quebras por tipo de falha, ' +
-        'status e demais dimensões, em tabelas e gráficos — cada um com o ' +
-        'botão ⬇ para baixar em Excel.',
     },
   ],
 }
