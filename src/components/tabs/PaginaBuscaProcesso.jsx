@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { fmtData } from '../../lib/aggregations.js'
+import { fmtData, fmtAreaDecimal } from '../../lib/aggregations.js'
 import ThSort from '../ThSort.jsx'
 import { LoadingInline } from '../Loading.jsx'
 import EmptyState from '../EmptyState.jsx'
@@ -148,11 +148,14 @@ function TabelaFisc({ rows }) {
         <table className="w-full text-xs border-collapse">
           <thead>
             <tr className="bg-navy text-white text-left">
-              <ThSort colKey="id_origem"           label="Processo"       sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
-              <ThSort colKey="permissionaria"      label="Permissionária" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
-              <ThSort colKey="subprefeitura"       label="Subpref."       sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
-              <ThSort colKey="data_inicio"         label="Data Vistoria"  sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
-              <ThSort colKey="status_simplificado" label="Status"         sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
+              <ThSort colKey="id_origem"            label="Processo"        sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
+              <ThSort colKey="permissionaria"       label="Permissionária"  sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
+              <ThSort colKey="executora"            label="Executora"       sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
+              <ThSort colKey="subprefeitura"        label="Subpref."        sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
+              <ThSort colKey="classificacao_viaria" label="Class. Viária"   sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
+              <ThSort colKey="area_m2"              label="Área (m²)"       sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap text-right" />
+              <ThSort colKey="data_inicio"          label="Data Vistoria"   sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
+              <ThSort colKey="status_simplificado"  label="Status"          sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="p-2 whitespace-nowrap" />
               <th className="p-2 whitespace-nowrap">NC</th>
               <th className="p-2 whitespace-nowrap">Falhas</th>
             </tr>
@@ -165,7 +168,10 @@ function TabelaFisc({ rows }) {
                 <tr key={r.id || i} className={i % 2 === 0 ? 'bg-white' : 'bg-grey-bg'}>
                   <td className="p-2 font-mono text-[11px] whitespace-nowrap">{r.id_origem || '—'}</td>
                   <td className="p-2 whitespace-nowrap">{r.permissionaria || '—'}</td>
+                  <td className="p-2 whitespace-nowrap text-gray-500">{r.executora || '—'}</td>
                   <td className="p-2 whitespace-nowrap" title={r.subprefeitura_nome || ''}>{r.subprefeitura || '—'}</td>
+                  <td className="p-2 whitespace-nowrap">{r.classificacao_viaria || '—'}</td>
+                  <td className="p-2 whitespace-nowrap text-right tabular-nums">{fmtAreaDecimal(r.area_m2)}</td>
                   <td className="p-2 whitespace-nowrap">{fmtData(r.data_inicio)}</td>
                   <td className="p-2 whitespace-nowrap">
                     <StatusBadgeFisc status={r.status_simplificado} />
@@ -186,7 +192,7 @@ function TabelaFisc({ rows }) {
               )
             })}
             {pagina.length === 0 && (
-              <tr><td colSpan={7}><EmptyState mensagem="Nenhum resultado com os filtros atuais." /></td></tr>
+              <tr><td colSpan={10}><EmptyState mensagem="Nenhum resultado com os filtros atuais." /></td></tr>
             )}
           </tbody>
         </table>

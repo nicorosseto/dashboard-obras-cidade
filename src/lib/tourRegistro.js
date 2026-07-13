@@ -18,7 +18,6 @@ import {
   TOUR_FISCALIZACAO,
   TOUR_FISCALIZACAO_ABA2,
   TOUR_FISCALIZACAO_ABA3,
-  TOUR_FISCALIZACAO_ABA4,
   TOUR_FISCALIZACAO_ABA6,
   TOUR_FISCALIZACAO_ABA7,
 } from './toursConteudo/tourFiscalizacao.js'
@@ -58,7 +57,6 @@ export const TOURS = {
   fiscalizacao: TOUR_FISCALIZACAO,
   'fiscalizacao.2': TOUR_FISCALIZACAO_ABA2,
   'fiscalizacao.3': TOUR_FISCALIZACAO_ABA3,
-  'fiscalizacao.4': TOUR_FISCALIZACAO_ABA4,
   'fiscalizacao.6': TOUR_FISCALIZACAO_ABA6,
   'fiscalizacao.7': TOUR_FISCALIZACAO_ABA7,
   cruzamento: TOUR_CRUZAMENTO,

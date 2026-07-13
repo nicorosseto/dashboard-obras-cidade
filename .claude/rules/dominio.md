@@ -459,6 +459,21 @@
   `carregando`), para o spinner pintar antes de a ordenação/render bloquear a thread.
   ⚠️ Ao criar nova aba de listagem, seguir o mesmo padrão: nada de auto-listar por
   filtro da sidebar; sempre botão "Filtrar" + commit deferido com `LoadingInline`.
+- **Aba "Detalhes" da Fiscalização — ELIMINADA (13/07/2026, item D do plano de
+  melhorias de julho):** era só um invólucro de `Tabela.jsx` (tabela crua com
+  paginação/filtros próprios) e, apesar do nome, **não mostrava o número do
+  processo** — a "Busca por Processo" (aba 7) tinha isso, além de NC e Falhas.
+  Diagnóstico coluna a coluna encontrou 3 colunas exclusivas da Detalhes
+  (Executora, Classificação Viária, Área m²), que foram **incorporadas à
+  Busca por Processo** (`TabelaFisc` em `PaginaBuscaProcesso.jsx`) antes da
+  eliminação — nenhuma informação foi perdida. Removidos: componente
+  (`Pagina4Detalhes.jsx`/`Tabela.jsx`), rota `paginaAtiva === 4` em
+  `App.jsx`, entrada `id: 4` de `ABAS_FISC` (`lib/abasPaginas.js`),
+  permissão `fisc.aba_detalhes` (front + SQL
+  `20-remove-fisc-aba-detalhes.sql`, DELETE com cascade em
+  `perfil_permissoes`) e o mini-tour correspondente. Se uma futura tela
+  precisar de "detalhe linha a linha" da fiscalização, a Busca por Processo
+  já é o lugar certo — não recriar uma tabela crua separada.
 - **Consolidadores externos (pré-tratamento antes do upload):** o usuário criou
   duas ferramentas **HTML+JS puro** (SheetJS, rodam 100% no navegador, nenhum
   dado sai da máquina — dado sigiloso da Prefeitura) que **pré-consolidam** as
