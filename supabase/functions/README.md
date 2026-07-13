@@ -18,9 +18,19 @@ lógica e dos comentários no próprio `sync-multas/index.ts`.
 
 ### 1. Rodar o SQL antes (nos dois bancos)
 
-`supabase/schema/21-multas.sql` — cria as tabelas `multas` e
-`multas_sync_config`. Rodar no **obras-dev** primeiro (testar), depois em
-**produção**.
+Nesta ordem:
+1. `supabase/schema/21-multas.sql` — cria as tabelas `multas` e
+   `multas_sync_config`.
+2. `supabase/fixes/multas-indice-unico-auto-multa.sql` — corrige o índice
+   único de `auto_multa` (parcial → total; achado no 1º teste do A1).
+3. `supabase/fixes/multas-chave-sintetica-sem-auto.sql` — adiciona a coluna
+   `chave_sintetica` (chave de upsert para linhas sem `auto_multa`, A2).
+
+Rodar no **obras-dev** primeiro (testar), depois em **produção**. Os
+itens 1 e 2 já rodaram no obras-dev; o item 3 (`chave-sintetica-sem-auto`)
+é novo desta etapa (A2) — rodar no obras-dev antes de reimplantar a
+função (passo 3 abaixo). Nenhum dos três rodou em produção ainda — fica
+para quando o módulo Multas for promovido de fato (ver `docs/progresso.md`).
 
 ### 2. Cadastrar o secret (nos dois projetos Supabase)
 
@@ -75,13 +85,21 @@ O botão **"Atualizar agora"** da UI (A4, futuro) chama a mesma URL com
 
 ### Limitações conhecidas do spike (A1) — resolver no A2/A4
 
-- Linhas sem `AUTO DA MULTA` (168 na planilha levantada no A0) não têm
-  chave de dedup — hoje são só **inseridas** (podem duplicar a cada sync).
-  A2 decide a estratégia definitiva (ex.: chave composta com
-  `linha_planilha` ou hash da linha).
+- ✅ **Resolvido no A2 (13/07/2026):** linhas sem `AUTO DA MULTA` (168 na
+  planilha levantada no A0) agora têm chave estável (`chave_sintetica`,
+  hash de `num_processo+data_infracao+valor+linha_planilha`) e são
+  gravadas por **upsert**, como as demais — a função não apaga mais o
+  subconjunto inteiro a cada sync.
 - `situacao_vinculo` só marca `sem_processo` no spike; o cruzamento com
   `sistemaGeo`/`fiscalizacoes` (`vinculado_sistemaGeo`/`vinculado_fiscalizacao`/
   `processo_nao_encontrado`) fica para o A3.
 - Sem retry/backoff no download do Drive (diferente do `fetchAll` do
   Sistema Geo) — falha vira `ultima_sync_status = 'erro'`, tentativa seguinte
   do cron resolve sozinha.
+
+### Reimplantar após o A2
+
+Como a Edge Function já estava implantada no obras-dev (A1), depois de
+rodar o SQL do item 3 acima, é preciso **reimplantar** `sync-multas` (passo
+3 deste guia, colando o `index.ts` atualizado) para o upsert por
+`chave_sintetica` entrar em vigor.
