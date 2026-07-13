@@ -5,7 +5,7 @@
 // (Google Drive, arquivo .xlsx em modo de compatibilidade Office) via
 // Google Drive API, autenticando como a conta de serviço
 // `obras-multas-leitor`, faz o parsing da aba "PENALIDADES CORBETT"
-// (cabeçalho na linha 8) com SheetJS e grava (upsert) em `public.multas`.
+// (cabeçalho na linha 8) e grava (upsert) em `public.multas`.
 //
 // Dashboard é READ-ONLY (decisão do A0) — esta função é o ÚNICO
 // caminho de escrita da tabela.
@@ -24,14 +24,34 @@
 // SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY já são injetados
 // automaticamente pelo runtime das Edge Functions — não precisam ser
 // cadastrados como secret.
-
+//
+// ── Por que NÃO usamos mais SheetJS (13/07/2026) ────────────────────
+// A primeira versão deste spike usava `XLSX.read` (SheetJS). Mesmo com
+// todas as opções de economia de memória (dense, cellDates:false,
+// sheetRows), a função estourava "Memory limit exceeded" (heap ~233MB)
+// no runtime das Edge Functions (limite baixo, ~150-256MB). Causa: a
+// versão gratuita do SheetJS SEMPRE descomprime e parseia o workbook
+// INTEIRO — as 3 abas do arquivo, estilos e sharedStrings — não existe
+// opção para restringir a leitura a 1 aba só.
+//
+// Solução: um parser mínimo e seletivo, escrito à mão, que aproveita a
+// estrutura do .xlsx (é um ZIP com XML dentro): descompacta SOMENTE os
+// arquivos internos necessários (workbook.xml + rels para descobrir
+// qual sheetN.xml corresponde à aba "PENALIDADES CORBETT", depois só
+// esse sheetN.xml + sharedStrings.xml) e faz o parsing do XML na mão
+// com regex (sem carregar um DOM). Isso evita descomprimir/parsear as
+// outras 2 abas e os estilos, que são a maior parte do custo de
+// memória. A lógica de NEGÓCIO (mapeamento de colunas, datas, valor
+// monetário, sem_processo etc.) permanece idêntica à versão anterior —
+// só mudou a fonte dos valores brutos.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { SignJWT, importPKCS8 } from 'https://esm.sh/jose@5.9.6'
-import * as XLSX from 'https://esm.sh/xlsx@0.18.5'
+import { unzipSync } from 'https://esm.sh/fflate@0.8.2'
 
 const DRIVE_FILE_ID = '1ExemploDriveFileIdFicticio000AA'
 const ABA_PLANILHA = 'PENALIDADES CORBETT'
 const LINHA_CABECALHO = 8 // 1-based, na planilha original
+const LINHA_TETO_SANIDADE = 20000 // planilhas "fantasma" (formatação colada sem dado) — não ler além disso
 
 // ── Duplicação deliberada de toIsoDate/normProc (src/lib/) ──────────
 // Edge Functions rodam em runtime Deno separado do bundle do front —
@@ -83,8 +103,10 @@ function parseValorReal(v: unknown): number | null {
 
 function normalizeHeader(s: string): string {
   return s
+    .replace(/[°º]/g, '') // "N° PROCESSO"/"Nº PROCESSO" → "N PROCESSO" (chave do COLUMN_MAP)
+    .replace(/²/g, '2') // "ÁREA (M²)" → "AREA (M2)"
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toUpperCase()
     .replace(/\s+/g, ' ')
     .trim()
@@ -168,54 +190,235 @@ async function baixarPlanilha(accessToken: string): Promise<ArrayBuffer> {
   return await res.arrayBuffer()
 }
 
-function parseLinhas(buffer: ArrayBuffer) {
-  // Otimizações de memória (Edge Functions têm limite baixo, ~150-256 MB;
-  // "Memory limit exceeded" no 1º teste do spike, 13/07/2026). A versão
-  // gratuita do SheetJS SEMPRE parseia as 3 abas do arquivo (não existe
-  // opção para restringir a 1 aba) — por isso:
-  // - sem `cellDates`: evita criar um objeto Date por célula de data;
-  //   datas chegam como serial numérico do Excel, e toIsoDate() já sabe
-  //   converter (mesmo caminho usado pelos importadores do front).
-  // - `cellText`/`cellNF`: false — não gera o texto formatado nem a
-  //   máscara de formato por célula (dobrava o armazenamento à toa; só
-  //   usamos o valor cru).
-  // - `dense`: representa cada aba como array de arrays em vez de um
-  //   objeto por célula endereçada ("A1", "B1"...) — mais leve.
-  // - `sheetRows`: teto de segurança. Planilha preenchida por várias
-  //   pessoas costuma ter formatação colada sem querer em milhares de
-  //   linhas vazias bem abaixo dos dados reais ("modo de compatibilidade"
-  //   já é sinal disso) — sem limite, isso incha a leitura de TODAS as
-  //   abas, não só a nossa. 8.178 linhas de dados + cabeçalho na linha 8
-  //   cabem folgado em 8.500.
-  const wb = XLSX.read(buffer, {
-    type: 'array',
-    dense: true,
-    cellDates: false,
-    cellText: false,
-    cellNF: false,
-    sheetRows: 8500,
-  })
-  const sheet = wb.Sheets[ABA_PLANILHA]
-  if (!sheet) {
-    throw new Error(`Aba "${ABA_PLANILHA}" não encontrada. Abas disponíveis: ${wb.SheetNames.join(', ')}`)
-  }
-  // range: LINHA_CABECALHO - 1 (0-based) → sheet_to_json usa essa linha como header
-  const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
-    range: LINHA_CABECALHO - 1,
-    defval: null,
-  })
+// ── Helpers de XML mínimo (sem DOM — só regex sobre strings) ────────
 
-  const linhas = []
-  for (let i = 0; i < raw.length; i++) {
-    const row = raw[i]
-    const linha_planilha = LINHA_CABECALHO + 1 + i // linha real na planilha
+// Decodifica as 5 entidades XML padrão + entidades numéricas
+// (&#NNN; / &#xHH;). Ordem importa: numéricas e as 4 "simples" antes
+// de &amp;, senão "&amp;lt;" viraria "<" em vez de "&lt;".
+function decodeXml(s: string): string {
+  return s
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+}
+
+// "A" -> 0, "B" -> 1, "AB" -> 27 (índice de coluna 0-based, estilo Excel)
+function colLetraParaIndice(letras: string): number {
+  let idx = 0
+  for (let i = 0; i < letras.length; i++) {
+    idx = idx * 26 + (letras.charCodeAt(i) - 64) // 'A'.charCodeAt(0) === 65
+  }
+  return idx - 1
+}
+
+function extrairAtributo(tag: string, nome: string): string | null {
+  // nome pode conter ":" (ex.: "r:id") — escapar não é necessário aqui
+  // porque ":" não é caractere especial de regex.
+  const m = tag.match(new RegExp(nome + '="([^"]*)"'))
+  return m ? m[1] : null
+}
+
+// Concatena o texto de todos os <t>...</t> (ou <t/>) dentro de um
+// trecho de XML — usado tanto para <si> (sharedStrings) quanto para
+// <is> (inlineStr), que têm a mesma estrutura interna (rich text pode
+// ter vários <r><t>...</t></r>).
+function extrairTextoDeTs(xml: string): string {
+  let texto = ''
+  const reT = /<t[^>]*>([\s\S]*?)<\/t>|<t[^>]*\/>/g
+  let mt: RegExpExecArray | null
+  while ((mt = reT.exec(xml))) {
+    if (mt[1]) texto += decodeXml(mt[1])
+  }
+  return texto
+}
+
+function acharSheetRid(workbookXml: string, nomeAba: string): string {
+  const re = /<sheet\b[^>]*\/>/g
+  const nomes: string[] = []
+  let m: RegExpExecArray | null
+  while ((m = re.exec(workbookXml))) {
+    const tag = m[0]
+    const nameAttr = extrairAtributo(tag, 'name')
+    if (nameAttr == null) continue
+    const nome = decodeXml(nameAttr)
+    nomes.push(nome)
+    if (nome === nomeAba) {
+      const rid = extrairAtributo(tag, 'r:id')
+      if (!rid) throw new Error(`Aba "${nomeAba}" encontrada em workbook.xml mas sem atributo r:id.`)
+      return rid
+    }
+  }
+  throw new Error(`Aba "${nomeAba}" não encontrada. Abas disponíveis: ${nomes.join(', ')}`)
+}
+
+function acharWorksheetPath(relsXml: string, rid: string): string {
+  const re = /<Relationship\b[^>]*\/>/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(relsXml))) {
+    const tag = m[0]
+    const id = extrairAtributo(tag, 'Id')
+    if (id !== rid) continue
+    const targetAttr = extrairAtributo(tag, 'Target')
+    if (!targetAttr) continue
+    const target = decodeXml(targetAttr)
+    if (target.startsWith('/')) return target.replace(/^\//, '')
+    return `xl/${target.replace(/^\.?\//, '')}`
+  }
+  throw new Error(`Relationship "${rid}" não encontrado em workbook.xml.rels.`)
+}
+
+function parseSharedStrings(xml: string): string[] {
+  const strings: string[] = []
+  const reSi = /<si>([\s\S]*?)<\/si>|<si\/>/g
+  let m: RegExpExecArray | null
+  while ((m = reSi.exec(xml))) {
+    strings.push(m[1] == null ? '' : extrairTextoDeTs(m[1]))
+  }
+  return strings
+}
+
+type Celula = { col: number; valor: unknown }
+type Linha = { r: number; celulas: Celula[] }
+
+// Interpreta uma célula <c r="A9" t="s"><v>123</v></c> (ou
+// self-closing <c r="A9" s="1"/>) de acordo com o atributo `t`.
+function parseValorCelula(attrs: string, inner: string | undefined, sharedStrings: string[]): unknown {
+  if (inner === undefined) return null // célula self-closing, sem valor
+  const tipo = extrairAtributo(attrs, 't')
+
+  if (tipo === 's') {
+    const v = extrairTag(inner, 'v')
+    if (v == null) return null
+    const idx = parseInt(v, 10)
+    return isNaN(idx) ? null : sharedStrings[idx] ?? null
+  }
+  if (tipo === 'str') {
+    const v = extrairTag(inner, 'v')
+    return v == null ? null : decodeXml(v)
+  }
+  if (tipo === 'inlineStr') {
+    const isMatch = inner.match(/<is>([\s\S]*?)<\/is>/)
+    return isMatch ? extrairTextoDeTs(isMatch[1]) : null
+  }
+  if (tipo === 'b') {
+    const v = extrairTag(inner, 'v')
+    return v === '1'
+  }
+  if (tipo === 'e') {
+    return null // célula com erro de fórmula (#N/A, #REF!...) — descarta
+  }
+  // sem `t` (ou t="n"): número
+  const v = extrairTag(inner, 'v')
+  if (v == null) return null
+  const n = parseFloat(v)
+  return isNaN(n) ? null : n
+}
+
+function extrairTag(xml: string, tag: string): string | null {
+  const m = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`))
+  return m ? m[1] : null
+}
+
+// Faz o parsing do XML da worksheet linha por linha, célula por
+// célula, via regex (sem DOM). Para de iterar assim que uma linha
+// ultrapassa LINHA_TETO_SANIDADE.
+function parseWorksheetXml(xml: string, sharedStrings: string[]): Linha[] {
+  const linhas: Linha[] = []
+  const reRow = /<row\b([^>]*?)\/>|<row\b([^>]*?)>([\s\S]*?)<\/row>/g
+  let m: RegExpExecArray | null
+  while ((m = reRow.exec(xml))) {
+    const attrs = m[1] ?? m[2] ?? ''
+    const conteudo = m[3] // undefined se a <row> for self-closing (sem células)
+    const rAttr = extrairAtributo(attrs, 'r')
+    const r = rAttr ? parseInt(rAttr, 10) : NaN
+    if (isNaN(r)) continue
+    if (r > LINHA_TETO_SANIDADE) break
+
+    const celulas: Celula[] = []
+    if (conteudo) {
+      const reCell = /<c\b([^>]*?)\/>|<c\b([^>]*?)>([\s\S]*?)<\/c>/g
+      let mc: RegExpExecArray | null
+      while ((mc = reCell.exec(conteudo))) {
+        const cAttrs = mc[1] ?? mc[2] ?? ''
+        const cInner = mc[3] // undefined se self-closing
+        const refAttr = extrairAtributo(cAttrs, 'r')
+        if (!refAttr) continue
+        const letrasMatch = refAttr.match(/^([A-Z]+)/)
+        if (!letrasMatch) continue
+        const col = colLetraParaIndice(letrasMatch[1])
+        const valor = parseValorCelula(cAttrs, cInner, sharedStrings)
+        celulas.push({ col, valor })
+      }
+    }
+    linhas.push({ r, celulas })
+  }
+  return linhas
+}
+
+function parseLinhas(buffer: ArrayBuffer) {
+  const bytes = new Uint8Array(buffer)
+  const decoder = new TextDecoder('utf-8')
+
+  // 1ª passada: só workbook.xml + rels — descobre qual sheetN.xml
+  // corresponde à aba "PENALIDADES CORBETT". Descompactar só esses 2
+  // arquivos (pequenos) é praticamente grátis; o custo caro é
+  // descompactar as worksheets/sharedStrings, então evitamos abrir
+  // tudo de uma vez.
+  const passo1 = unzipSync(bytes, {
+    filter: (file) => file.name === 'xl/workbook.xml' || file.name === 'xl/_rels/workbook.xml.rels',
+  })
+  const workbookXml = passo1['xl/workbook.xml']
+  const relsXml = passo1['xl/_rels/workbook.xml.rels']
+  if (!workbookXml) throw new Error('xl/workbook.xml não encontrado dentro do .xlsx.')
+  if (!relsXml) throw new Error('xl/_rels/workbook.xml.rels não encontrado dentro do .xlsx.')
+
+  const rid = acharSheetRid(decoder.decode(workbookXml), ABA_PLANILHA)
+  const worksheetPath = acharWorksheetPath(decoder.decode(relsXml), rid)
+  console.log(`[sync-multas] aba encontrada: ${worksheetPath}`)
+
+  // 2ª passada: só a worksheet certa + sharedStrings — o resto do
+  // arquivo (as outras 2 abas, estilos, etc.) nunca é descompactado.
+  const passo2 = unzipSync(bytes, {
+    filter: (file) => file.name === worksheetPath || file.name === 'xl/sharedStrings.xml',
+  })
+  const worksheetXmlBytes = passo2[worksheetPath]
+  if (!worksheetXmlBytes) throw new Error(`Worksheet "${worksheetPath}" não encontrada dentro do .xlsx.`)
+  const sharedStringsBytes = passo2['xl/sharedStrings.xml']
+  const sharedStrings = sharedStringsBytes ? parseSharedStrings(decoder.decode(sharedStringsBytes)) : []
+
+  const linhasXml = parseWorksheetXml(decoder.decode(worksheetXmlBytes), sharedStrings)
+
+  // Monta o mapa índice-de-coluna → chave interna a partir da linha
+  // de cabeçalho (LINHA_CABECALHO). Mesma lógica de normalização/
+  // mapeamento de antes (normalizeHeader + COLUMN_MAP).
+  const linhaCabecalho = linhasXml.find((l) => l.r === LINHA_CABECALHO)
+  if (!linhaCabecalho) {
+    throw new Error(`Linha de cabeçalho (${LINHA_CABECALHO}) não encontrada na worksheet.`)
+  }
+  const colIndexParaChave = new Map<number, string>()
+  for (const { col, valor } of linhaCabecalho.celulas) {
+    if (valor == null || valor === '') continue
+    const key = COLUMN_MAP[normalizeHeader(String(valor))]
+    if (key) colIndexParaChave.set(col, key)
+  }
+
+  const linhas: Record<string, unknown>[] = []
+  for (const linhaXml of linhasXml) {
+    if (linhaXml.r <= LINHA_CABECALHO) continue // ignora linhas de título/cabeçalho
+
+    const valoresPorColuna = new Map<number, unknown>()
+    for (const { col, valor } of linhaXml.celulas) valoresPorColuna.set(col, valor)
+
     const mapeada: Record<string, unknown> = {
-      linha_planilha,
+      linha_planilha: linhaXml.r,
       atualizado_em: new Date().toISOString(),
     }
-    for (const [headerBruto, valor] of Object.entries(row)) {
-      const key = COLUMN_MAP[normalizeHeader(headerBruto)]
-      if (!key) continue
+    for (const [col, key] of colIndexParaChave) {
+      const valor = valoresPorColuna.has(col) ? valoresPorColuna.get(col) : null
       if (DATE_FIELDS.has(key)) {
         mapeada[key] = toIsoDate(valor)
       } else if (key === 'valor') {
@@ -242,6 +445,8 @@ function parseLinhas(buffer: ArrayBuffer) {
 
     linhas.push(mapeada)
   }
+
+  console.log(`[sync-multas] parsing OK: ${linhas.length} linhas`)
   return linhas
 }
 
@@ -289,7 +494,11 @@ Deno.serve(async (req: Request) => {
     if (!serviceAccountJson) throw new Error('Secret GOOGLE_SERVICE_ACCOUNT_JSON não configurado.')
 
     const accessToken = await getGoogleAccessToken(serviceAccountJson)
+    console.log('[sync-multas] token Google OK')
+
     const buffer = await baixarPlanilha(accessToken)
+    console.log(`[sync-multas] download OK: ${(buffer.byteLength / 1024 / 1024).toFixed(1)} MB`)
+
     const linhas = parseLinhas(buffer)
 
     // Upsert por lotes (500), on conflict auto_multa. Linhas sem
@@ -302,12 +511,14 @@ Deno.serve(async (req: Request) => {
       const lote = comChave.slice(i, i + LOTE)
       const { error } = await supabase.from('multas').upsert(lote, { onConflict: 'auto_multa' })
       if (error) throw new Error(`Upsert falhou (lote ${i}): ${error.message}`)
+      console.log(`[sync-multas] upsert lote OK: ${i}-${i + lote.length} de ${comChave.length}`)
     }
     if (semChave.length > 0) {
       // Sem chave estável: spike não deduplica esse subconjunto — A2
       // decide a estratégia definitiva (ex.: chave composta).
       const { error } = await supabase.from('multas').insert(semChave)
       if (error) throw new Error(`Insert (sem auto_multa) falhou: ${error.message}`)
+      console.log(`[sync-multas] insert sem_chave OK: ${semChave.length}`)
     }
 
     await supabase
@@ -320,6 +531,10 @@ Deno.serve(async (req: Request) => {
       })
       .eq('id', 1)
 
+    console.log(
+      `[sync-multas] sync concluída: ${linhas.length} linhas (${comChave.length} com chave, ${semChave.length} sem chave)`
+    )
+
     return new Response(
       JSON.stringify({
         executado: true,
@@ -331,6 +546,7 @@ Deno.serve(async (req: Request) => {
     )
   } catch (err) {
     const mensagem = err instanceof Error ? err.message : String(err)
+    console.error(`[sync-multas] erro: ${mensagem}`)
     await supabase
       .from('multas_sync_config')
       .update({
