@@ -25,6 +25,7 @@ import {
   toggleSubSelecionada,
 } from './lib/aggregations.js'
 import Header from './components/Header.jsx'
+import Rodape from './components/Rodape.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import SidebarSistemaGeo from './components/SidebarSistemaGeo.jsx'
 import SidebarCruzamento from './components/SidebarCruzamento.jsx'
@@ -813,6 +814,7 @@ export default function App() {
             </Suspense>
           </ErrorBoundary>
         </main>
+        <Rodape />
       </div>
     )
   }
@@ -888,6 +890,7 @@ export default function App() {
           mostrarFisc={false}
           mostrarGeo={false}
         />
+        <Rodape />
       </div>
     )
   }
@@ -1117,12 +1120,7 @@ export default function App() {
         />
       )}
 
-      <footer className="text-center text-[10px] text-gray-500 py-2 border-t border-grey-line bg-white">
-        OBRAS · Subprefeituras · Prefeitura de São Paulo ·{' '}
-        {secaoAtiva === 'fiscalizacao'
-          ? `${todasLinhas.length.toLocaleString('pt-BR')} laudos`
-          : `${sistemaGeoLinhas.length.toLocaleString('pt-BR')} processos Sistema Geo`}
-      </footer>
+      <Rodape />
     </div>
   )
 }
