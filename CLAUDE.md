@@ -80,6 +80,12 @@ módulo **Emergências** (upload de Excel + análise). Stack e pastas:
 ## 2. Regras de comunicação e trabalho
 
 - **Idioma:** SEMPRE **português do Brasil**.
+- **⏳ REGRA TEMPORÁRIA (13/07 → 19/07/2026, remover depois):** quando o Claude
+  estiver rodando no modelo **Fable 5**, ele atua só como **planejador/orquestrador**:
+  todo texto longo ou código longo é delegado a **subagentes Sonnet 5** (via Agent
+  tool, `model: "sonnet"`), e o Fable apenas revisa/integra o resultado. Edições
+  curtas e pontuais podem ser feitas diretamente. **Após 19/07/2026, apagar esta
+  regra** (pedido do usuário em 13/07/2026).
 - **⚠️ O usuário trabalha 100% pelo NAVEGADOR** (Claude Code web, GitHub, Vercel,
   Supabase) — **sem terminal local**. Portanto:
   - **NUNCA** pedir que ele rode comandos locais (`npm run dev`, `npm install`,
