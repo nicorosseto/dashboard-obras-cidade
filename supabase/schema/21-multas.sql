@@ -64,10 +64,14 @@ create table if not exists public.multas (
 );
 
 -- Upsert por AUTO DA MULTA quando presente; linhas sem auto_multa (168
--- na planilha levantada) são só inseridas (sem chave de dedup confiável).
+-- na planilha levantada) são só inseridas (gravadas como NULL — NULLs
+-- não conflitam entre si no Postgres, padrão NULLS DISTINCT).
+-- ⚠️ Índice TOTAL de propósito: o upsert do PostgREST (`onConflict`)
+-- não consegue mirar índice parcial (erro "no unique or exclusion
+-- constraint matching the ON CONFLICT specification" — 13/07/2026;
+-- fix aplicado nos 2 bancos via fixes/multas-indice-unico-auto-multa.sql).
 create unique index if not exists multas_auto_multa_key
-  on public.multas (auto_multa)
-  where auto_multa is not null and auto_multa <> '';
+  on public.multas (auto_multa);
 
 create index if not exists multas_num_processo_normalizado_idx
   on public.multas (num_processo_normalizado);
