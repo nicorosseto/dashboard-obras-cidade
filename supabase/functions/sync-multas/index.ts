@@ -427,7 +427,10 @@ function parseLinhas(buffer: ArrayBuffer) {
         const n = typeof valor === 'number' ? valor : parseFloat(String(valor ?? '').replace(',', '.'))
         mapeada[key] = isNaN(n) ? null : n
       } else {
-        mapeada[key] = valor == null ? null : String(valor).trim()
+        // Texto vazio vira NULL — importante para o auto_multa: o índice
+        // único é total, e '' repetido conflitaria (NULLs não conflitam).
+        const s = valor == null ? '' : String(valor).trim()
+        mapeada[key] = s === '' ? null : s
       }
     }
 
@@ -503,8 +506,21 @@ Deno.serve(async (req: Request) => {
 
     // Upsert por lotes (500), on conflict auto_multa. Linhas sem
     // auto_multa não têm chave de dedup confiável — inseridas à parte.
-    const comChave = linhas.filter((l) => l.auto_multa)
-    const semChave = linhas.filter((l) => !l.auto_multa)
+    // Dedup por auto_multa DENTRO da carga (a planilha tem 1 duplicado
+    // real, levantado no A0): o mesmo valor duas vezes num upsert gera
+    // "ON CONFLICT DO UPDATE command cannot affect row a second time".
+    // Mantém a última ocorrência (linha mais abaixo na planilha).
+    const porAuto = new Map<string, Record<string, unknown>>()
+    const semChave: Record<string, unknown>[] = []
+    for (const l of linhas) {
+      if (l.auto_multa) porAuto.set(l.auto_multa as string, l)
+      else semChave.push(l)
+    }
+    const comChave = [...porAuto.values()]
+    const duplicadosUnificados = linhas.length - semChave.length - comChave.length
+    if (duplicadosUnificados > 0) {
+      console.log(`[sync-multas] ${duplicadosUnificados} auto(s) da multa duplicado(s) na planilha — mantida a última ocorrência`)
+    }
 
     const LOTE = 500
     for (let i = 0; i < comChave.length; i += LOTE) {
@@ -513,12 +529,16 @@ Deno.serve(async (req: Request) => {
       if (error) throw new Error(`Upsert falhou (lote ${i}): ${error.message}`)
       console.log(`[sync-multas] upsert lote OK: ${i}-${i + lote.length} de ${comChave.length}`)
     }
+    // Sem chave estável para upsert: apaga e regrava o subconjunto sem
+    // auto_multa a cada sync (senão as mesmas 168 linhas duplicariam a
+    // cada execução). A2 decide a estratégia definitiva (ex.: chave
+    // composta ou hash da linha).
+    const { error: errDel } = await supabase.from('multas').delete().is('auto_multa', null)
+    if (errDel) throw new Error(`Delete (sem auto_multa) falhou: ${errDel.message}`)
     if (semChave.length > 0) {
-      // Sem chave estável: spike não deduplica esse subconjunto — A2
-      // decide a estratégia definitiva (ex.: chave composta).
       const { error } = await supabase.from('multas').insert(semChave)
       if (error) throw new Error(`Insert (sem auto_multa) falhou: ${error.message}`)
-      console.log(`[sync-multas] insert sem_chave OK: ${semChave.length}`)
+      console.log(`[sync-multas] regravação sem_chave OK: ${semChave.length}`)
     }
 
     await supabase
