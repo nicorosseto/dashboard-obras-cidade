@@ -278,7 +278,6 @@ export default function Header({
             <PageTabs
               ativa={paginaAtiva}
               onChange={onPagina}
-              showAdmin={showAdmin}
               secaoAtiva={secaoAtiva}
               abasPermitidas={abasPermitidas}
               accentFrom={mod.from}

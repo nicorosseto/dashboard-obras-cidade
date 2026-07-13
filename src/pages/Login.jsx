@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { signIn } from '../lib/auth.js'
 import { traduzErro } from '../lib/mensagens.js'
 import { Spinner } from '../components/Loading.jsx'
+import { RODAPE_TEXTO } from '../components/Rodape.jsx'
 
 export default function Login({ onLogin }) {
   const [login, setLogin] = useState('')
@@ -138,10 +139,7 @@ export default function Login({ onLogin }) {
         </p>
       </div>
 
-      <p className="text-[10px] text-gray-400 mt-6">
-        Acesso restrito · OBRAS / Secretaria das Subprefeituras · Prefeitura
-        de São Paulo
-      </p>
+      <p className="text-[10px] text-gray-400 mt-6">{RODAPE_TEXTO}</p>
     </div>
   )
 }
