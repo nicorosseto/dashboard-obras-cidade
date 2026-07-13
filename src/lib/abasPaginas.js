@@ -5,7 +5,6 @@ export const ABAS_FISC = [
   { id: 1, label: 'Visão Geral', icon: '👁️' },
   { id: 2, label: 'Evolução Temporal', icon: '📈' },
   { id: 3, label: 'Distribuição Espacial', icon: '🗺️' },
-  { id: 4, label: 'Detalhes', icon: '📋' },
   { id: 6, label: 'Executoras', icon: '🏢' },
   { id: 7, label: 'Busca por Processo', icon: '🔍' },
 ]
