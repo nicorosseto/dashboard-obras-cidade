@@ -93,6 +93,19 @@ function normProc(s: unknown): string {
   return String(s).trim().replace(/^0+/, '').toUpperCase()
 }
 
+// Chave sintética (A2, 13/07/2026) para linhas sem `auto_multa` — hash de
+// campos estáveis, usada como alvo do upsert em vez de apagar/regravar todo
+// o subconjunto a cada sincronização (ver `multas-chave-sintetica-sem-auto.sql`).
+async function chaveSinteticaSemAuto(l: Record<string, unknown>): Promise<string> {
+  const partes = [l.num_processo, l.data_infracao, l.valor, l.linha_planilha]
+    .map((v) => (v == null ? '' : String(v)))
+    .join('|')
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(partes))
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
 function parseValorReal(v: unknown): number | null {
   if (v == null || v === '') return null
   if (typeof v === 'number') return v
@@ -505,21 +518,34 @@ Deno.serve(async (req: Request) => {
     const linhas = parseLinhas(buffer)
 
     // Upsert por lotes (500), on conflict auto_multa. Linhas sem
-    // auto_multa não têm chave de dedup confiável — inseridas à parte.
+    // auto_multa não têm chave de dedup confiável — tratadas à parte.
     // Dedup por auto_multa DENTRO da carga (a planilha tem 1 duplicado
     // real, levantado no A0): o mesmo valor duas vezes num upsert gera
     // "ON CONFLICT DO UPDATE command cannot affect row a second time".
     // Mantém a última ocorrência (linha mais abaixo na planilha).
     const porAuto = new Map<string, Record<string, unknown>>()
-    const semChave: Record<string, unknown>[] = []
+    const semAuto: Record<string, unknown>[] = []
     for (const l of linhas) {
       if (l.auto_multa) porAuto.set(l.auto_multa as string, l)
-      else semChave.push(l)
+      else semAuto.push(l)
     }
     const comChave = [...porAuto.values()]
+
+    // Linhas sem auto_multa (A2, 13/07/2026): chave sintética via hash de
+    // campos estáveis, upsert como as demais — nunca mais apaga/regrava o
+    // subconjunto inteiro a cada sync (regra de ouro: dado cru não some se
+    // um passo falhar no meio do caminho). Dedup dentro da carga igual ao
+    // padrão acima, mantendo a última ocorrência.
+    const porSintetica = new Map<string, Record<string, unknown>>()
+    for (const l of semAuto) {
+      l.chave_sintetica = await chaveSinteticaSemAuto(l)
+      porSintetica.set(l.chave_sintetica as string, l)
+    }
+    const semChave = [...porSintetica.values()]
+
     const duplicadosUnificados = linhas.length - semChave.length - comChave.length
     if (duplicadosUnificados > 0) {
-      console.log(`[sync-multas] ${duplicadosUnificados} auto(s) da multa duplicado(s) na planilha — mantida a última ocorrência`)
+      console.log(`[sync-multas] ${duplicadosUnificados} linha(s) duplicada(s) na planilha (mesma chave) — mantida a última ocorrência`)
     }
 
     const LOTE = 500
@@ -529,16 +555,11 @@ Deno.serve(async (req: Request) => {
       if (error) throw new Error(`Upsert falhou (lote ${i}): ${error.message}`)
       console.log(`[sync-multas] upsert lote OK: ${i}-${i + lote.length} de ${comChave.length}`)
     }
-    // Sem chave estável para upsert: apaga e regrava o subconjunto sem
-    // auto_multa a cada sync (senão as mesmas 168 linhas duplicariam a
-    // cada execução). A2 decide a estratégia definitiva (ex.: chave
-    // composta ou hash da linha).
-    const { error: errDel } = await supabase.from('multas').delete().is('auto_multa', null)
-    if (errDel) throw new Error(`Delete (sem auto_multa) falhou: ${errDel.message}`)
-    if (semChave.length > 0) {
-      const { error } = await supabase.from('multas').insert(semChave)
-      if (error) throw new Error(`Insert (sem auto_multa) falhou: ${error.message}`)
-      console.log(`[sync-multas] regravação sem_chave OK: ${semChave.length}`)
+    for (let i = 0; i < semChave.length; i += LOTE) {
+      const lote = semChave.slice(i, i + LOTE)
+      const { error } = await supabase.from('multas').upsert(lote, { onConflict: 'chave_sintetica' })
+      if (error) throw new Error(`Upsert (sem auto_multa) falhou (lote ${i}): ${error.message}`)
+      console.log(`[sync-multas] upsert lote (sem auto_multa) OK: ${i}-${i + lote.length} de ${semChave.length}`)
     }
 
     await supabase
