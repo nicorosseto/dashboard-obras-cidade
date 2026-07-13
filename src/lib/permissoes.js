@@ -9,7 +9,6 @@ export const TODAS_PERMISSOES = [
   'fisc.aba_geral',
   'fisc.aba_temporal',
   'fisc.aba_espacial',
-  'fisc.aba_detalhes',
   'fisc.aba_executoras',
   'fisc.aba_processo',
   'fisc.exportar',
@@ -41,8 +40,7 @@ export const PERMISSAO_POR_ABA = {
     1: 'fisc.aba_geral',
     2: 'fisc.aba_temporal',
     3: 'fisc.aba_espacial',
-    4: 'fisc.aba_detalhes',
-    6: 'fisc.aba_executoras',  // 5 é reservado para o painel Admin (ícone ⚙)
+    6: 'fisc.aba_executoras',  // 4 (Detalhes) foi eliminada e o 5 é reservado para o painel Admin (ícone ⚙)
     7: 'fisc.aba_processo',
   },
   sistemaGeo: {

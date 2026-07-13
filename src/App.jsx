@@ -55,7 +55,6 @@ const AdminPanel = lazy(() => import('./components/AdminPanel.jsx'))
 const Pagina1Geral = lazy(() => import('./components/tabs/Pagina1Geral.jsx'))
 const Pagina2Temporal = lazy(() => import('./components/tabs/Pagina2Temporal.jsx'))
 const Pagina3Espacial = lazy(() => import('./components/tabs/Pagina3Espacial.jsx'))
-const Pagina4Detalhes = lazy(() => import('./components/tabs/Pagina4Detalhes.jsx'))
 const PaginaGeo1Geral = lazy(() => import('./components/tabs/PaginaGeo1Geral.jsx'))
 const PaginaGeo2Temporal = lazy(() => import('./components/tabs/PaginaGeo2Temporal.jsx'))
 const PaginaGeo3Subprefeitura = lazy(() => import('./components/tabs/PaginaGeo3Subprefeitura.jsx'))
@@ -1076,7 +1075,6 @@ export default function App() {
                     onSelecionarSub={selecionarSubFisc}
                   />
                 )}
-                {paginaAtiva === 4 && <Pagina4Detalhes rows={filtradas} />}
                 {paginaAtiva === 6 && <PaginaFisc5Executoras rows={filtradas} />}
                 {paginaAtiva === 7 && <PaginaBuscaProcesso modo="fisc" rows={filtradas} nFiltrosAtivos={nFiltrosFisc} />}
               </Suspense>
