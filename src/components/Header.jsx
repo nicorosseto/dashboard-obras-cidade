@@ -2,9 +2,9 @@ import PageTabs from './PageTabs.jsx'
 import BotaoTour from './tour/BotaoTour.jsx'
 import ModuleDropdown from './ModuleDropdown.jsx'
 import { signOut, nomeExibicao } from '../lib/auth.js'
-import { NAVY, NAVY_LIGHT } from '../lib/cores.js'
 import { ABAS_CRUZAMENTO } from '../lib/abasCruzamento.js'
 import { abasCruzamentoPermitidas } from '../lib/permissoes.js'
+import { coresModulo } from '../lib/coresModulo.js'
 
 function Logo({ src, alt }) {
   return (
@@ -102,17 +102,14 @@ function IconSettings() {
 
 // Determina a configuração visual do módulo ativo
 function getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio) {
-  if (mostrarRelatorio)
-    return { label: 'Apresentação', icon: <IconSlides />, from: '#0f766e', to: '#14b8a6' }
-  if (mostrarEmergencias)
-    return { label: 'Emergências', icon: <IconAlert />, from: '#b45309', to: '#d97706' }
-  if (paginaAtiva === 5)
-    return { label: 'Configurações', icon: <IconSettings />, from: '#334155', to: '#475569' }
+  const cor = coresModulo(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio)
+  if (mostrarRelatorio) return { label: 'Apresentação', icon: <IconSlides />, ...cor }
+  if (mostrarEmergencias) return { label: 'Emergências', icon: <IconAlert />, ...cor }
+  if (paginaAtiva === 5) return { label: 'Configurações', icon: <IconSettings />, ...cor }
   if (secaoAtiva === 'sistemaGeo' && paginaAtiva === 4)
-    return { label: 'Análise Integrada', icon: <IconMerge />, from: '#4f1d96', to: '#6d28d9' }
-  if (secaoAtiva === 'sistemaGeo')
-    return { label: 'Sistema Geo', icon: <IconMap />, from: NAVY, to: NAVY_LIGHT }
-  return { label: 'Fiscalização', icon: <IconClipboard />, from: '#064e3b', to: '#065f46' }
+    return { label: 'Análise Integrada', icon: <IconMerge />, ...cor }
+  if (secaoAtiva === 'sistemaGeo') return { label: 'Sistema Geo', icon: <IconMap />, ...cor }
+  return { label: 'Fiscalização', icon: <IconClipboard />, ...cor }
 }
 
 export default function Header({
@@ -267,12 +264,8 @@ export default function Header({
         </div>
       </div>
 
-      {/* Linha 2: Departamento (esquerda) + Abas (direita) */}
+      {/* Linha 2: Abas (esquerda) + Departamento (direita) */}
       <div className="w-full px-3 sm:px-4 border-t border-white/10 flex items-center bg-slate-900/50">
-        <p className="text-xs text-white/50 py-2 font-medium shrink-0">
-          Departamento de Controle e Uso de Vias Públicas
-        </p>
-        <div className="flex-1" />
         {mostrarAbasNormal && (
           <div className="shrink-0" data-tour="header-abas">
             <PageTabs
@@ -294,8 +287,8 @@ export default function Header({
                 title={a.label}
                 aria-label={a.label}
                 aria-current={abaCruzamentoAtiva === a.id ? 'page' : undefined}
-                className={`flex items-center gap-1.5 text-sm font-semibold py-2 transition-all relative whitespace-nowrap ${
-                  abaCruzamentoAtiva === a.id ? 'text-white' : 'text-white/60 hover:text-white'
+                className={`flex items-center gap-1.5 text-sm py-2 transition-all relative whitespace-nowrap ${
+                  abaCruzamentoAtiva === a.id ? 'text-white font-bold' : 'text-white/60 font-semibold hover:text-white'
                 }`}
               >
                 <span className="text-lg">{a.icon}</span>
@@ -331,8 +324,8 @@ export default function Header({
                 title={a.label}
                 aria-label={a.label}
                 aria-current={abaEmergAtiva === a.id ? 'page' : undefined}
-                className={`flex items-center gap-1.5 text-sm font-semibold py-2 transition-all relative ${
-                  abaEmergAtiva === a.id ? 'text-white' : 'text-white/70 hover:text-white'
+                className={`flex items-center gap-1.5 text-sm py-2 transition-all relative ${
+                  abaEmergAtiva === a.id ? 'text-white font-bold' : 'text-white/70 font-semibold hover:text-white'
                 }`}
               >
                 <span className="text-lg">{a.icon}</span>
@@ -371,8 +364,8 @@ export default function Header({
                 title={a.label}
                 aria-label={a.label}
                 aria-current={abaAdminAtiva === a.id ? 'page' : undefined}
-                className={`flex items-center gap-1.5 text-sm font-semibold py-2 transition-all relative ${
-                  abaAdminAtiva === a.id ? 'text-white' : 'text-white/70 hover:text-white'
+                className={`flex items-center gap-1.5 text-sm py-2 transition-all relative ${
+                  abaAdminAtiva === a.id ? 'text-white font-bold' : 'text-white/70 font-semibold hover:text-white'
                 }`}
               >
                 <span className="text-lg">{a.icon}</span>
@@ -384,6 +377,10 @@ export default function Header({
             ))}
           </nav>
         )}
+        <div className="flex-1" />
+        <p className="text-xs text-white/50 py-2 font-medium shrink-0">
+          Departamento de Controle e Uso de Vias Públicas
+        </p>
       </div>
 
       {/* Barra colorida de rodapé — identifica visualmente o módulo ativo */}
