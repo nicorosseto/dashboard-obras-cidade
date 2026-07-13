@@ -169,7 +169,32 @@ async function baixarPlanilha(accessToken: string): Promise<ArrayBuffer> {
 }
 
 function parseLinhas(buffer: ArrayBuffer) {
-  const wb = XLSX.read(buffer, { type: 'array', cellDates: true })
+  // Otimizações de memória (Edge Functions têm limite baixo, ~150-256 MB;
+  // "Memory limit exceeded" no 1º teste do spike, 13/07/2026). A versão
+  // gratuita do SheetJS SEMPRE parseia as 3 abas do arquivo (não existe
+  // opção para restringir a 1 aba) — por isso:
+  // - sem `cellDates`: evita criar um objeto Date por célula de data;
+  //   datas chegam como serial numérico do Excel, e toIsoDate() já sabe
+  //   converter (mesmo caminho usado pelos importadores do front).
+  // - `cellText`/`cellNF`: false — não gera o texto formatado nem a
+  //   máscara de formato por célula (dobrava o armazenamento à toa; só
+  //   usamos o valor cru).
+  // - `dense`: representa cada aba como array de arrays em vez de um
+  //   objeto por célula endereçada ("A1", "B1"...) — mais leve.
+  // - `sheetRows`: teto de segurança. Planilha preenchida por várias
+  //   pessoas costuma ter formatação colada sem querer em milhares de
+  //   linhas vazias bem abaixo dos dados reais ("modo de compatibilidade"
+  //   já é sinal disso) — sem limite, isso incha a leitura de TODAS as
+  //   abas, não só a nossa. 8.178 linhas de dados + cabeçalho na linha 8
+  //   cabem folgado em 8.500.
+  const wb = XLSX.read(buffer, {
+    type: 'array',
+    dense: true,
+    cellDates: false,
+    cellText: false,
+    cellNF: false,
+    sheetRows: 8500,
+  })
   const sheet = wb.Sheets[ABA_PLANILHA]
   if (!sheet) {
     throw new Error(`Aba "${ABA_PLANILHA}" não encontrada. Abas disponíveis: ${wb.SheetNames.join(', ')}`)
