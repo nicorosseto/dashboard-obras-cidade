@@ -26,6 +26,10 @@ import {
 } from './lib/aggregations.js'
 import Header from './components/Header.jsx'
 import Rodape from './components/Rodape.jsx'
+import TituloTela from './components/TituloTela.jsx'
+import { ABAS_FISC, ABAS_GEO, ABAS_ADMIN, ABAS_EMERG, labelDaAba } from './lib/abasPaginas.js'
+import { ABAS_CRUZAMENTO } from './lib/abasCruzamento.js'
+import { coresModulo } from './lib/coresModulo.js'
 import Sidebar from './components/Sidebar.jsx'
 import SidebarSistemaGeo from './components/SidebarSistemaGeo.jsx'
 import SidebarCruzamento from './components/SidebarCruzamento.jsx'
@@ -791,7 +795,15 @@ export default function App() {
           onAbaAdmin={() => {}}
           onAbrirConfiguracoes={handleAbrirConfiguracoes}
         />
-        <main className="flex-1 flex overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden">
+          <div className="px-4 sm:px-6 pt-3 shrink-0">
+            <TituloTela
+              titulo={labelDaAba(ABAS_EMERG, abaEmergencias)}
+              corDe="#b45309"
+              corPara="#d97706"
+            />
+          </div>
+          <div className="flex-1 flex overflow-hidden">
           <ErrorBoundary modulo="Emergências">
             <Suspense fallback={<LoadingInline mensagem="Carregando Emergências..." />}>
               <PaginaEmergencias
@@ -813,6 +825,7 @@ export default function App() {
               />
             </Suspense>
           </ErrorBoundary>
+          </div>
         </main>
         <Rodape />
       </div>
@@ -898,6 +911,14 @@ export default function App() {
   // ── Condições de exibição ─────────────────────────────────────────
   const isAdminPage = paginaAtiva === 5
   const isSpecialPage = isAdminPage
+  const tituloTela = isAdminPage
+    ? labelDaAba(ABAS_ADMIN, abaAdmin)
+    : emAnaliseIntegrada
+      ? labelDaAba(ABAS_CRUZAMENTO, abaAtivaCruzamento)
+      : secaoAtiva === 'sistemaGeo'
+        ? labelDaAba(ABAS_GEO, paginaAtiva)
+        : labelDaAba(ABAS_FISC, paginaAtiva)
+  const corTituloTela = coresModulo(secaoAtiva, paginaAtiva, false, false)
   // Cinto de segurança: só renderiza a página se a aba estiver liberada
   const abaLiberada = (secaoAtiva === 'sistemaGeo' ? abasGeo : abasFisc).includes(
     paginaAtiva
@@ -991,6 +1012,9 @@ export default function App() {
         )}
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <div className="px-4 sm:px-6 pt-3 shrink-0">
+            <TituloTela titulo={tituloTela} corDe={corTituloTela.from} corPara={corTituloTela.to} />
+          </div>
           {/* KPI strip – hidden on admin */}
           {!isSpecialPage && !(secaoAtiva === 'sistemaGeo' && paginaAtiva === 4) && (
             <div className="px-4 sm:px-6 py-3 border-b border-grey-line shrink-0" data-tour="kpis-modulo">
