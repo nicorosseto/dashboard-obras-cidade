@@ -466,7 +466,23 @@ function parseLinhas(buffer: ArrayBuffer) {
   return linhas
 }
 
+// ── CORS ────────────────────────────────────────────────────────────
+// O botão "Atualizar agora" (A4) chama esta função DO NAVEGADOR via
+// supabase.functions.invoke — o browser manda um preflight OPTIONS antes
+// do POST. Sem estes headers o preflight falha e o front vê "Failed to
+// send a request to the Edge Function" (bug achado na validação de
+// 16/07/2026). Chamadas de cron/Invoke do painel não passam por CORS.
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+}
+
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: CORS_HEADERS })
+  }
+
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const supabase = createClient(supabaseUrl, serviceRoleKey)
@@ -501,7 +517,7 @@ Deno.serve(async (req: Request) => {
         minutos_desde_ultima: Math.round(minutosDesdeUltima),
         intervalo_minutos: intervaloMinutos,
       }),
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
     )
   }
 
@@ -583,7 +599,7 @@ Deno.serve(async (req: Request) => {
         com_chave: comChave.length,
         sem_chave: semChave.length,
       }),
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
     )
   } catch (err) {
     const mensagem = err instanceof Error ? err.message : String(err)
@@ -600,7 +616,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify({ executado: false, erro: mensagem }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     })
   }
 })

@@ -25,6 +25,22 @@ function SituacaoBadge({ situacao }) {
   )
 }
 
+// Status Sistema Geo com tooltip do status real, mesmo padrão da coluna
+// "Status Sistema Geo" da Lista de Processos da Análise Integrada
+// (src/components/tabs/cruzamento/AbaBusca.jsx): mostra o grupo unificado e,
+// quando difere do status real, um tooltip com o valor bruto.
+function StatusGeoCelula({ statusGeo, statusGeoNome }) {
+  if (!statusGeo) return '—'
+  if (statusGeoNome && statusGeoNome !== statusGeo) {
+    return (
+      <span className="cursor-help border-b border-dotted border-gray-400" title={`Status real: ${statusGeoNome}`}>
+        {statusGeo}
+      </span>
+    )
+  }
+  return statusGeo
+}
+
 const COLUNAS_EXPORT = [
   { key: 'auto_multa', label: 'Auto da Multa' },
   { key: 'num_processo', label: 'Nº Processo' },
@@ -33,6 +49,8 @@ const COLUNAS_EXPORT = [
   { key: 'valor', label: 'Valor', transform: (v) => fmtValorBRL(v) },
   { key: 'data_infracao', label: 'Data Infração', transform: (v) => fmtData(v) },
   { key: '_situacao_vinculo', label: 'Situação do Vínculo', transform: (v) => SITUACAO_VINCULO_LABEL[v] || v },
+  { key: '_status_geo', label: 'Status Sistema Geo', transform: (v) => v || '—' },
+  { key: '_status_fisc', label: 'Status Fiscalização', transform: (v) => v || '—' },
 ]
 
 // Aba "Busca/Lista" — padrão obrigatório do dominio.md: só lista por ação
@@ -161,6 +179,8 @@ export default function AbaMultasBusca({ linhas }) {
                   <th className="p-2 whitespace-nowrap">Valor</th>
                   <th className="p-2 whitespace-nowrap">Data Infração</th>
                   <th className="p-2 whitespace-nowrap">Situação do Vínculo</th>
+                  <th className="p-2 whitespace-nowrap">Status Sistema Geo</th>
+                  <th className="p-2 whitespace-nowrap">Status Fiscalização</th>
                 </tr>
               </thead>
               <tbody>
@@ -168,16 +188,18 @@ export default function AbaMultasBusca({ linhas }) {
                   <tr key={m.id || i} className={i % 2 === 0 ? 'bg-white' : 'bg-grey-bg'}>
                     <td className="p-2 font-mono text-[11px] whitespace-nowrap">{m.auto_multa || '—'}</td>
                     <td className="p-2 font-mono text-[11px] whitespace-nowrap">{m.num_processo || '—'}</td>
-                    <td className="p-2 whitespace-nowrap">{m.permissionaria || '—'}</td>
+                    <td className="p-2 whitespace-nowrap">{m._permissionaria_exibir || m.permissionaria || '—'}</td>
                     <td className="p-2 whitespace-nowrap">{m.status || '—'}</td>
                     <td className="p-2 whitespace-nowrap tabular-nums">{fmtValorBRL(m.valor)}</td>
                     <td className="p-2 whitespace-nowrap">{fmtData(m.data_infracao)}</td>
                     <td className="p-2 whitespace-nowrap"><SituacaoBadge situacao={m._situacao_vinculo} /></td>
+                    <td className="p-2 whitespace-nowrap"><StatusGeoCelula statusGeo={m._status_geo} statusGeoNome={m._status_geo_nome} /></td>
+                    <td className="p-2 whitespace-nowrap">{m._status_fisc || '—'}</td>
                   </tr>
                 ))}
                 {pagina.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="p-4 text-center text-gray-400">
+                    <td colSpan={9} className="p-4 text-center text-gray-400">
                       {buscaAplicada ? `Nenhum resultado para "${buscaAplicada}".` : 'Nenhuma multa carregada.'}
                     </td>
                   </tr>
