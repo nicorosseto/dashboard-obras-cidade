@@ -79,7 +79,10 @@ módulo **Emergências** (upload de Excel + análise). Stack e pastas:
 
 ## 2. Regras de comunicação e trabalho
 
-- **Idioma:** SEMPRE **português do Brasil**.
+- **Idioma:** SEMPRE **português do Brasil** — inclusive o **raciocínio interno**
+  (texto de pensamento/planejamento), não só a resposta final. (Lição de
+  16/07/2026: o usuário pegou o Claude "pensando em inglês" — reforçado aqui
+  para não se repetir.)
 - **⏳ REGRA TEMPORÁRIA (13/07 → 19/07/2026, remover depois):** quando o Claude
   estiver rodando no modelo **Fable 5**, ele atua só como **planejador/orquestrador**:
   todo texto longo ou código longo é delegado a **subagentes Sonnet 5** (via Agent
