@@ -33,11 +33,12 @@ import { coresModulo } from './lib/coresModulo.js'
 import Sidebar from './components/Sidebar.jsx'
 import SidebarSistemaGeo from './components/SidebarSistemaGeo.jsx'
 import SidebarCruzamento from './components/SidebarCruzamento.jsx'
+import SidebarMultas from './components/tabs/multas/SidebarMultas.jsx'
 import { FILTROS_GEO_VAZIOS } from './lib/filtrosGeo.js'
 import { FILTROS_CRUZAMENTO_VAZIOS } from './lib/filtrosCruzamento.js'
 import { carregarPermissoes, abasPermitidas } from './lib/permissoes.js'
 import { agruparMotivos, resolverDefs, contarEmgVencidas48h } from './lib/emergencias.js'
-import { cruzarMultas, resumoVinculo } from './lib/multas.js'
+import { cruzarMultas, resumoVinculo, FILTROS_VAZIOS_MULTAS, aplicarFiltrosMultas, contarFiltrosAtivosMultas } from './lib/multas.js'
 import { useCargaFiscalizacao } from './hooks/useCargaFiscalizacao.js'
 import { useCargaSistemaGeo } from './hooks/useCargaSistemaGeo.js'
 import { useCargaEmergencias } from './hooks/useCargaEmergencias.js'
@@ -216,6 +217,11 @@ export default function App() {
   const [mostrarAlterarSenha, setMostrarAlterarSenha] = useState(false)
   const [abaEmergencias, setAbaEmergencias] = useState('geral')
   const [abaMultas, setAbaMultas] = useState('geral')
+  // Filtros da sidebar de Multas (item 1 da melhoria de 16/07/2026) — mesmo
+  // padrão de FILTROS_VAZIOS_EMERG: estado aqui no App.jsx, aplicado sobre
+  // `multasCruzadas` (o cruzamento em memória com Sistema Geo/Fiscalização).
+  const [multasFiltros, setMultasFiltros] = useState(FILTROS_VAZIOS_MULTAS)
+  const [multasSidebarAberta, setMultasSidebarAberta] = useState(false)
   // Tour guiado: null = indisponível/carregando (nunca oferece); Map (tour_id
   // -> status 'concluido'|'dispensado') = pronto
   const [toursVistos, setToursVistos] = useState(null)
@@ -550,6 +556,39 @@ export default function App() {
   const resumoMultas = useMemo(() => resumoVinculo(multasCruzadas), [multasCruzadas])
   const totalInconsistenciasMultas = resumoMultas.processoInexistente + resumoMultas.semProcesso
   const basesMultasCarregando = sistemaGeoCarregando || carregando
+
+  // Filtros da sidebar de Multas — aplicados sobre o cruzamento já pronto.
+  const multasFiltradas = useMemo(
+    () => aplicarFiltrosMultas(multasCruzadas, multasFiltros),
+    [multasCruzadas, multasFiltros]
+  )
+  const multasPermissionariasDisponiveis = useMemo(() => {
+    const s = new Set()
+    for (const r of multasCruzadas) {
+      const p = r._permissionaria_exibir || r.permissionaria
+      if (p) s.add(p)
+    }
+    return Array.from(s).sort((a, b) => a.localeCompare(b, 'pt'))
+  }, [multasCruzadas])
+  const multasStatusDisponiveis = useMemo(() => {
+    const m = new Map()
+    for (const r of multasCruzadas) {
+      const s = r.status || 'Sem status'
+      m.set(s, (m.get(s) || 0) + 1)
+    }
+    return Array.from(m.entries()).map(([status, qtd]) => ({ status, qtd })).sort((a, b) => b.qtd - a.qtd)
+  }, [multasCruzadas])
+  const multasSubprefeiturasDisponiveis = useMemo(() => listaSubprefeituras(multasCruzadas), [multasCruzadas])
+  const multasDataLimites = useMemo(() => {
+    let mn = null, mx = null
+    for (const r of multasCruzadas) {
+      if (!r.data_infracao) continue
+      if (!mn || r.data_infracao < mn) mn = r.data_infracao
+      if (!mx || r.data_infracao > mx) mx = r.data_infracao
+    }
+    return { min: mn, max: mx }
+  }, [multasCruzadas])
+  const multasFiltrosAtivos = contarFiltrosAtivosMultas(multasFiltros) > 0
 
   const isAdmin = profile?.role === 'admin'
 
@@ -1032,21 +1071,39 @@ export default function App() {
               corPara="#E23636"
             />
           </div>
-          <div className="flex-1 overflow-auto" data-tour="conteudo-modulo">
-            <ErrorBoundary modulo="Multas">
-              <Suspense fallback={<LoadingInline mensagem="Carregando Multas..." />}>
-                <PaginaMultas
-                  linhas={multasCruzadas}
-                  carregando={multasCarregando}
-                  basesCarregando={basesMultasCarregando}
-                  abaAtiva={abaMultas}
-                  podeVerInconsistencias={!permissoes || permissoes.has('multas.aba_inconsistencias')}
-                  podeVerBusca={!permissoes || permissoes.has('multas.aba_busca')}
-                  podeAtualizar={podeAtualizarMultas}
-                  onAtualizado={refetchMultas}
-                />
-              </Suspense>
-            </ErrorBoundary>
+          <div className="flex-1 flex overflow-hidden">
+            {!multasCarregando && multasCruzadas.length > 0 && (
+              <SidebarMultas
+                aberto={multasSidebarAberta}
+                onToggle={() => setMultasSidebarAberta((o) => !o)}
+                filtros={multasFiltros}
+                setFiltros={setMultasFiltros}
+                onLimpar={() => setMultasFiltros(FILTROS_VAZIOS_MULTAS)}
+                permissionarias={multasPermissionariasDisponiveis}
+                statusDisponiveis={multasStatusDisponiveis}
+                subprefeiturasDisponiveis={multasSubprefeiturasDisponiveis}
+                dataLimites={multasDataLimites}
+                totalFiltrado={multasFiltradas.length}
+                totalGeral={multasCruzadas.length}
+                filtrosAtivos={multasFiltrosAtivos}
+              />
+            )}
+            <div className="flex-1 overflow-auto" data-tour="conteudo-modulo">
+              <ErrorBoundary modulo="Multas">
+                <Suspense fallback={<LoadingInline mensagem="Carregando Multas..." />}>
+                  <PaginaMultas
+                    linhas={multasFiltradas}
+                    carregando={multasCarregando}
+                    basesCarregando={basesMultasCarregando}
+                    abaAtiva={abaMultas}
+                    podeVerInconsistencias={!permissoes || permissoes.has('multas.aba_inconsistencias')}
+                    podeVerBusca={!permissoes || permissoes.has('multas.aba_busca')}
+                    podeAtualizar={podeAtualizarMultas}
+                    onAtualizado={refetchMultas}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
           </div>
         </main>
         <ExportModal

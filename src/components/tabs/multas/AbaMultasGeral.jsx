@@ -13,11 +13,14 @@ import {
   agregaMultasPorStatus,
   agregaMultasPorMes,
   agregaSituacaoVinculo,
+  todasNorcrest,
+  agregaMultasPorUnidadeNorcrest,
 } from '../../../lib/multas.js'
 import { fmtMesAno } from '../../../lib/emergencias.js'
 import ChartTooltip from '../../charts/ChartTooltip.jsx'
 import BotaoExportarGrafico from '../../BotaoExportarGrafico.jsx'
 import { ChartCard, KpiCard } from '../emerg/shared.jsx'
+import { usePaginadorGrafico, ControlePaginacao } from '../../charts/PaginadorGrafico.jsx'
 import { NAVY, NAVY_LIGHT, NAVY_MID, RED } from '../../../lib/cores.js'
 
 const COR_STATUS = {
@@ -33,12 +36,22 @@ export default function AbaMultasGeral({ linhas }) {
   const valorTotal = useMemo(() => valorTotalMultas(linhas), [linhas])
   const pctVinculadas = resumo.total ? ((resumo.vinculadas / resumo.total) * 100).toFixed(1) : '0.0'
 
-  const porPermissionaria = useMemo(() => agregaMultasPorPermissionaria(linhas).slice(0, 10), [linhas])
+  // Drill-down NORCREST por unidade (padrão do sistema): quando TODAS as multas
+  // filtradas são da NORCREST (ex.: filtro de Permissionária = NORCREST na
+  // sidebar), o gráfico de permissionárias vira "por unidade" — igual ao
+  // drill-down de AbaMotivosInvalidos.jsx/relatorio.js.
+  const norcrestDrill = useMemo(() => todasNorcrest(linhas), [linhas])
+  const porPermissionaria = useMemo(
+    () => (norcrestDrill ? agregaMultasPorUnidadeNorcrest(linhas) : agregaMultasPorPermissionaria(linhas).slice(0, 10)),
+    [linhas, norcrestDrill]
+  )
+  // Paginação do gráfico só no drill-down da NORCREST (8 unidades por vez).
+  const pagPerm = usePaginadorGrafico(porPermissionaria, { tamanho: 8, ativo: norcrestDrill })
   const porStatus = useMemo(() => agregaMultasPorStatus(linhas), [linhas])
   const porMes = useMemo(() => agregaMultasPorMes(linhas).slice(-18), [linhas])
   const porSituacao = useMemo(() => agregaSituacaoVinculo(linhas), [linhas])
 
-  const colsPerm = [{ key: 'nome', label: 'Permissionária' }, { key: 'total', label: 'Total de Multas' }]
+  const colsPerm = [{ key: 'nome', label: norcrestDrill ? 'Unidade NORCREST' : 'Permissionária' }, { key: 'total', label: 'Total de Multas' }]
   const colsStatus = [{ key: 'status', label: 'Status' }, { key: 'qtd', label: 'Quantidade' }]
   const colsMes = [{ key: 'mes', label: 'Mês' }, { key: 'qtd', label: 'Quantidade' }]
   const colsSituacao = [{ key: 'nome', label: 'Situação' }, { key: 'qtd', label: 'Quantidade' }]
@@ -60,13 +73,13 @@ export default function AbaMultasGeral({ linhas }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard titulo="Multas por Permissionária (top 10)">
+        <ChartCard titulo={norcrestDrill ? 'Multas por Unidade NORCREST' : 'Multas por Permissionária (top 10)'}>
           <div className="relative">
             <div className="absolute -top-8 right-0 z-10">
-              <BotaoExportarGrafico dados={porPermissionaria} colunas={colsPerm} titulo="Multas por Permissionária" modulo="multas" />
+              <BotaoExportarGrafico dados={porPermissionaria} colunas={colsPerm} titulo={norcrestDrill ? 'Multas por Unidade NORCREST' : 'Multas por Permissionária'} modulo="multas" />
             </div>
-            <ResponsiveContainer width="100%" height={Math.max(280, porPermissionaria.length * 26)}>
-              <BarChart data={porPermissionaria} layout="vertical" margin={{ top: 4, right: 60, left: 0, bottom: 4 }}>
+            <ResponsiveContainer width="100%" height={Math.max(280, pagPerm.itens.length * 26)}>
+              <BarChart data={pagPerm.itens} layout="vertical" margin={{ top: 4, right: 60, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E0E0E0" />
                 <XAxis type="number" tick={{ fontSize: 10 }} hide />
                 <YAxis type="category" dataKey="nome" tick={{ fontSize: 10 }} width={130} />
@@ -76,6 +89,7 @@ export default function AbaMultasGeral({ linhas }) {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+            {pagPerm.ligado && <ControlePaginacao {...pagPerm} />}
           </div>
         </ChartCard>
 

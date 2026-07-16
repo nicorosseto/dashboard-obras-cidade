@@ -671,6 +671,28 @@
   refaz o fetch no sucesso; pop-up de resultado com botão "Ok". UI em
   `src/components/tabs/multas/`; lógica pura + agregações em
   `src/lib/multas.js` (testes em `src/tests/multas.test.js`).
+  ⚡ **Ampliação (16/07/2026, feedback da validação):** (1) **sidebar de
+  filtros própria** (`SidebarMultas.jsx`, padrão SidebarEmergencias):
+  Período da Infração, Permissionária (NORCREST consolidada), Status da Multa,
+  Situação do Vínculo e Subprefeitura — lógica pura em
+  `aplicarFiltrosMultas`/`FILTROS_VAZIOS_MULTAS` (`multas.js`), estado no
+  `App.jsx`; (2) **drill-down NORCREST por unidade** no gráfico de
+  permissionárias (quando todas as linhas filtradas são NORCREST, desagrega
+  por `normUnidadeNorcrest` de `relatorio.js`, paginado 8/página); (3)
+  **permissionária exibida = grafia do banco Sistema Geo** quando a multa está
+  vinculada (`_permissionaria_exibir` = `geo.permissionaria` ||
+  `multa.permissionaria`) — `cruzarMultas` usa `buildProcessoMap` (Map, não
+  Set) e enriquece também `_status_geo`/`_status_geo_nome`/`_status_fisc`;
+  (4) colunas **Status Sistema Geo** (tooltip com o status real) e **Status
+  Fiscalização** na Busca/Lista.
+  ⚠️ **CORS em Edge Function chamada pela UI (lição de 16/07/2026):** função
+  invocada DO NAVEGADOR precisa responder ao preflight OPTIONS com os
+  headers CORS — sem isso o front vê "Failed to send a request to the Edge
+  Function" (aconteceu com o "Atualizar agora"; pelo painel do Supabase
+  funciona, pois Invoke/cron não passam por CORS). Padrão: bloco
+  `CORS_HEADERS` + `if (req.method === 'OPTIONS')` no topo do
+  `Deno.serve` e `...CORS_HEADERS` em TODAS as Responses (ver
+  `sync-multas/index.ts`). Após mudar a função, é preciso REIMPLANTÁ-LA.
 - **Tour guiado (onboarding interativo — PR 1 em 08/07/2026, #273):** tours passo
   a passo com a biblioteca **driver.js** (~6 kB gzip, lazy — só carrega quando um
   tour dispara; zero custo no boot). Arquitetura: `src/lib/tourRegistro.js`

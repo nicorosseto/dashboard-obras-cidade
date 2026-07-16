@@ -10,7 +10,7 @@ const PAGE_SIZE = 30
 const COLUNAS = [
   { key: 'linha_planilha', label: 'Linha da Planilha' },
   { key: 'num_processo', label: 'Nº Processo (cru)' },
-  { key: 'permissionaria', label: 'Permissionária' },
+  { key: '_permissionaria_exibir', label: 'Permissionária', transform: (v, r) => v || r?.permissionaria || '—' },
   { key: 'logradouro', label: 'Logradouro' },
   { key: 'valor', label: 'Valor', transform: (v) => fmtValorBRL(v) },
   { key: 'data_infracao', label: 'Data da Infração', transform: (v) => fmtData(v) },

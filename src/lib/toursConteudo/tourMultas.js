@@ -31,6 +31,15 @@ export const TOUR_MULTAS = {
       permissao: 'multas.atualizar',
     },
     {
+      alvo: '[data-tour="sidebar-filtros"]',
+      titulo: 'Filtros',
+      texto:
+        'Barra lateral de filtros (clique para abrir, quando estiver ' +
+        'recolhida): permissionária (NORCREST consolidada), status da multa, ' +
+        'situação do vínculo, subprefeitura e período da infração — tudo ' +
+        'que marcar filtra as 3 abas de uma vez.',
+    },
+    {
       alvo: '[data-tour="multas-kpis"]',
       titulo: 'KPIs e gráficos',
       texto:

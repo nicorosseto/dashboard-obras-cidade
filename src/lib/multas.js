@@ -7,6 +7,7 @@
 // ainda não existe, este módulo é a matéria-prima dela.
 import { normProc } from './emergencias.js'
 import { consolidarNorcrest } from './aggregations.js'
+import { normUnidadeNorcrest } from './relatorio.js'
 import { RED } from './cores.js'
 
 export function buildProcessoSet(linhas, campo) {
@@ -18,11 +19,36 @@ export function buildProcessoSet(linhas, campo) {
   return s
 }
 
+// Mapa chave normalizada (normProc) → linha, para enriquecer a multa com os
+// dados reais de Sistema Geo/Fiscalização (não só marcar presença, como o
+// `buildProcessoSet` — usado no item A3/Trilha melhorias de 16/07/2026:
+// permissionária/status "como estão no Sistema Geo"). `Map` tem `.has()` igual
+// `Set`, então serve direto onde antes só se usava o Set (`situacaoVinculoDe`).
+// ⚠️ A fiscalização pode ter MÚLTIPLAS linhas por id_origem (vários laudos);
+// quando `dataCampo` é informado, mantém a linha com a data mais recente
+// (mesmo critério do `buildVistoriaMap` de emergencias.js). Sem `dataCampo`
+// (caso do Sistema Geo, ~1 linha por processo), fica a última encontrada.
+export function buildProcessoMap(linhas, campo, dataCampo = null) {
+  const m = new Map()
+  for (const r of linhas || []) {
+    const chave = normProc(r[campo])
+    if (!chave) continue
+    if (!dataCampo) { m.set(chave, r); continue }
+    const existente = m.get(chave)
+    if (!existente) { m.set(chave, r); continue }
+    const a = r[dataCampo] || ''
+    const b = existente[dataCampo] || ''
+    if (a > b) m.set(chave, r)
+  }
+  return m
+}
+
 // Situação do vínculo de uma multa com os processos de Sistema Geo/Fiscalização.
 // Recalculada sempre em memória a partir de num_processo_normalizado — não
 // depende do valor gravado em multas.situacao_vinculo (que a Edge Function só
 // marca como 'sem_processo'/'nao_avaliado', sem acesso aos dados de
-// sistemaGeo/fiscalizacoes).
+// sistemaGeo/fiscalizacoes). Aceita Set (checagem de presença) ou Map
+// (enriquecimento) — ambos têm `.has()`.
 export function situacaoVinculoDe(multa, geoSet, fiscSet) {
   const chave = multa?.num_processo_normalizado
   if (!chave) return 'sem_processo'
@@ -32,14 +58,32 @@ export function situacaoVinculoDe(multa, geoSet, fiscSet) {
 }
 
 // Cruza as multas com os processos carregados de Sistema Geo/Fiscalização,
-// devolvendo cada linha enriquecida com `_situacao_vinculo`.
+// devolvendo cada linha enriquecida com `_situacao_vinculo` e, quando há
+// vínculo, com os campos "como estão" na base de origem (melhoria de
+// 16/07/2026, validação da homologação):
+//   - `_permissionaria_exibir`: nome da permissionária no padrão do Sistema Geo
+//     (`geo.permissionaria`), com fallback para o texto cru da planilha de
+//     multas quando não há vínculo com o Sistema Geo.
+//   - `_status_geo` / `_status_geo_nome`: status unificado (grupo) e o status
+//     real (para tooltip), no mesmo padrão de `cruzamento.js` (`buildRows`).
+//   - `_status_fisc`: status simplificado da Fiscalização (laudo mais
+//     recente, quando há mais de um por processo).
 export function cruzarMultas(multasLinhas, sistemaGeoLinhas, fiscalizacaoLinhas) {
-  const geoSet = buildProcessoSet(sistemaGeoLinhas, 'processo')
-  const fiscSet = buildProcessoSet(fiscalizacaoLinhas, 'id_origem')
-  return (multasLinhas || []).map((m) => ({
-    ...m,
-    _situacao_vinculo: situacaoVinculoDe(m, geoSet, fiscSet),
-  }))
+  const geoMap = buildProcessoMap(sistemaGeoLinhas, 'processo')
+  const fiscMap = buildProcessoMap(fiscalizacaoLinhas, 'id_origem', 'data_inicio')
+  return (multasLinhas || []).map((m) => {
+    const chave = m?.num_processo_normalizado
+    const geo = chave ? geoMap.get(chave) : null
+    const fisc = chave ? fiscMap.get(chave) : null
+    return {
+      ...m,
+      _situacao_vinculo: situacaoVinculoDe(m, geoMap, fiscMap),
+      _permissionaria_exibir: geo?.permissionaria || m.permissionaria,
+      _status_geo: geo?.status_unificado || null,
+      _status_geo_nome: geo?.status_nome || null,
+      _status_fisc: fisc?.status_simplificado || null,
+    }
+  })
 }
 
 export const SITUACOES_VINCULO = ['vinculado_sistemaGeo', 'vinculado_fiscalizacao', 'sem_processo', 'processo_nao_encontrado']
@@ -111,13 +155,44 @@ export function valorTotalMultas(linhas) {
 
 // Agrupa por permissionária (consolidando unidades NORCREST por padrão, mesma
 // régua usada nas demais telas do sistema), devolvendo [{ nome, total }]
-// ordenado do maior para o menor.
+// ordenado do maior para o menor. Usa `_permissionaria_exibir` (nome no
+// padrão do Sistema Geo, quando a multa está vinculada — item 3 da melhoria de
+// 16/07/2026), com fallback para o texto cru da planilha.
 export function agregaMultasPorPermissionaria(linhas, { consolidar = true } = {}) {
   const m = new Map()
   for (const r of linhas || []) {
-    const key = consolidar ? consolidarNorcrest(r.permissionaria) : r.permissionaria || '(sem permissionária)'
+    const bruta = r._permissionaria_exibir || r.permissionaria
+    const key = consolidar ? consolidarNorcrest(bruta) : bruta || '(sem permissionária)'
     if (!key) continue
     m.set(key, (m.get(key) || 0) + 1)
+  }
+  return Array.from(m.entries())
+    .map(([nome, total]) => ({ nome, total }))
+    .sort((a, b) => b.total - a.total)
+}
+
+// ── Drill-down NORCREST por unidade (mesmo padrão usado em toda a base NORCREST
+// do sistema — ver AbaMotivosInvalidos.jsx e relatorio.js) ────────────────
+
+// Verdadeiro quando TODAS as linhas (já filtradas) são da NORCREST — critério
+// para trocar o gráfico "por permissionária" pelo drill-down por unidade.
+export function todasNorcrest(linhas) {
+  const arr = linhas || []
+  return arr.length > 0 && arr.every((r) => String(r._permissionaria_exibir || r.permissionaria || '').toUpperCase().startsWith('NORCREST'))
+}
+
+// Agrupa as multas por unidade da NORCREST (NCRV/NCRS → NCR, NCJV/NCJL → NCJ,
+// via `normUnidadeNorcrest` de relatorio.js — não reimplementar o agrupamento
+// aqui). Linhas sem unidade identificável (ex.: "NORCREST" solto, sem sufixo)
+// caem no balde "NORCREST".
+export function agregaMultasPorUnidadeNorcrest(linhas) {
+  const m = new Map()
+  for (const r of linhas || []) {
+    const bruta = String(r._permissionaria_exibir || r.permissionaria || '')
+    const match = bruta.match(/NORCREST\s*[-–/]*\s*(.+)$/i)
+    const unidadeCrua = match ? match[1].replace(/^[-–/\s]+/, '').trim() : ''
+    const unidade = unidadeCrua ? normUnidadeNorcrest(unidadeCrua) : 'NORCREST'
+    m.set(unidade, (m.get(unidade) || 0) + 1)
   }
   return Array.from(m.entries())
     .map(([nome, total]) => ({ nome, total }))
@@ -148,4 +223,56 @@ export function agregaMultasPorMes(linhas) {
   return Array.from(m.entries())
     .map(([mes, qtd]) => ({ mes, qtd }))
     .sort((a, b) => a.mes.localeCompare(b.mes))
+}
+
+// ── Filtros da sidebar (item 1 da melhoria de 16/07/2026) ────────────────
+// Mesmo padrão de `FILTROS_VAZIOS_EMERG`/`aplicarFiltrosEmerg` de
+// emergencias.js: Sets para multi-seleção, permissionária casa pelo valor
+// consolidado/exibido (`_permissionaria_exibir`, com fallback ao cru) e as
+// datas comparam string ISO (`data_infracao`, formato `AAAA-MM-DD`).
+export const FILTROS_VAZIOS_MULTAS = {
+  dataIni: null,
+  dataFim: null,
+  permissionarias: new Set(),
+  status: new Set(),
+  situacaoVinculo: new Set(),
+  subprefeituras: new Set(),
+}
+
+export function contarFiltrosAtivosMultas(filtros) {
+  const c = (s) => (s instanceof Set ? s.size : 0)
+  return (
+    (filtros.dataIni ? 1 : 0) +
+    (filtros.dataFim ? 1 : 0) +
+    c(filtros.permissionarias) +
+    c(filtros.status) +
+    c(filtros.situacaoVinculo) +
+    c(filtros.subprefeituras)
+  )
+}
+
+export function aplicarFiltrosMultas(linhas, filtros) {
+  const { dataIni, dataFim, permissionarias, status, situacaoVinculo, subprefeituras } = filtros || {}
+  const permSet = permissionarias instanceof Set ? permissionarias : new Set()
+  const statusSet = status instanceof Set ? status : new Set()
+  const vinculoSet = situacaoVinculo instanceof Set ? situacaoVinculo : new Set()
+  const subSet = subprefeituras instanceof Set ? subprefeituras : new Set()
+  const usaNorcrestCons = permSet.has('NORCREST')
+
+  return (linhas || []).filter((r) => {
+    if (dataIni && (!r.data_infracao || r.data_infracao < dataIni)) return false
+    if (dataFim && (!r.data_infracao || r.data_infracao > dataFim)) return false
+    if (permSet.size > 0) {
+      const p = r._permissionaria_exibir || r.permissionaria || ''
+      if (usaNorcrestCons && String(p).toUpperCase().startsWith('NORCREST')) {
+        // ok — consolidado
+      } else if (!permSet.has(p)) {
+        return false
+      }
+    }
+    if (statusSet.size > 0 && !statusSet.has(r.status || 'Sem status')) return false
+    if (vinculoSet.size > 0 && !vinculoSet.has(r._situacao_vinculo)) return false
+    if (subSet.size > 0 && !subSet.has(r.subprefeitura)) return false
+    return true
+  })
 }
