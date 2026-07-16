@@ -669,10 +669,21 @@ Deno.serve(async (req: Request) => {
       `[sync-multas] sync concluída: ${linhas.length} linhas (${comChave.length} com chave, ${semChave.length} sem chave)`
     )
 
+    // Contagem compatível com o card "Total de Multas" da Visão Geral do
+    // front (que exclui `situacao_vinculo === 'sem_processo'`) — diferente
+    // de com_chave/sem_chave, que é sobre AUTO DA MULTA (chave técnica de
+    // dedup), não sobre nº de processo. Feedback de 16/07/2026.
+    const comProcesso = linhas.filter(
+      (l) => l.situacao_vinculo !== 'sem_processo'
+    ).length
+    const semProcessoTotal = linhas.length - comProcesso
+
     return new Response(
       JSON.stringify({
         executado: true,
         total_linhas: linhas.length,
+        com_processo: comProcesso,
+        sem_processo: semProcessoTotal,
         com_chave: comChave.length,
         sem_chave: semChave.length,
       }),
