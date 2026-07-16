@@ -1,6 +1,10 @@
 import { memo, useMemo, useState } from 'react'
 import { fmtNumero, fmtData } from '../../../lib/aggregations.js'
-import { SITUACAO_VINCULO_LABEL, SITUACAO_VINCULO_COR, SITUACOES_VINCULO } from '../../../lib/multas.js'
+import {
+  SITUACAO_VINCULO_LABEL,
+  SITUACAO_VINCULO_COR,
+  SITUACOES_VINCULO,
+} from '../../../lib/multas.js'
 
 // Bloco colapsável — mesmo padrão de SidebarEmergencias.jsx.
 function BlocoFiltro({ titulo, children, defaultOpen = false }) {
@@ -14,7 +18,9 @@ function BlocoFiltro({ titulo, children, defaultOpen = false }) {
         className="w-full flex items-center justify-between text-[10px] uppercase tracking-wider text-gray-500 font-bold border-b border-grey-line pb-1 mb-2 hover:text-navy"
       >
         <span>{titulo}</span>
-        <span className="text-[8px]" aria-hidden="true">{open ? '▼' : '▶'}</span>
+        <span className="text-[8px]" aria-hidden="true">
+          {open ? '▼' : '▶'}
+        </span>
       </button>
       {open && children}
     </div>
@@ -43,13 +49,17 @@ const SidebarMultas = memo(function SidebarMultas({
   const [busca, setBusca] = useState('')
   const [norcrestAberto, setNorcrestAberto] = useState(false)
 
-  const permSet = filtros.permissionarias instanceof Set ? filtros.permissionarias : new Set()
+  const permSet =
+    filtros.permissionarias instanceof Set ? filtros.permissionarias : new Set()
   const statusSet = filtros.status instanceof Set ? filtros.status : new Set()
-  const vinculoSet = filtros.situacaoVinculo instanceof Set ? filtros.situacaoVinculo : new Set()
-  const subSet = filtros.subprefeituras instanceof Set ? filtros.subprefeituras : new Set()
+  const vinculoSet =
+    filtros.situacaoVinculo instanceof Set ? filtros.situacaoVinculo : new Set()
+  const subSet =
+    filtros.subprefeituras instanceof Set ? filtros.subprefeituras : new Set()
 
   const { norcrestUnits, demais } = useMemo(() => {
-    const sa = [], de = []
+    const sa = [],
+      de = []
     for (const p of permissionarias) {
       if (String(p).toUpperCase().startsWith('NORCREST')) sa.push(p)
       else de.push(p)
@@ -111,10 +121,20 @@ const SidebarMultas = memo(function SidebarMultas({
         onClick={onToggle}
         title="Abrir filtros"
       >
-        <svg className="w-4 h-4 text-red mb-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className="w-4 h-4 text-red mb-3 shrink-0"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
         </svg>
-        {filtrosAtivos && <span className="w-2 h-2 rounded-full bg-red mb-2 shrink-0" />}
+        {filtrosAtivos && (
+          <span className="w-2 h-2 rounded-full bg-red mb-2 shrink-0" />
+        )}
         <span
           className="text-xs font-extrabold text-red uppercase tracking-widest mt-1"
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
@@ -126,10 +146,21 @@ const SidebarMultas = memo(function SidebarMultas({
   }
 
   return (
-    <aside data-tour="sidebar-filtros" className="w-60 shrink-0 bg-white border-r border-grey-line overflow-y-auto p-3 space-y-3">
+    <aside
+      data-tour="sidebar-filtros"
+      className="w-60 shrink-0 bg-white border-r border-grey-line overflow-y-auto p-3 space-y-3"
+    >
       <div className="flex items-center justify-between border-b-2 border-red pb-2 mb-1">
         <div className="flex items-center gap-2 text-sm font-bold text-red uppercase tracking-wide">
-          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            className="w-4 h-4 shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
           </svg>
           Filtros
@@ -139,8 +170,20 @@ const SidebarMultas = memo(function SidebarMultas({
             </span>
           )}
         </div>
-        <button onClick={onToggle} title="Recolher filtros" className="text-gray-400 hover:text-red transition-colors p-0.5">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <button
+          onClick={onToggle}
+          title="Recolher filtros"
+          className="text-gray-400 hover:text-red transition-colors p-0.5"
+        >
+          <svg
+            className="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
@@ -149,30 +192,39 @@ const SidebarMultas = memo(function SidebarMultas({
       <BlocoFiltro titulo="Período da Infração">
         <div className="space-y-2">
           <div>
-            <label className="text-[10px] text-gray-500 font-semibold uppercase">De</label>
+            <label className="text-[10px] text-gray-500 font-semibold uppercase">
+              De
+            </label>
             <input
               type="date"
               value={filtros.dataIni || ''}
               min={dataLimites.min || undefined}
               max={dataLimites.max || undefined}
-              onChange={(e) => setFiltros({ ...filtros, dataIni: e.target.value || null })}
+              onChange={(e) =>
+                setFiltros({ ...filtros, dataIni: e.target.value || null })
+              }
               className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 focus:outline-hidden focus:ring-1 focus:ring-red"
             />
           </div>
           <div>
-            <label className="text-[10px] text-gray-500 font-semibold uppercase">Até</label>
+            <label className="text-[10px] text-gray-500 font-semibold uppercase">
+              Até
+            </label>
             <input
               type="date"
               value={filtros.dataFim || ''}
               min={dataLimites.min || undefined}
               max={dataLimites.max || undefined}
-              onChange={(e) => setFiltros({ ...filtros, dataFim: e.target.value || null })}
+              onChange={(e) =>
+                setFiltros({ ...filtros, dataFim: e.target.value || null })
+              }
               className="w-full text-xs border border-grey-line rounded-sm px-2 py-1 focus:outline-hidden focus:ring-1 focus:ring-red"
             />
           </div>
           {dataLimites.min && dataLimites.max && (
             <p className="text-[10px] text-gray-400 leading-tight">
-              Disponível: {fmtData(dataLimites.min)} a {fmtData(dataLimites.max)}
+              Disponível: {fmtData(dataLimites.min)} a{' '}
+              {fmtData(dataLimites.max)}
             </p>
           )}
         </div>
@@ -189,14 +241,26 @@ const SidebarMultas = memo(function SidebarMultas({
         />
         <div className="space-y-0.5 max-h-48 overflow-y-auto pr-1">
           <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
-            <input type="checkbox" checked={isTodasPerm} onChange={() => togglePerm('TODAS')} className="accent-red" />
+            <input
+              type="checkbox"
+              checked={isTodasPerm}
+              onChange={() => togglePerm('TODAS')}
+              className="accent-red"
+            />
             <span className="font-semibold">TODAS</span>
           </label>
           {norcrestUnits.length > 0 && (
             <div className="flex items-center gap-1 text-xs hover:bg-grey-bg px-1 py-0.5 rounded-sm">
               <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
-                <input type="checkbox" checked={permSet.has('NORCREST')} onChange={() => togglePerm('NORCREST')} className="accent-red" />
-                <span className="font-semibold truncate">NORCREST (consolidado)</span>
+                <input
+                  type="checkbox"
+                  checked={permSet.has('NORCREST')}
+                  onChange={() => togglePerm('NORCREST')}
+                  className="accent-red"
+                />
+                <span className="font-semibold truncate">
+                  NORCREST (consolidado)
+                </span>
               </label>
               <button
                 type="button"
@@ -207,18 +271,32 @@ const SidebarMultas = memo(function SidebarMultas({
               </button>
             </div>
           )}
-          {(norcrestAberto || busca) && norcrestFiltradas.map((p) => (
-            <div key={p} className="pl-4 border-l-2 border-red/20 ml-2">
-              <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
-                <input type="checkbox" checked={permSet.has(p)} onChange={() => togglePerm(p)} className="accent-red" />
-                <span className="truncate">{p}</span>
-              </label>
-            </div>
-          ))}
+          {(norcrestAberto || busca) &&
+            norcrestFiltradas.map((p) => (
+              <div key={p} className="pl-4 border-l-2 border-red/20 ml-2">
+                <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
+                  <input
+                    type="checkbox"
+                    checked={permSet.has(p)}
+                    onChange={() => togglePerm(p)}
+                    className="accent-red"
+                  />
+                  <span className="truncate">{p}</span>
+                </label>
+              </div>
+            ))}
           {norcrestUnits.length > 0 && <div className="h-px bg-grey-line my-1" />}
           {demaisFiltradas.map((p) => (
-            <label key={p} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
-              <input type="checkbox" checked={permSet.has(p)} onChange={() => togglePerm(p)} className="accent-red" />
+            <label
+              key={p}
+              className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm"
+            >
+              <input
+                type="checkbox"
+                checked={permSet.has(p)}
+                onChange={() => togglePerm(p)}
+                className="accent-red"
+              />
               <span className="truncate">{p}</span>
             </label>
           ))}
@@ -228,12 +306,25 @@ const SidebarMultas = memo(function SidebarMultas({
       <BlocoFiltro titulo="Status da Multa">
         <div className="space-y-0.5">
           <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
-            <input type="checkbox" checked={statusSet.size === 0} onChange={() => setFiltros({ ...filtros, status: new Set() })} className="accent-red" />
+            <input
+              type="checkbox"
+              checked={statusSet.size === 0}
+              onChange={() => setFiltros({ ...filtros, status: new Set() })}
+              className="accent-red"
+            />
             <span className="font-semibold">TODOS</span>
           </label>
           {statusDisponiveis.map(({ status, qtd }) => (
-            <label key={status} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
-              <input type="checkbox" checked={statusSet.has(status)} onChange={() => toggleStatus(status)} className="accent-red" />
+            <label
+              key={status}
+              className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm"
+            >
+              <input
+                type="checkbox"
+                checked={statusSet.has(status)}
+                onChange={() => toggleStatus(status)}
+                className="accent-red"
+              />
               <span className="truncate flex-1">{status}</span>
               <span className="text-gray-400 shrink-0">{fmtNumero(qtd)}</span>
             </label>
@@ -244,13 +335,31 @@ const SidebarMultas = memo(function SidebarMultas({
       <BlocoFiltro titulo="Situação do Vínculo">
         <div className="space-y-0.5">
           <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
-            <input type="checkbox" checked={vinculoSet.size === 0} onChange={() => setFiltros({ ...filtros, situacaoVinculo: new Set() })} className="accent-red" />
+            <input
+              type="checkbox"
+              checked={vinculoSet.size === 0}
+              onChange={() =>
+                setFiltros({ ...filtros, situacaoVinculo: new Set() })
+              }
+              className="accent-red"
+            />
             <span className="font-semibold">TODAS</span>
           </label>
           {SITUACOES_VINCULO.map((v) => (
-            <label key={v} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
-              <input type="checkbox" checked={vinculoSet.has(v)} onChange={() => toggleVinculo(v)} className="accent-red" />
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: SITUACAO_VINCULO_COR[v] }} />
+            <label
+              key={v}
+              className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm"
+            >
+              <input
+                type="checkbox"
+                checked={vinculoSet.has(v)}
+                onChange={() => toggleVinculo(v)}
+                className="accent-red"
+              />
+              <span
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ background: SITUACAO_VINCULO_COR[v] }}
+              />
               <span className="truncate">{SITUACAO_VINCULO_LABEL[v]}</span>
             </label>
           ))}
@@ -260,12 +369,27 @@ const SidebarMultas = memo(function SidebarMultas({
       <BlocoFiltro titulo="Subprefeitura">
         <div className="space-y-0.5 max-h-44 overflow-y-auto pr-1">
           <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
-            <input type="checkbox" checked={subSet.size === 0} onChange={() => setFiltros({ ...filtros, subprefeituras: new Set() })} className="accent-red" />
+            <input
+              type="checkbox"
+              checked={subSet.size === 0}
+              onChange={() =>
+                setFiltros({ ...filtros, subprefeituras: new Set() })
+              }
+              className="accent-red"
+            />
             <span className="font-semibold">TODAS</span>
           </label>
           {subprefeiturasDisponiveis.map((s) => (
-            <label key={s} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
-              <input type="checkbox" checked={subSet.has(s)} onChange={() => toggleSub(s)} className="accent-red" />
+            <label
+              key={s}
+              className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm"
+            >
+              <input
+                type="checkbox"
+                checked={subSet.has(s)}
+                onChange={() => toggleSub(s)}
+                className="accent-red"
+              />
               <span className="truncate">{s}</span>
             </label>
           ))}

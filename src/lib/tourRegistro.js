@@ -47,11 +47,7 @@ import {
   TOUR_CONFIGURACOES_ATUALIZAR,
   TOUR_CONFIGURACOES_LOGS,
 } from './toursConteudo/tourConfiguracoes.js'
-import {
-  TOUR_MULTAS,
-  TOUR_MULTAS_INCONSISTENCIAS,
-  TOUR_MULTAS_BUSCA,
-} from './toursConteudo/tourMultas.js'
+import { TOUR_MULTAS, TOUR_MULTAS_BUSCA } from './toursConteudo/tourMultas.js'
 
 export const TOURS = {
   home: TOUR_HOME,
@@ -81,7 +77,6 @@ export const TOURS = {
   'emergencias.historico': TOUR_EMERGENCIAS_HISTORICO,
   relatorio: TOUR_RELATORIO,
   multas: TOUR_MULTAS,
-  'multas.inconsistencias': TOUR_MULTAS_INCONSISTENCIAS,
   'multas.busca': TOUR_MULTAS_BUSCA,
   configuracoes: TOUR_CONFIGURACOES,
   'configuracoes.1': TOUR_CONFIGURACOES_PERFIS,
@@ -97,7 +92,11 @@ export const TOURS = {
 export function passosDisponiveis(tour, permissoes) {
   return (tour?.passos ?? []).filter((p) => {
     if (p.permissao && !permissoes?.has(p.permissao)) return false
-    if (p.alvo && typeof document !== 'undefined' && !document.querySelector(p.alvo))
+    if (
+      p.alvo &&
+      typeof document !== 'undefined' &&
+      !document.querySelector(p.alvo)
+    )
       return false
     return true
   })

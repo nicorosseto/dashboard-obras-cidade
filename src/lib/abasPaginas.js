@@ -35,8 +35,7 @@ export const ABAS_EMERG = [
 
 export const ABAS_MULTAS = [
   { id: 'geral', label: 'Visão Geral', icon: '👁️' },
-  { id: 'inconsistencias', label: 'Inconsistências', icon: '⚠️' },
-  { id: 'busca', label: 'Busca/Lista', icon: '🔍' },
+  { id: 'busca', label: 'Lista', icon: '🔍' },
 ]
 
 export function labelDaAba(lista, id) {

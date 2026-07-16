@@ -27,7 +27,14 @@ import {
 import Header from './components/Header.jsx'
 import Rodape from './components/Rodape.jsx'
 import TituloTela from './components/TituloTela.jsx'
-import { ABAS_FISC, ABAS_GEO, ABAS_ADMIN, ABAS_EMERG, ABAS_MULTAS, labelDaAba } from './lib/abasPaginas.js'
+import {
+  ABAS_FISC,
+  ABAS_GEO,
+  ABAS_ADMIN,
+  ABAS_EMERG,
+  ABAS_MULTAS,
+  labelDaAba,
+} from './lib/abasPaginas.js'
 import { ABAS_CRUZAMENTO } from './lib/abasCruzamento.js'
 import { coresModulo } from './lib/coresModulo.js'
 import Sidebar from './components/Sidebar.jsx'
@@ -37,8 +44,17 @@ import SidebarMultas from './components/tabs/multas/SidebarMultas.jsx'
 import { FILTROS_GEO_VAZIOS } from './lib/filtrosGeo.js'
 import { FILTROS_CRUZAMENTO_VAZIOS } from './lib/filtrosCruzamento.js'
 import { carregarPermissoes, abasPermitidas } from './lib/permissoes.js'
-import { agruparMotivos, resolverDefs, contarEmgVencidas48h } from './lib/emergencias.js'
-import { cruzarMultas, resumoVinculo, FILTROS_VAZIOS_MULTAS, aplicarFiltrosMultas, contarFiltrosAtivosMultas } from './lib/multas.js'
+import {
+  agruparMotivos,
+  resolverDefs,
+  contarEmgVencidas48h,
+} from './lib/emergencias.js'
+import {
+  cruzarMultas,
+  FILTROS_VAZIOS_MULTAS,
+  aplicarFiltrosMultas,
+  contarFiltrosAtivosMultas,
+} from './lib/multas.js'
 import { useCargaFiscalizacao } from './hooks/useCargaFiscalizacao.js'
 import { useCargaSistemaGeo } from './hooks/useCargaSistemaGeo.js'
 import { useCargaEmergencias } from './hooks/useCargaEmergencias.js'
@@ -53,30 +69,63 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 // Fase M2 (modernização): as páginas de módulo são pesadas (Recharts/Leaflet/xlsx
 // somados) e só uma fica visível por vez — carregadas sob demanda para reduzir o
 // chunk inicial. Cada uso fica dentro de <Suspense fallback={<LoadingInline .../>}>.
-const PaginaRelatorio = lazy(() => import('./components/tabs/relatorio/PaginaRelatorio.jsx'))
+const PaginaRelatorio = lazy(
+  () => import('./components/tabs/relatorio/PaginaRelatorio.jsx')
+)
 const AdminPanel = lazy(() => import('./components/AdminPanel.jsx'))
 const Pagina1Geral = lazy(() => import('./components/tabs/Pagina1Geral.jsx'))
-const Pagina2Temporal = lazy(() => import('./components/tabs/Pagina2Temporal.jsx'))
-const Pagina3Espacial = lazy(() => import('./components/tabs/Pagina3Espacial.jsx'))
-const PaginaGeo1Geral = lazy(() => import('./components/tabs/PaginaGeo1Geral.jsx'))
-const PaginaGeo2Temporal = lazy(() => import('./components/tabs/PaginaGeo2Temporal.jsx'))
-const PaginaGeo3Subprefeitura = lazy(() => import('./components/tabs/PaginaGeo3Subprefeitura.jsx'))
-const PaginaGeo4Cruzamento = lazy(() => import('./components/tabs/PaginaGeo4Cruzamento.jsx'))
-const PaginaFisc5Executoras = lazy(() => import('./components/tabs/PaginaFisc5Executoras.jsx'))
-const PaginaBuscaProcesso = lazy(() => import('./components/tabs/PaginaBuscaProcesso.jsx'))
-const PaginaEmergencias = lazy(() => import('./components/tabs/PaginaEmergencias.jsx'))
-const PaginaMultas = lazy(() => import('./components/tabs/multas/PaginaMultas.jsx'))
+const Pagina2Temporal = lazy(
+  () => import('./components/tabs/Pagina2Temporal.jsx')
+)
+const Pagina3Espacial = lazy(
+  () => import('./components/tabs/Pagina3Espacial.jsx')
+)
+const PaginaGeo1Geral = lazy(
+  () => import('./components/tabs/PaginaGeo1Geral.jsx')
+)
+const PaginaGeo2Temporal = lazy(
+  () => import('./components/tabs/PaginaGeo2Temporal.jsx')
+)
+const PaginaGeo3Subprefeitura = lazy(
+  () => import('./components/tabs/PaginaGeo3Subprefeitura.jsx')
+)
+const PaginaGeo4Cruzamento = lazy(
+  () => import('./components/tabs/PaginaGeo4Cruzamento.jsx')
+)
+const PaginaFisc5Executoras = lazy(
+  () => import('./components/tabs/PaginaFisc5Executoras.jsx')
+)
+const PaginaBuscaProcesso = lazy(
+  () => import('./components/tabs/PaginaBuscaProcesso.jsx')
+)
+const PaginaEmergencias = lazy(
+  () => import('./components/tabs/PaginaEmergencias.jsx')
+)
+const PaginaMultas = lazy(
+  () => import('./components/tabs/multas/PaginaMultas.jsx')
+)
 import { LoadingPage, LoadingInline } from './components/Loading.jsx'
 import AlterarSenhaModal from './components/AlterarSenhaModal.jsx'
 import ConviteTour from './components/tour/ConviteTour.jsx'
-import { carregarToursVistos, marcarTourVisto, iniciarTour, TOURS } from './lib/tour.js'
+import {
+  carregarToursVistos,
+  marcarTourVisto,
+  iniciarTour,
+  TOURS,
+} from './lib/tour.js'
 import BarraProgresso from './components/BarraProgresso.jsx'
 import AvisoAtualizacao from './components/AvisoAtualizacao.jsx'
 
 // Ícones para módulos
 function IconMap() {
   return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      className="w-4 h-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2z" />
       <line x1="9" y1="4" x2="9" y2="18" />
       <line x1="15" y1="6" x2="15" y2="20" />
@@ -86,7 +135,13 @@ function IconMap() {
 
 function IconClipboard() {
   return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      className="w-4 h-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <rect x="6" y="3" width="12" height="18" rx="2" />
       <path d="M9 3v2h6V3" />
       <line x1="9" y1="11" x2="15" y2="11" />
@@ -98,7 +153,13 @@ function IconClipboard() {
 
 function IconMerge() {
   return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      className="w-4 h-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <circle cx="6" cy="6" r="2" />
       <circle cx="6" cy="18" r="2" />
       <circle cx="18" cy="6" r="2" />
@@ -110,7 +171,13 @@ function IconMerge() {
 
 function IconAlert() {
   return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      className="w-4 h-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
       <line x1="12" y1="9" x2="12" y2="13" />
       <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -120,7 +187,13 @@ function IconAlert() {
 
 function IconSlides() {
   return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      className="w-4 h-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <rect x="3" y="4" width="18" height="12" rx="1.5" />
       <path d="M9 8.5h8" />
       <path d="M9 12h5" />
@@ -132,7 +205,13 @@ function IconSlides() {
 
 function IconTicket() {
   return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      className="w-4 h-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z" />
       <line x1="12" y1="6" x2="12" y2="18" strokeDasharray="2 2" />
     </svg>
@@ -152,12 +231,15 @@ const FILTROS_VAZIOS = {
 function AvisoSemData({ n }) {
   return (
     <div className="mb-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-      <span aria-hidden className="text-sm leading-none">ℹ️</span>
+      <span aria-hidden className="text-sm leading-none">
+        ℹ️
+      </span>
       <span>
         <strong>{n.toLocaleString('pt-BR')}</strong>{' '}
         {n === 1 ? 'registro sem data' : 'registros sem data'} não{' '}
         {n === 1 ? 'aparece' : 'aparecem'} com o filtro de período ativo (não
-        têm data preenchida). Limpe as datas para incluí-{n === 1 ? 'lo' : 'los'}.
+        têm data preenchida). Limpe as datas para incluí-
+        {n === 1 ? 'lo' : 'los'}.
       </span>
     </div>
   )
@@ -172,7 +254,12 @@ export default function App() {
   // ── Carga de dados dos módulos (Frente 3, Etapa 5 — hooks em src/hooks/) ──
   // Precisa vir logo após `session`/`permissoes` (acima): código mais abaixo
   // (ex.: `tourBloqueado`) já lê `sistemaGeoCarregando`/`emergCarregando`.
-  const { todasLinhas, carregando, erro, reset: resetFiscalizacao } = useCargaFiscalizacao(session)
+  const {
+    todasLinhas,
+    carregando,
+    erro,
+    reset: resetFiscalizacao,
+  } = useCargaFiscalizacao(session)
   const {
     sistemaGeoLinhas,
     sistemaGeoCarregando,
@@ -197,14 +284,17 @@ export default function App() {
     reset: resetMultas,
     refetch: refetchMultas,
   } = useCargaMultas(session, permissoes)
-  const { datasModulos, modulosAtualizados, limparModulosAtualizados } = useAvisoAtualizacao(session)
+  const { datasModulos, modulosAtualizados, limparModulosAtualizados } =
+    useAvisoAtualizacao(session)
 
   // ── OBRAS data ───────────────────────────────────────────────────
   const [filtros, setFiltros] = useState(FILTROS_VAZIOS)
 
   // ── Sistema Geo data ──────────────────────────────────────────────────
   const [sistemaGeoFiltros, setSistemaGeoFiltros] = useState(FILTROS_GEO_VAZIOS)
-  const [cruzamentoFiltros, setCruzamentoFiltros] = useState(FILTROS_CRUZAMENTO_VAZIOS)
+  const [cruzamentoFiltros, setCruzamentoFiltros] = useState(
+    FILTROS_CRUZAMENTO_VAZIOS
+  )
   const [abaAtivaCruzamento, setAbaAtivaCruzamento] = useState('visao-geral')
 
   // ── Navigation ────────────────────────────────────────────────────
@@ -312,7 +402,8 @@ export default function App() {
       return { tourModuloId: 'multas', tourAbaId: aba }
     }
     if (mostrarEmergencias) {
-      const aba = abaEmergencias !== 'geral' ? `emergencias.${abaEmergencias}` : null
+      const aba =
+        abaEmergencias !== 'geral' ? `emergencias.${abaEmergencias}` : null
       return { tourModuloId: 'emergencias', tourAbaId: aba }
     }
     if (paginaAtiva === 5) {
@@ -320,7 +411,10 @@ export default function App() {
       return { tourModuloId: 'configuracoes', tourAbaId: aba }
     }
     if (emAnaliseIntegrada) {
-      const aba = abaAtivaCruzamento !== 'visao-geral' ? `cruzamento.${abaAtivaCruzamento}` : null
+      const aba =
+        abaAtivaCruzamento !== 'visao-geral'
+          ? `cruzamento.${abaAtivaCruzamento}`
+          : null
       return { tourModuloId: 'cruzamento', tourAbaId: aba }
     }
     const aba = paginaAtiva !== 1 ? `${secaoAtiva}.${paginaAtiva}` : null
@@ -423,7 +517,10 @@ export default function App() {
   // Clique no mapa: foca só a subprefeitura clicada; clicar de novo na mesma
   // (quando é a única selecionada) limpa o filtro.
   function selecionarSubFisc(sigla) {
-    setFiltros((f) => ({ ...f, subprefeituras: toggleSubSelecionada(f.subprefeituras, sigla) }))
+    setFiltros((f) => ({
+      ...f,
+      subprefeituras: toggleSubSelecionada(f.subprefeituras, sigla),
+    }))
   }
 
   // ── Derivados Sistema Geo ────────────────────────────────────────────
@@ -503,25 +600,46 @@ export default function App() {
     for (const o of motivoOverrides) m.set(o.chave, o.termo)
     return m
   }, [motivoOverrides])
-  const motivoSavedTermos = useMemo(() => new Set(motivoClassif.map((c) => c.termo)), [motivoClassif])
+  const motivoSavedTermos = useMemo(
+    () => new Set(motivoClassif.map((c) => c.termo)),
+    [motivoClassif]
+  )
 
   const motivoGrupos = useMemo(() => {
     const itens = (emergObras || [])
       .filter((o) => o.natureza_obra)
-      .map((o) => ({ codigo_aio: o.codigo_aio, natureza: o.natureza_obra, _obra: o }))
-    return agruparMotivos(itens, { overrideMap: motivoOverrideMap, defs: motivoDefs, savedTermos: motivoSavedTermos })
+      .map((o) => ({
+        codigo_aio: o.codigo_aio,
+        natureza: o.natureza_obra,
+        _obra: o,
+      }))
+    return agruparMotivos(itens, {
+      overrideMap: motivoOverrideMap,
+      defs: motivoDefs,
+      savedTermos: motivoSavedTermos,
+    })
   }, [emergObras, motivoOverrideMap, motivoDefs, motivoSavedTermos])
 
-  const motivoPendentes = useMemo(() => motivoGrupos.filter((g) => !g.classificado).length, [motivoGrupos])
+  const motivoPendentes = useMemo(
+    () => motivoGrupos.filter((g) => !g.classificado).length,
+    [motivoGrupos]
+  )
 
   async function salvarClassifMotivos({ defs = [], overrides = [] }) {
     const agora = new Date().toISOString()
     if (defs.length) {
       const payload = defs.map((c) => ({
-        termo: c.termo, rotulo: c.rotulo, invalido: !!c.invalido,
-        palavras: c.palavras || [], arquivado: !!c.arquivado, alias_de: c.alias_de || null, atualizado_em: agora,
+        termo: c.termo,
+        rotulo: c.rotulo,
+        invalido: !!c.invalido,
+        palavras: c.palavras || [],
+        arquivado: !!c.arquivado,
+        alias_de: c.alias_de || null,
+        atualizado_em: agora,
       }))
-      const { error } = await supabase.from('motivo_natureza_classificacao').upsert(payload, { onConflict: 'termo' })
+      const { error } = await supabase
+        .from('motivo_natureza_classificacao')
+        .upsert(payload, { onConflict: 'termo' })
       if (error) throw error
       setMotivoClassif((prev) => {
         const m = new Map(prev.map((c) => [c.termo, c]))
@@ -530,8 +648,14 @@ export default function App() {
       })
     }
     if (overrides.length) {
-      const payload = overrides.map((o) => ({ chave: o.chave, termo: o.termo, atualizado_em: agora }))
-      const { error } = await supabase.from('motivo_natureza_override').upsert(payload, { onConflict: 'chave' })
+      const payload = overrides.map((o) => ({
+        chave: o.chave,
+        termo: o.termo,
+        atualizado_em: agora,
+      }))
+      const { error } = await supabase
+        .from('motivo_natureza_override')
+        .upsert(payload, { onConflict: 'chave' })
       if (error) throw error
       setMotivoOverrides((prev) => {
         const m = new Map(prev.map((o) => [o.chave, o]))
@@ -542,7 +666,10 @@ export default function App() {
   }
 
   function selecionarSubGeo(sigla) {
-    setSistemaGeoFiltros((f) => ({ ...f, subprefeituras: toggleSubSelecionada(f.subprefeituras, sigla) }))
+    setSistemaGeoFiltros((f) => ({
+      ...f,
+      subprefeituras: toggleSubSelecionada(f.subprefeituras, sigla),
+    }))
   }
 
   // ── Multas (A4): cruzamento em memória com Sistema Geo/Fiscalização ──
@@ -553,8 +680,6 @@ export default function App() {
     () => cruzarMultas(multasLinhas, sistemaGeoLinhas, todasLinhas),
     [multasLinhas, sistemaGeoLinhas, todasLinhas]
   )
-  const resumoMultas = useMemo(() => resumoVinculo(multasCruzadas), [multasCruzadas])
-  const totalInconsistenciasMultas = resumoMultas.processoInexistente + resumoMultas.semProcesso
   const basesMultasCarregando = sistemaGeoCarregando || carregando
 
   // Filtros da sidebar de Multas — aplicados sobre o cruzamento já pronto.
@@ -576,11 +701,17 @@ export default function App() {
       const s = r.status || 'Sem status'
       m.set(s, (m.get(s) || 0) + 1)
     }
-    return Array.from(m.entries()).map(([status, qtd]) => ({ status, qtd })).sort((a, b) => b.qtd - a.qtd)
+    return Array.from(m.entries())
+      .map(([status, qtd]) => ({ status, qtd }))
+      .sort((a, b) => b.qtd - a.qtd)
   }, [multasCruzadas])
-  const multasSubprefeiturasDisponiveis = useMemo(() => listaSubprefeituras(multasCruzadas), [multasCruzadas])
+  const multasSubprefeiturasDisponiveis = useMemo(
+    () => listaSubprefeituras(multasCruzadas),
+    [multasCruzadas]
+  )
   const multasDataLimites = useMemo(() => {
-    let mn = null, mx = null
+    let mn = null,
+      mx = null
     for (const r of multasCruzadas) {
       if (!r.data_infracao) continue
       if (!mn || r.data_infracao < mn) mn = r.data_infracao
@@ -735,19 +866,38 @@ export default function App() {
   }
 
   // Array de módulos disponíveis para o dropdown
-  const modules = useMemo(
-    () => {
-      const list = []
-      if (temGeo) list.push({ id: 'sistemaGeo', label: 'Sistema Geo', icon: <IconMap /> })
-      if (temFisc) list.push({ id: 'fiscalizacao', label: 'Fiscalização', icon: <IconClipboard /> })
-      if (temCruzamento) list.push({ id: 'cruzamento', label: 'Análise Integrada', icon: <IconMerge /> })
-      if (temEmerg) list.push({ id: 'emergencias', label: 'Emergências', icon: <IconAlert /> })
-      if (temRelatorio) list.push({ id: 'relatorio', label: 'Apresentação', icon: <IconSlides /> })
-      if (temMultas) list.push({ id: 'multas', label: 'Multas', icon: <IconTicket /> })
-      return list
-    },
-    [temGeo, temFisc, temCruzamento, temEmerg, temRelatorio, temMultas]
-  )
+  const modules = useMemo(() => {
+    const list = []
+    if (temGeo)
+      list.push({ id: 'sistemaGeo', label: 'Sistema Geo', icon: <IconMap /> })
+    if (temFisc)
+      list.push({
+        id: 'fiscalizacao',
+        label: 'Fiscalização',
+        icon: <IconClipboard />,
+      })
+    if (temCruzamento)
+      list.push({
+        id: 'cruzamento',
+        label: 'Análise Integrada',
+        icon: <IconMerge />,
+      })
+    if (temEmerg)
+      list.push({
+        id: 'emergencias',
+        label: 'Emergências',
+        icon: <IconAlert />,
+      })
+    if (temRelatorio)
+      list.push({
+        id: 'relatorio',
+        label: 'Apresentação',
+        icon: <IconSlides />,
+      })
+    if (temMultas)
+      list.push({ id: 'multas', label: 'Multas', icon: <IconTicket /> })
+    return list
+  }, [temGeo, temFisc, temCruzamento, temEmerg, temRelatorio, temMultas])
 
   // Última atualização = max(data_inicio fisc, data_cadastro geo)
   const ultimaAtualizacao = useMemo(() => {
@@ -767,7 +917,12 @@ export default function App() {
     return <LoadingPage mensagem="Carregando seu perfil de acesso..." />
 
   if (carregando)
-    return <LoadingPage mensagem="Carregando dados. Aguarde um momento." progresso={geoProgresso} />
+    return (
+      <LoadingPage
+        mensagem="Carregando dados. Aguarde um momento."
+        progresso={geoProgresso}
+      />
+    )
   if (erro) return <LoadingPage mensagem={`Erro: ${erro}`} erro />
 
   // ── Aviso de dados atualizados (comum a todos os layouts) ───────────
@@ -881,7 +1036,9 @@ export default function App() {
           showAdmin={isAdmin}
           secaoAtiva={secaoAtiva}
           onHome={handleHome}
-          onIniciarTour={tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined}
+          onIniciarTour={
+            tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined
+          }
           onAlterarSenha={() => setMostrarAlterarSenha(true)}
           abasPermitidas={[]}
           modules={modules}
@@ -906,27 +1063,31 @@ export default function App() {
             />
           </div>
           <div className="flex-1 flex overflow-hidden">
-          <ErrorBoundary modulo="Emergências">
-            <Suspense fallback={<LoadingInline mensagem="Carregando Emergências..." />}>
-              <PaginaEmergencias
-                user={session?.user}
-                fiscalizacoes={todasLinhas}
-                isAdmin={isAdmin}
-                podeUpload={podeUploadEmerg}
-                abaAtiva={abaEmergencias}
-                onTotalInformadasChange={setTotalInformadasEmerg}
-                linhas={emergLinhas}
-                setLinhas={setEmergLinhas}
-                obras={emergObras}
-                setObras={setEmergObras}
-                motivoGrupos={motivoGrupos}
-                motivoPendentes={motivoPendentes}
-                onSalvarMotivos={salvarClassifMotivos}
-                carregando={emergCarregando}
-                emgProgresso={emergProgresso}
-              />
-            </Suspense>
-          </ErrorBoundary>
+            <ErrorBoundary modulo="Emergências">
+              <Suspense
+                fallback={
+                  <LoadingInline mensagem="Carregando Emergências..." />
+                }
+              >
+                <PaginaEmergencias
+                  user={session?.user}
+                  fiscalizacoes={todasLinhas}
+                  isAdmin={isAdmin}
+                  podeUpload={podeUploadEmerg}
+                  abaAtiva={abaEmergencias}
+                  onTotalInformadasChange={setTotalInformadasEmerg}
+                  linhas={emergLinhas}
+                  setLinhas={setEmergLinhas}
+                  obras={emergObras}
+                  setObras={setEmergObras}
+                  motivoGrupos={motivoGrupos}
+                  motivoPendentes={motivoPendentes}
+                  onSalvarMotivos={salvarClassifMotivos}
+                  carregando={emergCarregando}
+                  emgProgresso={emergProgresso}
+                />
+              </Suspense>
+            </ErrorBoundary>
           </div>
         </main>
         <Rodape />
@@ -973,7 +1134,9 @@ export default function App() {
           showAdmin={isAdmin}
           secaoAtiva={secaoAtiva}
           onHome={handleHome}
-          onIniciarTour={tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined}
+          onIniciarTour={
+            tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined
+          }
           onAlterarSenha={() => setMostrarAlterarSenha(true)}
           abasPermitidas={[]}
           modules={modules}
@@ -984,9 +1147,14 @@ export default function App() {
           onAbaAdmin={() => {}}
           onAbrirConfiguracoes={handleAbrirConfiguracoes}
         />
-        <main className="flex-1 flex overflow-hidden" data-tour="conteudo-modulo">
+        <main
+          className="flex-1 flex overflow-hidden"
+          data-tour="conteudo-modulo"
+        >
           <ErrorBoundary modulo="Apresentação">
-            <Suspense fallback={<LoadingInline mensagem="Carregando Apresentação..." />}>
+            <Suspense
+              fallback={<LoadingInline mensagem="Carregando Apresentação..." />}
+            >
               <PaginaRelatorio
                 geo={sistemaGeoLinhas}
                 fisc={todasLinhas}
@@ -1049,7 +1217,9 @@ export default function App() {
           showAdmin={isAdmin}
           secaoAtiva={secaoAtiva}
           onHome={handleHome}
-          onIniciarTour={tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined}
+          onIniciarTour={
+            tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined
+          }
           onAlterarSenha={() => setMostrarAlterarSenha(true)}
           abasPermitidas={[]}
           modules={modules}
@@ -1057,47 +1227,53 @@ export default function App() {
           mostrarMultas={true}
           abaMultasAtiva={abaMultas}
           onAbaMultas={setAbaMultas}
-          totalInconsistenciasMultas={totalInconsistenciasMultas}
           permissoes={permissoes}
           abaAdminAtiva={0}
           onAbaAdmin={() => {}}
           onAbrirConfiguracoes={handleAbrirConfiguracoes}
         />
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="px-4 sm:px-6 pt-3 shrink-0">
-            <TituloTela
-              titulo={labelDaAba(ABAS_MULTAS, abaMultas)}
-              corDe="#C00000"
-              corPara="#E23636"
+        <div className="flex-1 flex overflow-hidden">
+          {!multasCarregando && multasCruzadas.length > 0 && (
+            <SidebarMultas
+              aberto={multasSidebarAberta}
+              onToggle={() => setMultasSidebarAberta((o) => !o)}
+              filtros={multasFiltros}
+              setFiltros={setMultasFiltros}
+              onLimpar={() => setMultasFiltros(FILTROS_VAZIOS_MULTAS)}
+              permissionarias={multasPermissionariasDisponiveis}
+              statusDisponiveis={multasStatusDisponiveis}
+              subprefeiturasDisponiveis={multasSubprefeiturasDisponiveis}
+              dataLimites={multasDataLimites}
+              totalFiltrado={multasFiltradas.length}
+              totalGeral={multasCruzadas.length}
+              filtrosAtivos={multasFiltrosAtivos}
             />
-          </div>
-          <div className="flex-1 flex overflow-hidden">
-            {!multasCarregando && multasCruzadas.length > 0 && (
-              <SidebarMultas
-                aberto={multasSidebarAberta}
-                onToggle={() => setMultasSidebarAberta((o) => !o)}
-                filtros={multasFiltros}
-                setFiltros={setMultasFiltros}
-                onLimpar={() => setMultasFiltros(FILTROS_VAZIOS_MULTAS)}
-                permissionarias={multasPermissionariasDisponiveis}
-                statusDisponiveis={multasStatusDisponiveis}
-                subprefeiturasDisponiveis={multasSubprefeiturasDisponiveis}
-                dataLimites={multasDataLimites}
-                totalFiltrado={multasFiltradas.length}
-                totalGeral={multasCruzadas.length}
-                filtrosAtivos={multasFiltrosAtivos}
+          )}
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="px-4 sm:px-6 pt-3 shrink-0">
+              <TituloTela
+                titulo={labelDaAba(ABAS_MULTAS, abaMultas)}
+                corDe="#C00000"
+                corPara="#E23636"
               />
-            )}
+            </div>
             <div className="flex-1 overflow-auto" data-tour="conteudo-modulo">
               <ErrorBoundary modulo="Multas">
-                <Suspense fallback={<LoadingInline mensagem="Carregando Multas..." />}>
+                <Suspense
+                  fallback={<LoadingInline mensagem="Carregando Multas..." />}
+                >
                   <PaginaMultas
                     linhas={multasFiltradas}
                     carregando={multasCarregando}
                     basesCarregando={basesMultasCarregando}
                     abaAtiva={abaMultas}
-                    podeVerInconsistencias={!permissoes || permissoes.has('multas.aba_inconsistencias')}
-                    podeVerBusca={!permissoes || permissoes.has('multas.aba_busca')}
+                    podeVerInconsistencias={
+                      !permissoes ||
+                      permissoes.has('multas.aba_inconsistencias')
+                    }
+                    podeVerBusca={
+                      !permissoes || permissoes.has('multas.aba_busca')
+                    }
                     podeAtualizar={podeAtualizarMultas}
                     onAtualizado={refetchMultas}
                   />
@@ -1105,7 +1281,7 @@ export default function App() {
               </ErrorBoundary>
             </div>
           </div>
-        </main>
+        </div>
         <ExportModal
           rowsFisc={[]}
           rowsGeo={[]}
@@ -1175,7 +1351,9 @@ export default function App() {
         secaoAtiva={secaoAtiva}
         onSecao={handleSecaoChange}
         onHome={handleHome}
-        onIniciarTour={tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined}
+        onIniciarTour={
+          tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined
+        }
         onAlterarSenha={() => setMostrarAlterarSenha(true)}
         mostrarFisc={temFisc}
         mostrarGeo={temGeo}
@@ -1225,36 +1403,49 @@ export default function App() {
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <div className="px-4 sm:px-6 pt-3 shrink-0">
-            <TituloTela titulo={tituloTela} corDe={corTituloTela.from} corPara={corTituloTela.to} />
+            <TituloTela
+              titulo={tituloTela}
+              corDe={corTituloTela.from}
+              corPara={corTituloTela.to}
+            />
           </div>
           {/* KPI strip – hidden on admin */}
-          {!isSpecialPage && !(secaoAtiva === 'sistemaGeo' && paginaAtiva === 4) && (
-            <div className="px-4 sm:px-6 py-3 border-b border-grey-line shrink-0" data-tour="kpis-modulo">
-              {secaoAtiva === 'fiscalizacao' ? (
-                <KPIStrip kpis={kpis} />
-              ) : sistemaGeoCarregando && sistemaGeoLinhas.length === 0 ? (
-                <div className="flex items-center gap-2 py-1">
-                  <LoadingInline
-                    mensagem={(() => {
-                      const { carregadas, total } = geoProgresso
-                      const totalConfiavel = total > 0 && carregadas <= total
-                      if (!totalConfiavel) {
-                        return carregadas > 0
-                          ? `Carregando Sistema Geo… ${carregadas.toLocaleString('pt-BR')} linhas`
-                          : 'Carregando dados Sistema Geo…'
-                      }
-                      const pct = Math.round((carregadas / total) * 100)
-                      return pct < 100 ? `Carregando Sistema Geo… ${pct}%` : 'Finalizando…'
-                    })()}
-                    height="py-1"
-                  />
-                </div>
-              ) : (
-                <KPIStripGeo kpis={sistemaGeoKpis} />
-              )}
-            </div>
-          )}
-          <main className="flex-1 p-4 overflow-auto" data-tour="conteudo-modulo">
+          {!isSpecialPage &&
+            !(secaoAtiva === 'sistemaGeo' && paginaAtiva === 4) && (
+              <div
+                className="px-4 sm:px-6 py-3 border-b border-grey-line shrink-0"
+                data-tour="kpis-modulo"
+              >
+                {secaoAtiva === 'fiscalizacao' ? (
+                  <KPIStrip kpis={kpis} />
+                ) : sistemaGeoCarregando && sistemaGeoLinhas.length === 0 ? (
+                  <div className="flex items-center gap-2 py-1">
+                    <LoadingInline
+                      mensagem={(() => {
+                        const { carregadas, total } = geoProgresso
+                        const totalConfiavel = total > 0 && carregadas <= total
+                        if (!totalConfiavel) {
+                          return carregadas > 0
+                            ? `Carregando Sistema Geo… ${carregadas.toLocaleString('pt-BR')} linhas`
+                            : 'Carregando dados Sistema Geo…'
+                        }
+                        const pct = Math.round((carregadas / total) * 100)
+                        return pct < 100
+                          ? `Carregando Sistema Geo… ${pct}%`
+                          : 'Finalizando…'
+                      })()}
+                      height="py-1"
+                    />
+                  </div>
+                ) : (
+                  <KPIStripGeo kpis={sistemaGeoKpis} />
+                )}
+              </div>
+            )}
+          <main
+            className="flex-1 p-4 overflow-auto"
+            data-tour="conteudo-modulo"
+          >
             {/* Aviso: registros sem data ficam de fora ao filtrar por período */}
             {!isSpecialPage &&
               abaLiberada &&
@@ -1269,75 +1460,93 @@ export default function App() {
 
             {/* Admin page */}
             {isAdminPage && isAdmin && (
-              <Suspense fallback={<LoadingInline mensagem="Carregando Configurações..." />}>
+              <Suspense
+                fallback={
+                  <LoadingInline mensagem="Carregando Configurações..." />
+                }
+              >
                 <AdminPanel abaAtiva={abaAdmin} />
               </Suspense>
             )}
 
-          {/* OBRAS pages */}
-          {!isSpecialPage && abaLiberada && secaoAtiva === 'fiscalizacao' && (
-            <ErrorBoundary modulo="Fiscalização">
-              <Suspense fallback={<LoadingInline mensagem="Carregando..." />}>
-                {paginaAtiva === 1 && <Pagina1Geral rows={filtradas} />}
-                {paginaAtiva === 2 && <Pagina2Temporal rows={filtradas} />}
-                {paginaAtiva === 3 && (
-                  <Pagina3Espacial
-                    rows={filtradas}
-                    contagensMapa={contagensMapaFisc}
-                    subSelecionadas={filtros.subprefeituras}
-                    onSelecionarSub={selecionarSubFisc}
-                  />
-                )}
-                {paginaAtiva === 6 && <PaginaFisc5Executoras rows={filtradas} />}
-                {paginaAtiva === 7 && <PaginaBuscaProcesso modo="fisc" rows={filtradas} nFiltrosAtivos={nFiltrosFisc} />}
-              </Suspense>
-            </ErrorBoundary>
-          )}
-
-          {/* Sistema Geo pages */}
-          {!isSpecialPage &&
-            abaLiberada &&
-            secaoAtiva === 'sistemaGeo' &&
-            (sistemaGeoCarregando && sistemaGeoLinhas.length === 0 ? (
-              <LoadingPage mensagem="Carregando dados Sistema Geo..." />
-            ) : (
-              <ErrorBoundary modulo="Sistema Geo">
+            {/* OBRAS pages */}
+            {!isSpecialPage && abaLiberada && secaoAtiva === 'fiscalizacao' && (
+              <ErrorBoundary modulo="Fiscalização">
                 <Suspense fallback={<LoadingInline mensagem="Carregando..." />}>
-                  {paginaAtiva === 1 && (
-                    <PaginaGeo1Geral
-                      rows={sistemaGeoFiltradas}
-                      filtros={sistemaGeoFiltros}
-                      todas={sistemaGeoLinhas}
-                    />
-                  )}
-                  {paginaAtiva === 2 && (
-                    <PaginaGeo2Temporal rows={sistemaGeoFiltradas} />
-                  )}
+                  {paginaAtiva === 1 && <Pagina1Geral rows={filtradas} />}
+                  {paginaAtiva === 2 && <Pagina2Temporal rows={filtradas} />}
                   {paginaAtiva === 3 && (
-                    <PaginaGeo3Subprefeitura
-                      rows={sistemaGeoFiltradas}
-                      contagensMapa={contagensMapaGeo}
-                      subSelecionadas={sistemaGeoFiltros.subprefeituras}
-                      onSelecionarSub={selecionarSubGeo}
+                    <Pagina3Espacial
+                      rows={filtradas}
+                      contagensMapa={contagensMapaFisc}
+                      subSelecionadas={filtros.subprefeituras}
+                      onSelecionarSub={selecionarSubFisc}
                     />
-                  )}
-                  {paginaAtiva === 4 && (
-                    <ErrorBoundary modulo="Análise Integrada">
-                      <PaginaGeo4Cruzamento
-                        rowsFisc={todasLinhas}
-                        rowsGeo={sistemaGeoLinhas}
-                        filtros={cruzamentoFiltros}
-                        abaAtiva={abaAtivaCruzamento}
-                        onAba={setAbaAtivaCruzamento}
-                      />
-                    </ErrorBoundary>
                   )}
                   {paginaAtiva === 6 && (
-                    <PaginaBuscaProcesso modo="geo" rows={sistemaGeoFiltradas} nFiltrosAtivos={nFiltrosGeo} />
+                    <PaginaFisc5Executoras rows={filtradas} />
+                  )}
+                  {paginaAtiva === 7 && (
+                    <PaginaBuscaProcesso
+                      modo="fisc"
+                      rows={filtradas}
+                      nFiltrosAtivos={nFiltrosFisc}
+                    />
                   )}
                 </Suspense>
               </ErrorBoundary>
-            ))}
+            )}
+
+            {/* Sistema Geo pages */}
+            {!isSpecialPage &&
+              abaLiberada &&
+              secaoAtiva === 'sistemaGeo' &&
+              (sistemaGeoCarregando && sistemaGeoLinhas.length === 0 ? (
+                <LoadingPage mensagem="Carregando dados Sistema Geo..." />
+              ) : (
+                <ErrorBoundary modulo="Sistema Geo">
+                  <Suspense
+                    fallback={<LoadingInline mensagem="Carregando..." />}
+                  >
+                    {paginaAtiva === 1 && (
+                      <PaginaGeo1Geral
+                        rows={sistemaGeoFiltradas}
+                        filtros={sistemaGeoFiltros}
+                        todas={sistemaGeoLinhas}
+                      />
+                    )}
+                    {paginaAtiva === 2 && (
+                      <PaginaGeo2Temporal rows={sistemaGeoFiltradas} />
+                    )}
+                    {paginaAtiva === 3 && (
+                      <PaginaGeo3Subprefeitura
+                        rows={sistemaGeoFiltradas}
+                        contagensMapa={contagensMapaGeo}
+                        subSelecionadas={sistemaGeoFiltros.subprefeituras}
+                        onSelecionarSub={selecionarSubGeo}
+                      />
+                    )}
+                    {paginaAtiva === 4 && (
+                      <ErrorBoundary modulo="Análise Integrada">
+                        <PaginaGeo4Cruzamento
+                          rowsFisc={todasLinhas}
+                          rowsGeo={sistemaGeoLinhas}
+                          filtros={cruzamentoFiltros}
+                          abaAtiva={abaAtivaCruzamento}
+                          onAba={setAbaAtivaCruzamento}
+                        />
+                      </ErrorBoundary>
+                    )}
+                    {paginaAtiva === 6 && (
+                      <PaginaBuscaProcesso
+                        modo="geo"
+                        rows={sistemaGeoFiltradas}
+                        nFiltrosAtivos={nFiltrosGeo}
+                      />
+                    )}
+                  </Suspense>
+                </ErrorBoundary>
+              ))}
           </main>
         </div>
       </div>

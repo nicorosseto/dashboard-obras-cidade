@@ -96,11 +96,16 @@ function normProc(s: unknown): string {
 // Chave sintética (A2, 13/07/2026) para linhas sem `auto_multa` — hash de
 // campos estáveis, usada como alvo do upsert em vez de apagar/regravar todo
 // o subconjunto a cada sincronização (ver `multas-chave-sintetica-sem-auto.sql`).
-async function chaveSinteticaSemAuto(l: Record<string, unknown>): Promise<string> {
+async function chaveSinteticaSemAuto(
+  l: Record<string, unknown>
+): Promise<string> {
   const partes = [l.num_processo, l.data_infracao, l.valor, l.linha_planilha]
     .map((v) => (v == null ? '' : String(v)))
     .join('|')
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(partes))
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(partes)
+  )
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('')
@@ -109,7 +114,10 @@ async function chaveSinteticaSemAuto(l: Record<string, unknown>): Promise<string
 function parseValorReal(v: unknown): number | null {
   if (v == null || v === '') return null
   if (typeof v === 'number') return v
-  const s = String(v).trim().replace(/^R\$\s*/i, '').replace(/,/g, '')
+  const s = String(v)
+    .trim()
+    .replace(/^R\$\s*/i, '')
+    .replace(/,/g, '')
   const n = parseFloat(s)
   return isNaN(n) ? null : n
 }
@@ -160,7 +168,9 @@ const DATE_FIELDS = new Set([
   'data_auto_multa',
 ])
 
-async function getGoogleAccessToken(serviceAccountJson: string): Promise<string> {
+async function getGoogleAccessToken(
+  serviceAccountJson: string
+): Promise<string> {
   const creds = JSON.parse(serviceAccountJson) as {
     client_email: string
     private_key: string
@@ -188,7 +198,9 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     }),
   })
   if (!res.ok) {
-    throw new Error(`Falha ao obter token Google (${res.status}): ${await res.text()}`)
+    throw new Error(
+      `Falha ao obter token Google (${res.status}): ${await res.text()}`
+    )
   }
   const data = await res.json()
   return data.access_token as string
@@ -196,9 +208,13 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
 
 async function baixarPlanilha(accessToken: string): Promise<ArrayBuffer> {
   const url = `https://www.googleapis.com/drive/v3/files/${DRIVE_FILE_ID}?alt=media`
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
   if (!res.ok) {
-    throw new Error(`Falha ao baixar planilha do Drive (${res.status}): ${await res.text()}`)
+    throw new Error(
+      `Falha ao baixar planilha do Drive (${res.status}): ${await res.text()}`
+    )
   }
   return await res.arrayBuffer()
 }
@@ -210,7 +226,9 @@ async function baixarPlanilha(accessToken: string): Promise<ArrayBuffer> {
 // de &amp;, senão "&amp;lt;" viraria "<" em vez de "&lt;".
 function decodeXml(s: string): string {
   return s
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) =>
+      String.fromCodePoint(parseInt(h, 16))
+    )
     .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
@@ -261,11 +279,16 @@ function acharSheetRid(workbookXml: string, nomeAba: string): string {
     nomes.push(nome)
     if (nome === nomeAba) {
       const rid = extrairAtributo(tag, 'r:id')
-      if (!rid) throw new Error(`Aba "${nomeAba}" encontrada em workbook.xml mas sem atributo r:id.`)
+      if (!rid)
+        throw new Error(
+          `Aba "${nomeAba}" encontrada em workbook.xml mas sem atributo r:id.`
+        )
       return rid
     }
   }
-  throw new Error(`Aba "${nomeAba}" não encontrada. Abas disponíveis: ${nomes.join(', ')}`)
+  throw new Error(
+    `Aba "${nomeAba}" não encontrada. Abas disponíveis: ${nomes.join(', ')}`
+  )
 }
 
 function acharWorksheetPath(relsXml: string, rid: string): string {
@@ -299,7 +322,11 @@ type Linha = { r: number; celulas: Celula[] }
 
 // Interpreta uma célula <c r="A9" t="s"><v>123</v></c> (ou
 // self-closing <c r="A9" s="1"/>) de acordo com o atributo `t`.
-function parseValorCelula(attrs: string, inner: string | undefined, sharedStrings: string[]): unknown {
+function parseValorCelula(
+  attrs: string,
+  inner: string | undefined,
+  sharedStrings: string[]
+): unknown {
   if (inner === undefined) return null // célula self-closing, sem valor
   const tipo = extrairAtributo(attrs, 't')
 
@@ -307,7 +334,7 @@ function parseValorCelula(attrs: string, inner: string | undefined, sharedString
     const v = extrairTag(inner, 'v')
     if (v == null) return null
     const idx = parseInt(v, 10)
-    return isNaN(idx) ? null : sharedStrings[idx] ?? null
+    return isNaN(idx) ? null : (sharedStrings[idx] ?? null)
   }
   if (tipo === 'str') {
     const v = extrairTag(inner, 'v')
@@ -382,12 +409,18 @@ function parseLinhas(buffer: ArrayBuffer) {
   // descompactar as worksheets/sharedStrings, então evitamos abrir
   // tudo de uma vez.
   const passo1 = unzipSync(bytes, {
-    filter: (file) => file.name === 'xl/workbook.xml' || file.name === 'xl/_rels/workbook.xml.rels',
+    filter: (file) =>
+      file.name === 'xl/workbook.xml' ||
+      file.name === 'xl/_rels/workbook.xml.rels',
   })
   const workbookXml = passo1['xl/workbook.xml']
   const relsXml = passo1['xl/_rels/workbook.xml.rels']
-  if (!workbookXml) throw new Error('xl/workbook.xml não encontrado dentro do .xlsx.')
-  if (!relsXml) throw new Error('xl/_rels/workbook.xml.rels não encontrado dentro do .xlsx.')
+  if (!workbookXml)
+    throw new Error('xl/workbook.xml não encontrado dentro do .xlsx.')
+  if (!relsXml)
+    throw new Error(
+      'xl/_rels/workbook.xml.rels não encontrado dentro do .xlsx.'
+    )
 
   const rid = acharSheetRid(decoder.decode(workbookXml), ABA_PLANILHA)
   const worksheetPath = acharWorksheetPath(decoder.decode(relsXml), rid)
@@ -396,21 +429,32 @@ function parseLinhas(buffer: ArrayBuffer) {
   // 2ª passada: só a worksheet certa + sharedStrings — o resto do
   // arquivo (as outras 2 abas, estilos, etc.) nunca é descompactado.
   const passo2 = unzipSync(bytes, {
-    filter: (file) => file.name === worksheetPath || file.name === 'xl/sharedStrings.xml',
+    filter: (file) =>
+      file.name === worksheetPath || file.name === 'xl/sharedStrings.xml',
   })
   const worksheetXmlBytes = passo2[worksheetPath]
-  if (!worksheetXmlBytes) throw new Error(`Worksheet "${worksheetPath}" não encontrada dentro do .xlsx.`)
+  if (!worksheetXmlBytes)
+    throw new Error(
+      `Worksheet "${worksheetPath}" não encontrada dentro do .xlsx.`
+    )
   const sharedStringsBytes = passo2['xl/sharedStrings.xml']
-  const sharedStrings = sharedStringsBytes ? parseSharedStrings(decoder.decode(sharedStringsBytes)) : []
+  const sharedStrings = sharedStringsBytes
+    ? parseSharedStrings(decoder.decode(sharedStringsBytes))
+    : []
 
-  const linhasXml = parseWorksheetXml(decoder.decode(worksheetXmlBytes), sharedStrings)
+  const linhasXml = parseWorksheetXml(
+    decoder.decode(worksheetXmlBytes),
+    sharedStrings
+  )
 
   // Monta o mapa índice-de-coluna → chave interna a partir da linha
   // de cabeçalho (LINHA_CABECALHO). Mesma lógica de normalização/
   // mapeamento de antes (normalizeHeader + COLUMN_MAP).
   const linhaCabecalho = linhasXml.find((l) => l.r === LINHA_CABECALHO)
   if (!linhaCabecalho) {
-    throw new Error(`Linha de cabeçalho (${LINHA_CABECALHO}) não encontrada na worksheet.`)
+    throw new Error(
+      `Linha de cabeçalho (${LINHA_CABECALHO}) não encontrada na worksheet.`
+    )
   }
   const colIndexParaChave = new Map<number, string>()
   for (const { col, valor } of linhaCabecalho.celulas) {
@@ -424,7 +468,8 @@ function parseLinhas(buffer: ArrayBuffer) {
     if (linhaXml.r <= LINHA_CABECALHO) continue // ignora linhas de título/cabeçalho
 
     const valoresPorColuna = new Map<number, unknown>()
-    for (const { col, valor } of linhaXml.celulas) valoresPorColuna.set(col, valor)
+    for (const { col, valor } of linhaXml.celulas)
+      valoresPorColuna.set(col, valor)
 
     const mapeada: Record<string, unknown> = {
       linha_planilha: linhaXml.r,
@@ -437,7 +482,10 @@ function parseLinhas(buffer: ArrayBuffer) {
       } else if (key === 'valor') {
         mapeada[key] = parseValorReal(valor)
       } else if (key === 'area_m2') {
-        const n = typeof valor === 'number' ? valor : parseFloat(String(valor ?? '').replace(',', '.'))
+        const n =
+          typeof valor === 'number'
+            ? valor
+            : parseFloat(String(valor ?? '').replace(',', '.'))
         mapeada[key] = isNaN(n) ? null : n
       } else {
         // Texto vazio vira NULL — importante para o auto_multa: o índice
@@ -449,14 +497,21 @@ function parseLinhas(buffer: ArrayBuffer) {
 
     // Linha totalmente vazia (rodapé/linha em branco da planilha) — ignora.
     const temAlgumDado = Object.keys(mapeada).some(
-      (k) => !['linha_planilha', 'atualizado_em'].includes(k) && mapeada[k] != null && mapeada[k] !== ''
+      (k) =>
+        !['linha_planilha', 'atualizado_em'].includes(k) &&
+        mapeada[k] != null &&
+        mapeada[k] !== ''
     )
     if (!temAlgumDado) continue
 
     const numProcessoBruto = mapeada.num_processo as string | null
     const semProcesso =
-      !numProcessoBruto || /NAO CONTEM|NÃO CONTÉM/i.test(numProcessoBruto) || numProcessoBruto === '-'
-    mapeada.num_processo_normalizado = semProcesso ? null : normProc(numProcessoBruto)
+      !numProcessoBruto ||
+      /NAO CONTEM|NÃO CONTÉM/i.test(numProcessoBruto) ||
+      numProcessoBruto === '-'
+    mapeada.num_processo_normalizado = semProcesso
+      ? null
+      : normProc(numProcessoBruto)
     mapeada.situacao_vinculo = semProcesso ? 'sem_processo' : 'nao_avaliado'
 
     linhas.push(mapeada)
@@ -474,7 +529,8 @@ function parseLinhas(buffer: ArrayBuffer) {
 // 16/07/2026). Chamadas de cron/Invoke do painel não passam por CORS.
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 }
 
@@ -506,8 +562,12 @@ Deno.serve(async (req: Request) => {
     .single()
 
   const intervaloMinutos = config?.intervalo_minutos ?? 30
-  const ultimaSync = config?.ultima_sync_em ? new Date(config.ultima_sync_em) : null
-  const minutosDesdeUltima = ultimaSync ? (Date.now() - ultimaSync.getTime()) / 60000 : Infinity
+  const ultimaSync = config?.ultima_sync_em
+    ? new Date(config.ultima_sync_em)
+    : null
+  const minutosDesdeUltima = ultimaSync
+    ? (Date.now() - ultimaSync.getTime()) / 60000
+    : Infinity
 
   if (!force && minutosDesdeUltima < intervaloMinutos) {
     return new Response(
@@ -523,13 +583,16 @@ Deno.serve(async (req: Request) => {
 
   try {
     const serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON')
-    if (!serviceAccountJson) throw new Error('Secret GOOGLE_SERVICE_ACCOUNT_JSON não configurado.')
+    if (!serviceAccountJson)
+      throw new Error('Secret GOOGLE_SERVICE_ACCOUNT_JSON não configurado.')
 
     const accessToken = await getGoogleAccessToken(serviceAccountJson)
     console.log('[sync-multas] token Google OK')
 
     const buffer = await baixarPlanilha(accessToken)
-    console.log(`[sync-multas] download OK: ${(buffer.byteLength / 1024 / 1024).toFixed(1)} MB`)
+    console.log(
+      `[sync-multas] download OK: ${(buffer.byteLength / 1024 / 1024).toFixed(1)} MB`
+    )
 
     const linhas = parseLinhas(buffer)
 
@@ -559,23 +622,37 @@ Deno.serve(async (req: Request) => {
     }
     const semChave = [...porSintetica.values()]
 
-    const duplicadosUnificados = linhas.length - semChave.length - comChave.length
+    const duplicadosUnificados =
+      linhas.length - semChave.length - comChave.length
     if (duplicadosUnificados > 0) {
-      console.log(`[sync-multas] ${duplicadosUnificados} linha(s) duplicada(s) na planilha (mesma chave) — mantida a última ocorrência`)
+      console.log(
+        `[sync-multas] ${duplicadosUnificados} linha(s) duplicada(s) na planilha (mesma chave) — mantida a última ocorrência`
+      )
     }
 
     const LOTE = 500
     for (let i = 0; i < comChave.length; i += LOTE) {
       const lote = comChave.slice(i, i + LOTE)
-      const { error } = await supabase.from('multas').upsert(lote, { onConflict: 'auto_multa' })
+      const { error } = await supabase
+        .from('multas')
+        .upsert(lote, { onConflict: 'auto_multa' })
       if (error) throw new Error(`Upsert falhou (lote ${i}): ${error.message}`)
-      console.log(`[sync-multas] upsert lote OK: ${i}-${i + lote.length} de ${comChave.length}`)
+      console.log(
+        `[sync-multas] upsert lote OK: ${i}-${i + lote.length} de ${comChave.length}`
+      )
     }
     for (let i = 0; i < semChave.length; i += LOTE) {
       const lote = semChave.slice(i, i + LOTE)
-      const { error } = await supabase.from('multas').upsert(lote, { onConflict: 'chave_sintetica' })
-      if (error) throw new Error(`Upsert (sem auto_multa) falhou (lote ${i}): ${error.message}`)
-      console.log(`[sync-multas] upsert lote (sem auto_multa) OK: ${i}-${i + lote.length} de ${semChave.length}`)
+      const { error } = await supabase
+        .from('multas')
+        .upsert(lote, { onConflict: 'chave_sintetica' })
+      if (error)
+        throw new Error(
+          `Upsert (sem auto_multa) falhou (lote ${i}): ${error.message}`
+        )
+      console.log(
+        `[sync-multas] upsert lote (sem auto_multa) OK: ${i}-${i + lote.length} de ${semChave.length}`
+      )
     }
 
     await supabase

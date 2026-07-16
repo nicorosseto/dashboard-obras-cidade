@@ -19,10 +19,10 @@
 insert into public.permissoes_catalogo (codigo, modulo, nome, descricao, ordem) values
   ('multas.ver', 'multas', 'Módulo Multas',
    'Acessa o módulo "Multas" (Visão Geral: KPIs e gráficos das multas sincronizadas da planilha)', 1),
-  ('multas.aba_inconsistencias', 'multas', 'Aba Inconsistências',
-   'Aba "Inconsistências" no módulo Multas (multas sem processo ou com processo não encontrado)', 2),
-  ('multas.aba_busca', 'multas', 'Aba Busca/Lista',
-   'Aba "Busca/Lista" no módulo Multas (busca por nº de processo ou auto da multa)', 3),
+  ('multas.aba_inconsistencias', 'multas', 'Verificar Inconsistências',
+   'Seção "Verificar inconsistências" dentro da aba Lista do módulo Multas (multas sem processo ou com processo não encontrado — só conferência)', 2),
+  ('multas.aba_busca', 'multas', 'Aba Lista',
+   'Aba "Lista" no módulo Multas (busca por nº de processo ou auto da multa)', 3),
   ('multas.atualizar', 'multas', 'Atualizar agora',
    'Botão "Atualizar agora" no módulo Multas (força a sincronização com a planilha)', 4)
 on conflict (codigo) do update

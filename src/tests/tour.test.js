@@ -13,8 +13,14 @@ import { ABAS_CRUZAMENTO } from '../lib/abasCruzamento.js'
 
 // Áreas que devem ter tour — plano completo (PRs 1–4).
 const COBERTURA_EXIGIDA = [
-  'home', 'sistemaGeo', 'fiscalizacao', 'cruzamento', 'emergencias',
-  'relatorio', 'configuracoes', 'multas',
+  'home',
+  'sistemaGeo',
+  'fiscalizacao',
+  'cruzamento',
+  'emergencias',
+  'relatorio',
+  'configuracoes',
+  'multas',
 ]
 
 // Abas de PERMISSAO_POR_ABA que NÃO exigem mini-tour próprio, com o motivo.
@@ -28,7 +34,12 @@ const ABAS_SEM_TOUR_PROPRIO = {
 // — não há constante compartilhada lá, então mantém-se os dois em sincronia).
 // 'geral' fica de fora: é a aba inicial, coberta pelo tour de entrada.
 const ABAS_EMERGENCIAS = [
-  'informadas', 'prazo48h', 'dashboard', 'busca', 'motivo_invalido', 'historico',
+  'informadas',
+  'prazo48h',
+  'dashboard',
+  'busca',
+  'motivo_invalido',
+  'historico',
 ]
 
 // Abas do módulo Configurações (id espelha o array numérico do Header.jsx,
@@ -37,7 +48,7 @@ const ABAS_CONFIGURACOES = [1, 2, 3]
 
 // Abas do módulo Multas (id espelha o bloco mostrarMultas do Header.jsx).
 // 'geral' fica de fora: é a aba inicial, coberta pelo tour de entrada.
-const ABAS_MULTAS = ['inconsistencias', 'busca']
+const ABAS_MULTAS = ['busca']
 
 describe('cobertura dos tours', () => {
   it.each(COBERTURA_EXIGIDA)('a área "%s" tem tour registrado', (id) => {
@@ -99,44 +110,66 @@ describe('cobertura dos tours', () => {
 describe('estrutura dos tours registrados', () => {
   const entradas = Object.entries(TOURS)
 
-  it.each(entradas)('tour "%s": id bate com a chave e tem versão', (chave, tour) => {
-    expect(tour.id).toBe(chave)
-    expect(tour.versao).toBeGreaterThanOrEqual(1)
-  })
-
-  it.each(entradas)('tour "%s": todo passo tem título e texto', (_chave, tour) => {
-    for (const p of tour.passos) {
-      expect(p.titulo, `passo sem título: ${JSON.stringify(p)}`).toBeTruthy()
-      expect(p.texto, `passo "${p.titulo}" sem texto`).toBeTruthy()
+  it.each(entradas)(
+    'tour "%s": id bate com a chave e tem versão',
+    (chave, tour) => {
+      expect(tour.id).toBe(chave)
+      expect(tour.versao).toBeGreaterThanOrEqual(1)
     }
-  })
+  )
 
-  it.each(entradas)('tour "%s": alvos usam [data-tour="…"], não classes CSS', (_chave, tour) => {
-    for (const p of tour.passos) {
-      if (!p.alvo) continue
-      expect(p.alvo, `alvo frágil no passo "${p.titulo}"`).toMatch(
-        /^\[data-tour="[a-z0-9-]+"\]$/
-      )
+  it.each(entradas)(
+    'tour "%s": todo passo tem título e texto',
+    (_chave, tour) => {
+      for (const p of tour.passos) {
+        expect(p.titulo, `passo sem título: ${JSON.stringify(p)}`).toBeTruthy()
+        expect(p.texto, `passo "${p.titulo}" sem texto`).toBeTruthy()
+      }
     }
-  })
+  )
 
-  it.each(entradas)('tour "%s": permissões declaradas existem no catálogo', (_chave, tour) => {
-    for (const p of tour.passos) {
-      if (!p.permissao) continue
-      expect(
-        TODAS_PERMISSOES,
-        `permissão desconhecida "${p.permissao}" no passo "${p.titulo}"`
-      ).toContain(p.permissao)
+  it.each(entradas)(
+    'tour "%s": alvos usam [data-tour="…"], não classes CSS',
+    (_chave, tour) => {
+      for (const p of tour.passos) {
+        if (!p.alvo) continue
+        expect(p.alvo, `alvo frágil no passo "${p.titulo}"`).toMatch(
+          /^\[data-tour="[a-z0-9-]+"\]$/
+        )
+      }
     }
-  })
+  )
+
+  it.each(entradas)(
+    'tour "%s": permissões declaradas existem no catálogo',
+    (_chave, tour) => {
+      for (const p of tour.passos) {
+        if (!p.permissao) continue
+        expect(
+          TODAS_PERMISSOES,
+          `permissão desconhecida "${p.permissao}" no passo "${p.titulo}"`
+        ).toContain(p.permissao)
+      }
+    }
+  )
 })
 
 describe('passosDisponiveis (filtro por permissão)', () => {
   const tour = {
     passos: [
       { alvo: '[data-tour="a"]', titulo: 'A', texto: 'a' },
-      { alvo: '[data-tour="b"]', titulo: 'B', texto: 'b', permissao: 'emerg.ver' },
-      { alvo: '[data-tour="c"]', titulo: 'C', texto: 'c', permissao: 'geo.aba_geral' },
+      {
+        alvo: '[data-tour="b"]',
+        titulo: 'B',
+        texto: 'b',
+        permissao: 'emerg.ver',
+      },
+      {
+        alvo: '[data-tour="c"]',
+        titulo: 'C',
+        texto: 'c',
+        permissao: 'geo.aba_geral',
+      },
     ],
   }
 

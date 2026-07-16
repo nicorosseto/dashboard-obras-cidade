@@ -35,7 +35,15 @@ function LogoFallback({ texto }) {
 // Ícones dos módulos (mesmos da Home)
 function IconMap() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-full h-full"
+    >
       <path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2z" />
       <line x1="9" y1="4" x2="9" y2="18" />
       <line x1="15" y1="6" x2="15" y2="20" />
@@ -45,7 +53,15 @@ function IconMap() {
 
 function IconClipboard() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-full h-full"
+    >
       <rect x="6" y="3" width="12" height="18" rx="2" />
       <path d="M9 3v2h6V3" />
       <line x1="9" y1="11" x2="15" y2="11" />
@@ -57,7 +73,15 @@ function IconClipboard() {
 
 function IconMerge() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-full h-full"
+    >
       <circle cx="6" cy="6" r="2" />
       <circle cx="6" cy="18" r="2" />
       <circle cx="18" cy="6" r="2" />
@@ -69,7 +93,15 @@ function IconMerge() {
 
 function IconAlert() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-full h-full"
+    >
       <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
       <line x1="12" y1="9" x2="12" y2="13" />
       <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -79,7 +111,15 @@ function IconAlert() {
 
 function IconSlides() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-full h-full"
+    >
       <rect x="3" y="4" width="18" height="12" rx="1.5" />
       <path d="M9 8.5h8" />
       <path d="M9 12h5" />
@@ -93,7 +133,15 @@ function IconSlides() {
 
 function IconTicket() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-full h-full"
+    >
       <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z" />
       <line x1="12" y1="6" x2="12" y2="18" strokeDasharray="2 2" />
     </svg>
@@ -102,7 +150,15 @@ function IconTicket() {
 
 function IconSettings() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-full h-full"
+    >
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
     </svg>
@@ -110,15 +166,31 @@ function IconSettings() {
 }
 
 // Determina a configuração visual do módulo ativo
-function getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio, mostrarMultas) {
-  const cor = coresModulo(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio, mostrarMultas)
+function getModuleConfig(
+  secaoAtiva,
+  paginaAtiva,
+  mostrarEmergencias,
+  mostrarRelatorio,
+  mostrarMultas
+) {
+  const cor = coresModulo(
+    secaoAtiva,
+    paginaAtiva,
+    mostrarEmergencias,
+    mostrarRelatorio,
+    mostrarMultas
+  )
   if (mostrarMultas) return { label: 'Multas', icon: <IconTicket />, ...cor }
-  if (mostrarRelatorio) return { label: 'Apresentação', icon: <IconSlides />, ...cor }
-  if (mostrarEmergencias) return { label: 'Emergências', icon: <IconAlert />, ...cor }
-  if (paginaAtiva === 5) return { label: 'Configurações', icon: <IconSettings />, ...cor }
+  if (mostrarRelatorio)
+    return { label: 'Apresentação', icon: <IconSlides />, ...cor }
+  if (mostrarEmergencias)
+    return { label: 'Emergências', icon: <IconAlert />, ...cor }
+  if (paginaAtiva === 5)
+    return { label: 'Configurações', icon: <IconSettings />, ...cor }
   if (secaoAtiva === 'sistemaGeo' && paginaAtiva === 4)
     return { label: 'Análise Integrada', icon: <IconMerge />, ...cor }
-  if (secaoAtiva === 'sistemaGeo') return { label: 'Sistema Geo', icon: <IconMap />, ...cor }
+  if (secaoAtiva === 'sistemaGeo')
+    return { label: 'Sistema Geo', icon: <IconMap />, ...cor }
   return { label: 'Fiscalização', icon: <IconClipboard />, ...cor }
 }
 
@@ -144,7 +216,6 @@ export default function Header({
   motivoPendentes = 0,
   abaMultasAtiva = 'geral',
   onAbaMultas = () => {},
-  totalInconsistenciasMultas = 0,
   abaAdminAtiva = 0,
   onAbaAdmin = () => {},
   onAbrirConfiguracoes = () => {},
@@ -162,11 +233,22 @@ export default function Header({
     if (onSignOut) onSignOut()
   }
 
-  const mod = getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio, mostrarMultas)
+  const mod = getModuleConfig(
+    secaoAtiva,
+    paginaAtiva,
+    mostrarEmergencias,
+    mostrarRelatorio,
+    mostrarMultas
+  )
   const accentGradient = `linear-gradient(to right, ${mod.from}, ${mod.to})`
-  const mostrarAbas = !mostrarEmergencias && !mostrarRelatorio && !mostrarMultas && paginaAtiva !== 5
+  const mostrarAbas =
+    !mostrarEmergencias &&
+    !mostrarRelatorio &&
+    !mostrarMultas &&
+    paginaAtiva !== 5
   const mostrarAbasAdmin = paginaAtiva === 5
-  const mostrarAbasCruzamento = mostrarAbas && secaoAtiva === 'sistemaGeo' && paginaAtiva === 4
+  const mostrarAbasCruzamento =
+    mostrarAbas && secaoAtiva === 'sistemaGeo' && paginaAtiva === 4
   const mostrarAbasNormal = mostrarAbas && !mostrarAbasCruzamento
 
   return (
@@ -196,12 +278,18 @@ export default function Header({
 
         {/* Logo esquerda: Secretaria das Subprefeituras */}
         <div className="flex items-center shrink-0">
-          <Logo src="/logos/secretaria-subprefeituras.png" alt="Secretaria das Subprefeituras" />
+          <Logo
+            src="/logos/secretaria-subprefeituras.png"
+            alt="Secretaria das Subprefeituras"
+          />
           <LogoFallback texto="SEC. SUBS." />
         </div>
 
         {/* Ícone + título do módulo ativo */}
-        <div className="flex-1 min-w-0 pl-4 flex items-center gap-3" data-tour="header-modulo">
+        <div
+          className="flex-1 min-w-0 pl-4 flex items-center gap-3"
+          data-tour="header-modulo"
+        >
           <div
             className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-white p-1.5"
             style={{ background: accentGradient }}
@@ -218,7 +306,15 @@ export default function Header({
           <div className="shrink-0" data-tour="header-modulos">
             <ModuleDropdown
               modules={modules}
-              activeModuleId={mostrarMultas ? 'multas' : mostrarRelatorio ? 'relatorio' : mostrarEmergencias ? 'emergencias' : secaoAtiva}
+              activeModuleId={
+                mostrarMultas
+                  ? 'multas'
+                  : mostrarRelatorio
+                    ? 'relatorio'
+                    : mostrarEmergencias
+                      ? 'emergencias'
+                      : secaoAtiva
+              }
               onSelect={onSelectModule}
               showAdmin={showAdmin}
               onAdmin={onAbrirConfiguracoes}
@@ -293,7 +389,10 @@ export default function Header({
           </div>
         )}
         {mostrarAbasCruzamento && (
-          <nav className="flex items-center gap-4 overflow-x-auto" data-tour="header-abas">
+          <nav
+            className="flex items-center gap-4 overflow-x-auto"
+            data-tour="header-abas"
+          >
             {abasCruzamentoPermitidas(permissoes, ABAS_CRUZAMENTO).map((a) => (
               <button
                 key={a.id}
@@ -302,7 +401,9 @@ export default function Header({
                 aria-label={a.label}
                 aria-current={abaCruzamentoAtiva === a.id ? 'page' : undefined}
                 className={`flex items-center gap-1.5 text-sm py-2 transition-all relative whitespace-nowrap ${
-                  abaCruzamentoAtiva === a.id ? 'text-white font-bold' : 'text-white/60 font-semibold hover:text-white'
+                  abaCruzamentoAtiva === a.id
+                    ? 'text-white font-bold'
+                    : 'text-white/60 font-semibold hover:text-white'
                 }`}
               >
                 <span className="text-lg">{a.icon}</span>
@@ -310,7 +411,9 @@ export default function Header({
                 {abaCruzamentoAtiva === a.id && (
                   <div
                     className="absolute bottom-0 left-0 right-0 h-0.5"
-                    style={{ background: `linear-gradient(to right, ${mod.from}, ${mod.to})` }}
+                    style={{
+                      background: `linear-gradient(to right, ${mod.from}, ${mod.to})`,
+                    }}
                   />
                 )}
               </button>
@@ -321,14 +424,32 @@ export default function Header({
           <nav className="flex items-center gap-4" data-tour="header-abas">
             {[
               { id: 'geral', label: 'Visão Geral', icon: '👁️' },
-              { id: 'informadas', label: `Informadas${totalInformadasEmerg > 0 ? ` (${totalInformadasEmerg.toLocaleString('pt-BR')})` : ''}`, icon: '🚨' },
+              {
+                id: 'informadas',
+                label: `Informadas${totalInformadasEmerg > 0 ? ` (${totalInformadasEmerg.toLocaleString('pt-BR')})` : ''}`,
+                icon: '🚨',
+              },
               ...(!permissoes || permissoes.has('emerg.aba_prazo48h')
-                ? [{ id: 'prazo48h', label: 'Prazo 48h', icon: '⏱️', badge: emgVencidas48h }]
+                ? [
+                    {
+                      id: 'prazo48h',
+                      label: 'Prazo 48h',
+                      icon: '⏱️',
+                      badge: emgVencidas48h,
+                    },
+                  ]
                 : []),
               { id: 'dashboard', label: 'Dashboard', icon: '📊' },
               { id: 'busca', label: 'Busca por Processo', icon: '🔍' },
               ...(!permissoes || permissoes.has('emerg.aba_motivo_invalido')
-                ? [{ id: 'motivo_invalido', label: 'Motivo Inválido', icon: '🔄', alerta: motivoPendentes }]
+                ? [
+                    {
+                      id: 'motivo_invalido',
+                      label: 'Motivo Inválido',
+                      icon: '🔄',
+                      alerta: motivoPendentes,
+                    },
+                  ]
                 : []),
               { id: 'historico', label: 'Histórico', icon: '🕑' },
             ].map((a) => (
@@ -339,7 +460,9 @@ export default function Header({
                 aria-label={a.label}
                 aria-current={abaEmergAtiva === a.id ? 'page' : undefined}
                 className={`flex items-center gap-1.5 text-sm py-2 transition-all relative ${
-                  abaEmergAtiva === a.id ? 'text-white font-bold' : 'text-white/70 font-semibold hover:text-white'
+                  abaEmergAtiva === a.id
+                    ? 'text-white font-bold'
+                    : 'text-white/70 font-semibold hover:text-white'
                 }`}
               >
                 <span className="text-lg">{a.icon}</span>
@@ -358,7 +481,12 @@ export default function Header({
                   </span>
                 )}
                 {abaEmergAtiva === a.id && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(to right, ${mod.from}, ${mod.to})` }} />
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-0.5"
+                    style={{
+                      background: `linear-gradient(to right, ${mod.from}, ${mod.to})`,
+                    }}
+                  />
                 )}
               </button>
             ))}
@@ -368,11 +496,8 @@ export default function Header({
           <nav className="flex items-center gap-4" data-tour="header-abas">
             {[
               { id: 'geral', label: 'Visão Geral', icon: '👁️' },
-              ...(!permissoes || permissoes.has('multas.aba_inconsistencias')
-                ? [{ id: 'inconsistencias', label: 'Inconsistências', icon: '⚠️', badge: totalInconsistenciasMultas }]
-                : []),
               ...(!permissoes || permissoes.has('multas.aba_busca')
-                ? [{ id: 'busca', label: 'Busca/Lista', icon: '🔍' }]
+                ? [{ id: 'busca', label: 'Lista', icon: '🔍' }]
                 : []),
             ].map((a) => (
               <button
@@ -382,18 +507,20 @@ export default function Header({
                 aria-label={a.label}
                 aria-current={abaMultasAtiva === a.id ? 'page' : undefined}
                 className={`flex items-center gap-1.5 text-sm py-2 transition-all relative ${
-                  abaMultasAtiva === a.id ? 'text-white font-bold' : 'text-white/70 font-semibold hover:text-white'
+                  abaMultasAtiva === a.id
+                    ? 'text-white font-bold'
+                    : 'text-white/70 font-semibold hover:text-white'
                 }`}
               >
                 <span className="text-lg">{a.icon}</span>
                 <span className="hidden sm:inline">{a.label}</span>
-                {a.badge > 0 && (
-                  <span className="bg-red text-white text-[10px] font-bold leading-none px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                    {a.badge > 99 ? '99+' : a.badge}
-                  </span>
-                )}
                 {abaMultasAtiva === a.id && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(to right, ${mod.from}, ${mod.to})` }} />
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-0.5"
+                    style={{
+                      background: `linear-gradient(to right, ${mod.from}, ${mod.to})`,
+                    }}
+                  />
                 )}
               </button>
             ))}
@@ -414,13 +541,20 @@ export default function Header({
                 aria-label={a.label}
                 aria-current={abaAdminAtiva === a.id ? 'page' : undefined}
                 className={`flex items-center gap-1.5 text-sm py-2 transition-all relative ${
-                  abaAdminAtiva === a.id ? 'text-white font-bold' : 'text-white/70 font-semibold hover:text-white'
+                  abaAdminAtiva === a.id
+                    ? 'text-white font-bold'
+                    : 'text-white/70 font-semibold hover:text-white'
                 }`}
               >
                 <span className="text-lg">{a.icon}</span>
                 <span className="hidden sm:inline">{a.label}</span>
                 {abaAdminAtiva === a.id && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(to right, ${mod.from}, ${mod.to})` }} />
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-0.5"
+                    style={{
+                      background: `linear-gradient(to right, ${mod.from}, ${mod.to})`,
+                    }}
+                  />
                 )}
               </button>
             ))}
