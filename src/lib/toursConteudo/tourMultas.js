@@ -17,10 +17,11 @@ export const TOUR_MULTAS = {
     },
     {
       alvo: '[data-tour="header-abas"]',
-      titulo: '3 abas',
+      titulo: '2 abas',
       texto:
-        'Visão Geral (KPIs e gráficos), Inconsistências (erros de preenchimento da ' +
-        'planilha) e Busca/Lista (por número de processo ou auto da multa).',
+        'Visão Geral (KPIs e gráficos) e Lista (busca por número de processo ou ' +
+        'auto da multa — a Lista também tem uma seção auxiliar para conferir ' +
+        'inconsistências da planilha).',
     },
     {
       alvo: '[data-tour="multas-atualizar"]',
@@ -37,7 +38,7 @@ export const TOUR_MULTAS = {
         'Barra lateral de filtros (clique para abrir, quando estiver ' +
         'recolhida): permissionária (NORCREST consolidada), status da multa, ' +
         'situação do vínculo, subprefeitura e período da infração — tudo ' +
-        'que marcar filtra as 3 abas de uma vez.',
+        'que marcar filtra as duas abas de uma vez.',
     },
     {
       alvo: '[data-tour="multas-kpis"]',
@@ -49,7 +50,8 @@ export const TOUR_MULTAS = {
     {
       alvo: '[data-tour="header-modulos"]',
       titulo: 'Trocar de módulo',
-      texto: 'Este menu leva aos outros módulos do sistema sem precisar voltar à tela inicial.',
+      texto:
+        'Este menu leva aos outros módulos do sistema sem precisar voltar à tela inicial.',
     },
     {
       alvo: '[data-tour="header-btn-tour"]',
@@ -59,36 +61,34 @@ export const TOUR_MULTAS = {
   ],
 }
 
-export const TOUR_MULTAS_INCONSISTENCIAS = {
-  id: 'multas.inconsistencias',
-  versao: 1,
-  titulo: 'Multas — Inconsistências',
-  passos: [
-    {
-      alvo: '[data-tour="multas-inconsistencias-tabela"]',
-      titulo: 'O raio-x dos erros de preenchimento',
-      texto:
-        'Duas listas: multas sem número de processo na planilha e multas com número ' +
-        'de processo que não bate com nenhum registro do Sistema Geo/Fiscalização. A ' +
-        'correção é sempre feita na planilha — a próxima sincronização já traz o dado certo.',
-    },
-  ],
-}
-
+// A Inconsistências deixou de ser aba própria (2ª rodada de feedback,
+// 16/07/2026) — virou uma seção auxiliar/alternável dentro desta aba
+// (botão "Verificar inconsistências"), então o passo dela entra aqui.
 export const TOUR_MULTAS_BUSCA = {
   id: 'multas.busca',
   versao: 1,
-  titulo: 'Multas — Busca/Lista',
+  titulo: 'Multas — Lista',
   passos: [
     {
       alvo: '[data-tour="multas-busca-campo"]',
       titulo: 'Buscar uma multa',
-      texto: 'Digite parte do número de processo ou do auto da multa para localizar rapidamente.',
+      texto:
+        'Digite parte do número de processo ou do auto da multa para localizar rapidamente.',
     },
     {
       alvo: '[data-tour="multas-busca-filtrar"]',
       titulo: 'Listar tudo',
-      texto: 'Sem digitar nada, clique aqui para listar todas as multas carregadas.',
+      texto:
+        'Sem digitar nada, clique aqui para listar todas as multas carregadas.',
+    },
+    {
+      alvo: '[data-tour="multas-toggle-inconsistencias"]',
+      titulo: 'Verificar inconsistências',
+      texto:
+        'Seção auxiliar: multas sem número de processo na planilha e multas com número ' +
+        'que não bate com nenhum registro do Sistema Geo/Fiscalização. É só conferência — a ' +
+        'correção é sempre feita na planilha, a próxima sincronização já traz o dado certo.',
+      permissao: 'multas.aba_inconsistencias',
     },
   ],
 }

@@ -663,10 +663,10 @@
   Sistema Geo/Fiscalização **em memória** no `App.jsx` (`cruzarMultas` de
   `src/lib/multas.js`, via `normProc`); enquanto as bases carregam, a tela
   mostra banner âmbar "cruzamento parcial" (o memo recalcula sozinho ao
-  terminar). 3 abas (`ABAS_MULTAS` em `abasPaginas.js`): Visão Geral (KPIs +
-  4 gráficos), Inconsistências (sem processo / processo inexistente, badge
-  com o total no Header) e Busca/Lista (padrão "listar só por ação
-  explícita"). Botão **"Atualizar agora"** (`multas.atualizar`) chama
+  terminar). 2 abas (`ABAS_MULTAS` em `abasPaginas.js`): Visão Geral (KPIs +
+  gráficos) e Lista (padrão "listar só por ação explícita" — inclui a seção
+  auxiliar de Inconsistências, ver ampliação de 16/07/2026 abaixo). Botão
+  **"Atualizar agora"** (`multas.atualizar`) chama
   `supabase.functions.invoke('sync-multas', { body: { force: true } })` e
   refaz o fetch no sucesso; pop-up de resultado com botão "Ok". UI em
   `src/components/tabs/multas/`; lógica pura + agregações em
@@ -693,6 +693,30 @@
   `CORS_HEADERS` + `if (req.method === 'OPTIONS')` no topo do
   `Deno.serve` e `...CORS_HEADERS` em TODAS as Responses (ver
   `sync-multas/index.ts`). Após mudar a função, é preciso REIMPLANTÁ-LA.
+  ⚡ **2ª rodada de ampliação (16/07/2026):** (1) **aba "Inconsistências"
+  deixou de existir no Header** — virou seção auxiliar/alternável
+  ("Verificar inconsistências", `data-tour="multas-toggle-inconsistencias"`)
+  DENTRO da aba **Lista** (ex-"Busca/Lista"; componente
+  `AbaMultasInconsistencias` reaproveitado sem mudança), porque o usuário
+  principal do sistema não corrige esses erros (vêm de outro departamento,
+  só OBRAS consulta) — é apenas conferência, não precisa de destaque no
+  menu. A permissão `multas.aba_inconsistencias` continua a mesma, só o
+  texto no catálogo mudou (SQL `23-multas-inconsistencias-nota.sql`); (2)
+  **KPIs/gráficos da Visão Geral excluem multas "sem processo"**
+  (`excluirSemProcesso` em `multas.js`) — não representam obra/processo
+  real a acompanhar; os 4 cards de vínculo (Vinculadas/Processo
+  Inexistente/Sem Processo/% Vinculadas) saíram da Visão Geral e ficaram
+  **exclusivamente** dentro da seção de Inconsistências; (3) donut
+  "Situação do Vínculo" removido da Visão Geral, substituído por um
+  gráfico de barras **"Multas por Subprefeitura"**
+  (`agregaMultasPorSubprefeitura`); (4) **layout da tela corrigido**: o
+  `TituloTela` estava fora da coluna de conteúdo (acima de toda a área,
+  "invadindo" a sidebar) — corrigido para o mesmo padrão do layout
+  principal (`Sidebar`/`SidebarSistemaGeo` em `App.jsx`): sidebar é o
+  primeiro item do `flex` da tela, `TituloTela` fica dentro da coluna de
+  conteúdo, ao lado dela. **Regra geral para telas com sidebar própria:**
+  nunca colocar o `TituloTela` num wrapper que englobe a sidebar — ele
+  pertence à coluna de conteúdo.
 - **Tour guiado (onboarding interativo — PR 1 em 08/07/2026, #273):** tours passo
   a passo com a biblioteca **driver.js** (~6 kB gzip, lazy — só carrega quando um
   tour dispara; zero custo no boot). Arquitetura: `src/lib/tourRegistro.js`
