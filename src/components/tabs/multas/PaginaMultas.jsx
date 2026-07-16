@@ -80,15 +80,20 @@ export default function PaginaMultas({
       if (error) throw error
       await onAtualizado?.()
       const total = data?.total_linhas ?? data?.totalLinhas
-      const comChave = data?.com_chave ?? data?.comChave
-      const semChave = data?.sem_chave ?? data?.semChave
+      // Compatível com o card "Total de Multas" da Visão Geral (que exclui
+      // multas sem número de processo) — diferente de com_chave/sem_chave,
+      // que é sobre AUTO DA MULTA (chave técnica de dedup, não de negócio).
+      const comProcesso = data?.com_processo ?? data?.comProcesso
+      const semProcesso = data?.sem_processo ?? data?.semProcesso
       const partes = []
       if (total != null)
         partes.push(`${total.toLocaleString('pt-BR')} linhas na planilha`)
-      if (comChave != null)
-        partes.push(`${comChave.toLocaleString('pt-BR')} com AUTO DA MULTA`)
-      if (semChave != null)
-        partes.push(`${semChave.toLocaleString('pt-BR')} sem AUTO DA MULTA`)
+      if (comProcesso != null)
+        partes.push(
+          `${comProcesso.toLocaleString('pt-BR')} com número de processo (visão geral)`
+        )
+      if (semProcesso != null)
+        partes.push(`${semProcesso.toLocaleString('pt-BR')} sem número de processo`)
       setResultado({
         titulo: 'Sincronização concluída',
         mensagem: partes.length
