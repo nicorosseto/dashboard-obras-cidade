@@ -12,6 +12,7 @@ const MODULO_LABEL = {
   sistemaGeo:          'Sistema Geo',
   analise_integrada: 'Análise Integrada',
   emergencias:       'Emergências',
+  multas:            'Multas',
 }
 
 // O que cada código de permissão libera na interface (exibido na legenda do formulário)
@@ -27,6 +28,10 @@ const PERM_DESCRICAO = {
   'emerg.aba_prazo48h':     'Aba "Prazo 48h" no módulo Emergências (controle de SLA)',
   'emerg.aba_motivo_invalido': 'Aba "Motivo Inválido" no módulo Emergências (emergências que são manutenção/expansão)',
   'relatorio.ver':          'Acessa o módulo Apresentação (relatório mensal em slides, com download dos dados por slide)',
+  'multas.ver':             'Acessa o módulo Multas (Visão Geral: KPIs e gráficos das multas sincronizadas da planilha)',
+  'multas.aba_inconsistencias': 'Aba "Inconsistências" no módulo Multas (multas sem processo ou com processo não encontrado)',
+  'multas.aba_busca':       'Aba "Busca/Lista" no módulo Multas (busca por nº de processo ou auto da multa)',
+  'multas.atualizar':       'Botão "Atualizar agora" no módulo Multas (força a sincronização com a planilha)',
 }
 
 /* ------------------------------------------------------------------ */

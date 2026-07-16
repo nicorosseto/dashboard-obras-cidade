@@ -27,7 +27,7 @@ import {
 import Header from './components/Header.jsx'
 import Rodape from './components/Rodape.jsx'
 import TituloTela from './components/TituloTela.jsx'
-import { ABAS_FISC, ABAS_GEO, ABAS_ADMIN, ABAS_EMERG, labelDaAba } from './lib/abasPaginas.js'
+import { ABAS_FISC, ABAS_GEO, ABAS_ADMIN, ABAS_EMERG, ABAS_MULTAS, labelDaAba } from './lib/abasPaginas.js'
 import { ABAS_CRUZAMENTO } from './lib/abasCruzamento.js'
 import { coresModulo } from './lib/coresModulo.js'
 import Sidebar from './components/Sidebar.jsx'
@@ -37,9 +37,11 @@ import { FILTROS_GEO_VAZIOS } from './lib/filtrosGeo.js'
 import { FILTROS_CRUZAMENTO_VAZIOS } from './lib/filtrosCruzamento.js'
 import { carregarPermissoes, abasPermitidas } from './lib/permissoes.js'
 import { agruparMotivos, resolverDefs, contarEmgVencidas48h } from './lib/emergencias.js'
+import { cruzarMultas, resumoVinculo } from './lib/multas.js'
 import { useCargaFiscalizacao } from './hooks/useCargaFiscalizacao.js'
 import { useCargaSistemaGeo } from './hooks/useCargaSistemaGeo.js'
 import { useCargaEmergencias } from './hooks/useCargaEmergencias.js'
+import { useCargaMultas } from './hooks/useCargaMultas.js'
 import { useAvisoAtualizacao } from './hooks/useAvisoAtualizacao.js'
 import KPIStrip from './components/KPIStrip.jsx'
 import KPIStripGeo from './components/KPIStripGeo.jsx'
@@ -62,6 +64,7 @@ const PaginaGeo4Cruzamento = lazy(() => import('./components/tabs/PaginaGeo4Cruz
 const PaginaFisc5Executoras = lazy(() => import('./components/tabs/PaginaFisc5Executoras.jsx'))
 const PaginaBuscaProcesso = lazy(() => import('./components/tabs/PaginaBuscaProcesso.jsx'))
 const PaginaEmergencias = lazy(() => import('./components/tabs/PaginaEmergencias.jsx'))
+const PaginaMultas = lazy(() => import('./components/tabs/multas/PaginaMultas.jsx'))
 import { LoadingPage, LoadingInline } from './components/Loading.jsx'
 import AlterarSenhaModal from './components/AlterarSenhaModal.jsx'
 import ConviteTour from './components/tour/ConviteTour.jsx'
@@ -126,6 +129,15 @@ function IconSlides() {
   )
 }
 
+function IconTicket() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z" />
+      <line x1="12" y1="6" x2="12" y2="18" strokeDasharray="2 2" />
+    </svg>
+  )
+}
+
 const FILTROS_VAZIOS = {
   dataIni: null,
   dataFim: null,
@@ -178,6 +190,12 @@ export default function App() {
     emergCarregando,
     emergProgresso,
   } = useCargaEmergencias(session, permissoes)
+  const {
+    multasLinhas,
+    multasCarregando,
+    reset: resetMultas,
+    refetch: refetchMultas,
+  } = useCargaMultas(session, permissoes)
   const { datasModulos, modulosAtualizados, limparModulosAtualizados } = useAvisoAtualizacao(session)
 
   // ── OBRAS data ───────────────────────────────────────────────────
@@ -192,10 +210,12 @@ export default function App() {
   const [mostrarHome, setMostrarHome] = useState(true)
   const [mostrarEmergencias, setMostrarEmergencias] = useState(false)
   const [mostrarRelatorio, setMostrarRelatorio] = useState(false)
+  const [mostrarMultas, setMostrarMultas] = useState(false)
   const [secaoAtiva, setSecaoAtiva] = useState('fiscalizacao')
   const [paginaAtiva, setPaginaAtiva] = useState(1)
   const [mostrarAlterarSenha, setMostrarAlterarSenha] = useState(false)
   const [abaEmergencias, setAbaEmergencias] = useState('geral')
+  const [abaMultas, setAbaMultas] = useState('geral')
   // Tour guiado: null = indisponível/carregando (nunca oferece); Map (tour_id
   // -> status 'concluido'|'dispensado') = pronto
   const [toursVistos, setToursVistos] = useState(null)
@@ -281,6 +301,10 @@ export default function App() {
   const { tourModuloId, tourAbaId } = (() => {
     if (mostrarHome) return { tourModuloId: null, tourAbaId: null }
     if (mostrarRelatorio) return { tourModuloId: 'relatorio', tourAbaId: null }
+    if (mostrarMultas) {
+      const aba = abaMultas !== 'geral' ? `multas.${abaMultas}` : null
+      return { tourModuloId: 'multas', tourAbaId: aba }
+    }
     if (mostrarEmergencias) {
       const aba = abaEmergencias !== 'geral' ? `emergencias.${abaEmergencias}` : null
       return { tourModuloId: 'emergencias', tourAbaId: aba }
@@ -302,7 +326,8 @@ export default function App() {
     mostrarAlterarSenha ||
     !!profile?.primeiro_acesso ||
     (secaoAtiva === 'sistemaGeo' && sistemaGeoCarregando) ||
-    (mostrarEmergencias && emergCarregando)
+    (mostrarEmergencias && emergCarregando) ||
+    (mostrarMultas && multasCarregando)
 
   const oferecerTourModulo =
     !!tourModuloId &&
@@ -514,6 +539,18 @@ export default function App() {
     setSistemaGeoFiltros((f) => ({ ...f, subprefeituras: toggleSubSelecionada(f.subprefeituras, sigla) }))
   }
 
+  // ── Multas (A4): cruzamento em memória com Sistema Geo/Fiscalização ──
+  // Só é completo quando as duas bases já carregaram — enquanto isso, a UI
+  // mostra um aviso de "cruzamento parcial" (o cálculo roda do mesmo jeito,
+  // com os dados que já chegaram, e se atualiza sozinho quando terminarem).
+  const multasCruzadas = useMemo(
+    () => cruzarMultas(multasLinhas, sistemaGeoLinhas, todasLinhas),
+    [multasLinhas, sistemaGeoLinhas, todasLinhas]
+  )
+  const resumoMultas = useMemo(() => resumoVinculo(multasCruzadas), [multasCruzadas])
+  const totalInconsistenciasMultas = resumoMultas.processoInexistente + resumoMultas.semProcesso
+  const basesMultasCarregando = sistemaGeoCarregando || carregando
+
   const isAdmin = profile?.role === 'admin'
 
   // ── Permissões derivadas (sem permissão → elemento some da interface) ──
@@ -530,9 +567,11 @@ export default function App() {
   const temCruzamento = isAdmin || abasGeo.includes(4)
   const temEmerg = permissoes?.has('emerg.ver') ?? false
   const temRelatorio = permissoes?.has('relatorio.ver') ?? false
+  const temMultas = permissoes?.has('multas.ver') ?? false
   const podeExportarFisc = permissoes?.has('fisc.exportar') ?? false
   const podeExportarGeo = permissoes?.has('geo.exportar') ?? false
   const podeUploadEmerg = permissoes?.has('emerg.upload') ?? false
+  const podeAtualizarMultas = permissoes?.has('multas.atualizar') ?? false
 
   // ── Handlers ─────────────────────────────────────────────────────
   function handleLogin(sess) {
@@ -553,9 +592,11 @@ export default function App() {
     setMostrarHome(true)
     setMostrarEmergencias(false)
     setMostrarRelatorio(false)
+    setMostrarMultas(false)
     setFiltros(FILTROS_VAZIOS)
     resetSistemaGeo()
     setSistemaGeoFiltros(FILTROS_GEO_VAZIOS)
+    resetMultas()
   }
 
   function handleSecaoChange(secao) {
@@ -566,6 +607,7 @@ export default function App() {
     setMostrarHome(false)
     setMostrarEmergencias(false)
     setMostrarRelatorio(false)
+    setMostrarMultas(false)
     window.scrollTo(0, 0)
   }
 
@@ -573,6 +615,7 @@ export default function App() {
     setMostrarHome(true)
     setMostrarEmergencias(false)
     setMostrarRelatorio(false)
+    setMostrarMultas(false)
     setPaginaAtiva(1)
     window.scrollTo(0, 0)
   }
@@ -582,6 +625,7 @@ export default function App() {
       setMostrarHome(false)
       setMostrarEmergencias(false)
       setMostrarRelatorio(false)
+      setMostrarMultas(false)
       setSecaoAtiva('sistemaGeo')
       setPaginaAtiva(4)
       window.scrollTo(0, 0)
@@ -591,6 +635,10 @@ export default function App() {
       handleAbrirRelatorio()
       return
     }
+    if (secao === 'multas') {
+      handleAbrirMultas()
+      return
+    }
     handleSecaoChange(secao)
   }
 
@@ -598,6 +646,7 @@ export default function App() {
     setMostrarHome(false)
     setMostrarEmergencias(false)
     setMostrarRelatorio(false)
+    setMostrarMultas(false)
     setPaginaAtiva(5)
     window.scrollTo(0, 0)
   }
@@ -606,6 +655,7 @@ export default function App() {
     setMostrarEmergencias(true)
     setMostrarHome(false)
     setMostrarRelatorio(false)
+    setMostrarMultas(false)
     window.scrollTo(0, 0)
   }
 
@@ -613,6 +663,15 @@ export default function App() {
     setMostrarRelatorio(true)
     setMostrarHome(false)
     setMostrarEmergencias(false)
+    setMostrarMultas(false)
+    window.scrollTo(0, 0)
+  }
+
+  function handleAbrirMultas() {
+    setMostrarMultas(true)
+    setMostrarHome(false)
+    setMostrarEmergencias(false)
+    setMostrarRelatorio(false)
     window.scrollTo(0, 0)
   }
 
@@ -621,10 +680,13 @@ export default function App() {
       handleAbrirEmergencias()
     } else if (moduleId === 'relatorio') {
       handleAbrirRelatorio()
+    } else if (moduleId === 'multas') {
+      handleAbrirMultas()
     } else if (moduleId === 'cruzamento') {
       setMostrarHome(false)
       setMostrarEmergencias(false)
       setMostrarRelatorio(false)
+      setMostrarMultas(false)
       setSecaoAtiva('sistemaGeo')
       setPaginaAtiva(4)
       window.scrollTo(0, 0)
@@ -642,9 +704,10 @@ export default function App() {
       if (temCruzamento) list.push({ id: 'cruzamento', label: 'Análise Integrada', icon: <IconMerge /> })
       if (temEmerg) list.push({ id: 'emergencias', label: 'Emergências', icon: <IconAlert /> })
       if (temRelatorio) list.push({ id: 'relatorio', label: 'Apresentação', icon: <IconSlides /> })
+      if (temMultas) list.push({ id: 'multas', label: 'Multas', icon: <IconTicket /> })
       return list
     },
-    [temGeo, temFisc, temCruzamento, temEmerg, temRelatorio]
+    [temGeo, temFisc, temCruzamento, temEmerg, temRelatorio, temMultas]
   )
 
   // Última atualização = max(data_inicio fisc, data_cadastro geo)
@@ -727,6 +790,7 @@ export default function App() {
           temGeo={temGeo}
           temCruzamento={temCruzamento}
           temRelatorio={temRelatorio}
+          temMultas={temMultas}
           onAbrirConfiguracoes={isAdmin ? handleAbrirConfiguracoes : undefined}
           onSignOut={handleSignOut}
           sistemaGeoCarregando={sistemaGeoCarregando}
@@ -899,6 +963,98 @@ export default function App() {
           todasFisc={todasLinhas}
           todasGeo={sistemaGeoLinhas}
           moduloAtivo={secaoAtiva}
+          mostrarFisc={false}
+          mostrarGeo={false}
+        />
+        <Rodape />
+      </div>
+    )
+  }
+
+  // ── Tela dedicada do módulo Multas (isolada do resto) ──────────────
+  if (mostrarMultas) {
+    return (
+      <div className="min-h-screen bg-grey-bg flex flex-col">
+        {sistemaGeoCarregando && <BarraProgresso {...geoProgresso} />}
+        {avisoAtualizacao}
+        {mostrarAlterarSenha && (
+          <AlterarSenhaModal
+            obrigatorio={!!profile?.primeiro_acesso}
+            onConcluido={() => {
+              setMostrarAlterarSenha(false)
+              setProfile((p) => (p ? { ...p, primeiro_acesso: false } : p))
+            }}
+            onFechar={
+              profile?.primeiro_acesso
+                ? undefined
+                : () => setMostrarAlterarSenha(false)
+            }
+          />
+        )}
+        {oferecerTourModulo && (
+          <ConviteTour
+            titulo="Conhecer o módulo Multas?"
+            texto="Primeira vez neste módulo — posso mostrar as abas, os KPIs e o botão de atualização, em menos de um minuto."
+            onAceitar={() => {
+              registrarTourVisto(tourModuloId, 'concluido')
+              iniciarTour(tourModuloId, permissoes)
+            }}
+            onRecusar={() => registrarTourVisto(tourModuloId, 'dispensado')}
+          />
+        )}
+        <Header
+          paginaAtiva={0}
+          onPagina={() => {}}
+          user={session?.user}
+          onSignOut={handleSignOut}
+          showAdmin={isAdmin}
+          secaoAtiva={secaoAtiva}
+          onHome={handleHome}
+          onIniciarTour={tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined}
+          onAlterarSenha={() => setMostrarAlterarSenha(true)}
+          abasPermitidas={[]}
+          modules={modules}
+          onSelectModule={handleSelectModule}
+          mostrarMultas={true}
+          abaMultasAtiva={abaMultas}
+          onAbaMultas={setAbaMultas}
+          totalInconsistenciasMultas={totalInconsistenciasMultas}
+          permissoes={permissoes}
+          abaAdminAtiva={0}
+          onAbaAdmin={() => {}}
+          onAbrirConfiguracoes={handleAbrirConfiguracoes}
+        />
+        <main className="flex-1 flex flex-col overflow-hidden">
+          <div className="px-4 sm:px-6 pt-3 shrink-0">
+            <TituloTela
+              titulo={labelDaAba(ABAS_MULTAS, abaMultas)}
+              corDe="#C00000"
+              corPara="#E23636"
+            />
+          </div>
+          <div className="flex-1 overflow-auto" data-tour="conteudo-modulo">
+            <ErrorBoundary modulo="Multas">
+              <Suspense fallback={<LoadingInline mensagem="Carregando Multas..." />}>
+                <PaginaMultas
+                  linhas={multasCruzadas}
+                  carregando={multasCarregando}
+                  basesCarregando={basesMultasCarregando}
+                  abaAtiva={abaMultas}
+                  podeVerInconsistencias={!permissoes || permissoes.has('multas.aba_inconsistencias')}
+                  podeVerBusca={!permissoes || permissoes.has('multas.aba_busca')}
+                  podeAtualizar={podeAtualizarMultas}
+                  onAtualizado={refetchMultas}
+                />
+              </Suspense>
+            </ErrorBoundary>
+          </div>
+        </main>
+        <ExportModal
+          rowsFisc={[]}
+          rowsGeo={[]}
+          todasFisc={[]}
+          todasGeo={[]}
+          moduloAtivo="multas"
           mostrarFisc={false}
           mostrarGeo={false}
         />

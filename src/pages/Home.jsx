@@ -1,6 +1,6 @@
 import { fmtNumero, fmtDataHora, fmtDataSP } from '../lib/aggregations.js'
 import { useState, useCallback } from 'react'
-import { NAVY, NAVY_LIGHT } from '../lib/cores.js'
+import { NAVY, NAVY_LIGHT, RED } from '../lib/cores.js'
 import BotaoTour from '../components/tour/BotaoTour.jsx'
 import Rodape from '../components/Rodape.jsx'
 
@@ -48,6 +48,15 @@ function IconSlides({ className = 'w-10 h-10' }) {
       <path d="M6 12h.01" />
       <path d="M12 16v3" />
       <path d="M8.5 21h7" />
+    </svg>
+  )
+}
+
+function IconTicket({ className = 'w-10 h-10' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z" />
+      <line x1="12" y1="6" x2="12" y2="18" strokeDasharray="2 2" />
     </svg>
   )
 }
@@ -190,6 +199,7 @@ export default function Home({
   temGeo = true,
   temCruzamento = false,
   temRelatorio = false,
+  temMultas = false,
   onAbrirConfiguracoes,
   onSignOut,
   onIniciarTour,
@@ -198,8 +208,8 @@ export default function Home({
   emgVencidas48h = 0,
   totalEmergencias = 0,
 }) {
-  const semModulos = !temFisc && !temGeo && !onAbrirEmergencias && !temCruzamento && !temRelatorio
-  const nModCards = [temGeo, temFisc, temCruzamento, temRelatorio].filter(Boolean).length
+  const semModulos = !temFisc && !temGeo && !onAbrirEmergencias && !temCruzamento && !temRelatorio && !temMultas
+  const nModCards = [temGeo, temFisc, temCruzamento, temRelatorio, temMultas].filter(Boolean).length
 
   const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0 })
   const handleMouseMove = useCallback((e) => {
@@ -302,7 +312,7 @@ export default function Home({
         )}
 
         {/* Cards dos módulos principais */}
-        {(temGeo || temFisc || temCruzamento || temRelatorio) && (
+        {(temGeo || temFisc || temCruzamento || temRelatorio || temMultas) && (
           <div className={`grid gap-6${nModCards >= 4 ? ' sm:grid-cols-2 lg:grid-cols-4' : nModCards === 3 ? ' sm:grid-cols-2 lg:grid-cols-3' : nModCards === 2 ? ' sm:grid-cols-2' : ''}`}>
             {temGeo && (
               <ModuleCard
@@ -359,6 +369,21 @@ export default function Home({
                 descricao="Prévia do relatório mensal em slides, espelhando a apresentação institucional, com download dos dados e da imagem de cada slide."
                 ultimaAtualizacao={dataGeo}
                 onClick={() => onNavigate('relatorio')}
+                carregando={sistemaGeoCarregando}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+              />
+            )}
+            {temMultas && (
+              <ModuleCard
+                gradientFrom={RED}
+                gradientTo="#E23636"
+                icon={<IconTicket />}
+                titulo="Multas"
+                dataTour="home-card-multas"
+                descricao="Multas de processo sincronizadas da planilha de controle, já cruzadas com Sistema Geo e Fiscalização — inconsistências de preenchimento em destaque."
+                ultimaAtualizacao={null}
+                onClick={() => onNavigate('multas')}
                 carregando={sistemaGeoCarregando}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}

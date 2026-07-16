@@ -6,6 +6,8 @@
 // fiscalizacoes.id_origem via normProc, em memória no front — a UI (A4)
 // ainda não existe, este módulo é a matéria-prima dela.
 import { normProc } from './emergencias.js'
+import { consolidarNorcrest } from './aggregations.js'
+import { RED } from './cores.js'
 
 export function buildProcessoSet(linhas, campo) {
   const s = new Set()
@@ -40,7 +42,22 @@ export function cruzarMultas(multasLinhas, sistemaGeoLinhas, fiscalizacaoLinhas)
   }))
 }
 
-const SITUACOES_VINCULO = ['vinculado_sistemaGeo', 'vinculado_fiscalizacao', 'sem_processo', 'processo_nao_encontrado']
+export const SITUACOES_VINCULO = ['vinculado_sistemaGeo', 'vinculado_fiscalizacao', 'sem_processo', 'processo_nao_encontrado']
+
+// Rótulos e cores amigáveis da situação de vínculo (badges, legendas, donut).
+export const SITUACAO_VINCULO_LABEL = {
+  vinculado_sistemaGeo: 'Vinculada (Sistema Geo)',
+  vinculado_fiscalizacao: 'Vinculada (Fiscalização)',
+  sem_processo: 'Sem processo',
+  processo_nao_encontrado: 'Processo inexistente',
+}
+
+export const SITUACAO_VINCULO_COR = {
+  vinculado_sistemaGeo: '#1F7A4D',
+  vinculado_fiscalizacao: '#3B82F6',
+  sem_processo: '#9CA3AF',
+  processo_nao_encontrado: RED,
+}
 
 // Agrupa multas já cruzadas (via cruzarMultas) por situação de vínculo.
 export function agruparPorVinculo(multasCruzadas) {
@@ -65,4 +82,70 @@ export function resumoVinculo(multasCruzadas) {
     processoInexistente: grupos.processo_nao_encontrado.length,
     semProcesso: grupos.sem_processo.length,
   }
+}
+
+// Distribuição por situação de vínculo pronta para o donut da Visão Geral
+// (A4) — só os baldes com pelo menos 1 multa, já com label/cor.
+export function agregaSituacaoVinculo(multasCruzadas) {
+  const grupos = agruparPorVinculo(multasCruzadas)
+  return SITUACOES_VINCULO.map((s) => ({
+    situacao: s,
+    nome: SITUACAO_VINCULO_LABEL[s],
+    cor: SITUACAO_VINCULO_COR[s],
+    qtd: grupos[s].length,
+  })).filter((g) => g.qtd > 0)
+}
+
+// ── Agregações para os gráficos/KPIs da Visão Geral (A4) ──────────────
+
+// Formata um valor numérico como moeda BRL ("R$ 1.234,56"). Aceita null/undefined.
+export function fmtValorBRL(valor) {
+  const n = Number(valor) || 0
+  return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
+// Soma o campo `valor` de uma lista de multas.
+export function valorTotalMultas(linhas) {
+  return (linhas || []).reduce((acc, m) => acc + (Number(m.valor) || 0), 0)
+}
+
+// Agrupa por permissionária (consolidando unidades NORCREST por padrão, mesma
+// régua usada nas demais telas do sistema), devolvendo [{ nome, total }]
+// ordenado do maior para o menor.
+export function agregaMultasPorPermissionaria(linhas, { consolidar = true } = {}) {
+  const m = new Map()
+  for (const r of linhas || []) {
+    const key = consolidar ? consolidarNorcrest(r.permissionaria) : r.permissionaria || '(sem permissionária)'
+    if (!key) continue
+    m.set(key, (m.get(key) || 0) + 1)
+  }
+  return Array.from(m.entries())
+    .map(([nome, total]) => ({ nome, total }))
+    .sort((a, b) => b.total - a.total)
+}
+
+// Agrupa por status da multa (LAVRADO / NÃO LAVRADO / PENDENTE / vazio).
+export function agregaMultasPorStatus(linhas) {
+  const m = new Map()
+  for (const r of linhas || []) {
+    const status = r.status || 'Sem status'
+    m.set(status, (m.get(status) || 0) + 1)
+  }
+  return Array.from(m.entries())
+    .map(([status, qtd]) => ({ status, qtd }))
+    .sort((a, b) => b.qtd - a.qtd)
+}
+
+// Agrupa por mês da infração (YYYY-MM), a partir de `data_infracao`. Linhas
+// sem data ficam de fora (mesmo padrão de `evolucaoMensal` de emergencias.js).
+export function agregaMultasPorMes(linhas) {
+  const m = new Map()
+  for (const r of linhas || []) {
+    if (!r.data_infracao) continue
+    const mes = String(r.data_infracao).slice(0, 7)
+    m.set(mes, (m.get(mes) || 0) + 1)
+  }
+  return Array.from(m.entries())
+    .map(([mes, qtd]) => ({ mes, qtd }))
+    .sort((a, b) => a.mes.localeCompare(b.mes))
 }

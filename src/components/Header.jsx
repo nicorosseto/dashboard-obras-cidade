@@ -91,6 +91,15 @@ function IconSlides() {
   )
 }
 
+function IconTicket() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+      <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z" />
+      <line x1="12" y1="6" x2="12" y2="18" strokeDasharray="2 2" />
+    </svg>
+  )
+}
+
 function IconSettings() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
@@ -101,8 +110,9 @@ function IconSettings() {
 }
 
 // Determina a configuração visual do módulo ativo
-function getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio) {
-  const cor = coresModulo(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio)
+function getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio, mostrarMultas) {
+  const cor = coresModulo(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio, mostrarMultas)
+  if (mostrarMultas) return { label: 'Multas', icon: <IconTicket />, ...cor }
   if (mostrarRelatorio) return { label: 'Apresentação', icon: <IconSlides />, ...cor }
   if (mostrarEmergencias) return { label: 'Emergências', icon: <IconAlert />, ...cor }
   if (paginaAtiva === 5) return { label: 'Configurações', icon: <IconSettings />, ...cor }
@@ -126,11 +136,15 @@ export default function Header({
   onSelectModule = () => {},
   mostrarEmergencias = false,
   mostrarRelatorio = false,
+  mostrarMultas = false,
   abaEmergAtiva = 'geral',
   onAbaEmerg = () => {},
   totalInformadasEmerg = 0,
   emgVencidas48h = 0,
   motivoPendentes = 0,
+  abaMultasAtiva = 'geral',
+  onAbaMultas = () => {},
+  totalInconsistenciasMultas = 0,
   abaAdminAtiva = 0,
   onAbaAdmin = () => {},
   onAbrirConfiguracoes = () => {},
@@ -148,9 +162,9 @@ export default function Header({
     if (onSignOut) onSignOut()
   }
 
-  const mod = getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio)
+  const mod = getModuleConfig(secaoAtiva, paginaAtiva, mostrarEmergencias, mostrarRelatorio, mostrarMultas)
   const accentGradient = `linear-gradient(to right, ${mod.from}, ${mod.to})`
-  const mostrarAbas = !mostrarEmergencias && !mostrarRelatorio && paginaAtiva !== 5
+  const mostrarAbas = !mostrarEmergencias && !mostrarRelatorio && !mostrarMultas && paginaAtiva !== 5
   const mostrarAbasAdmin = paginaAtiva === 5
   const mostrarAbasCruzamento = mostrarAbas && secaoAtiva === 'sistemaGeo' && paginaAtiva === 4
   const mostrarAbasNormal = mostrarAbas && !mostrarAbasCruzamento
@@ -204,7 +218,7 @@ export default function Header({
           <div className="shrink-0" data-tour="header-modulos">
             <ModuleDropdown
               modules={modules}
-              activeModuleId={mostrarRelatorio ? 'relatorio' : mostrarEmergencias ? 'emergencias' : secaoAtiva}
+              activeModuleId={mostrarMultas ? 'multas' : mostrarRelatorio ? 'relatorio' : mostrarEmergencias ? 'emergencias' : secaoAtiva}
               onSelect={onSelectModule}
               showAdmin={showAdmin}
               onAdmin={onAbrirConfiguracoes}
@@ -344,6 +358,41 @@ export default function Header({
                   </span>
                 )}
                 {abaEmergAtiva === a.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(to right, ${mod.from}, ${mod.to})` }} />
+                )}
+              </button>
+            ))}
+          </nav>
+        )}
+        {mostrarMultas && (
+          <nav className="flex items-center gap-4" data-tour="header-abas">
+            {[
+              { id: 'geral', label: 'Visão Geral', icon: '👁️' },
+              ...(!permissoes || permissoes.has('multas.aba_inconsistencias')
+                ? [{ id: 'inconsistencias', label: 'Inconsistências', icon: '⚠️', badge: totalInconsistenciasMultas }]
+                : []),
+              ...(!permissoes || permissoes.has('multas.aba_busca')
+                ? [{ id: 'busca', label: 'Busca/Lista', icon: '🔍' }]
+                : []),
+            ].map((a) => (
+              <button
+                key={a.id}
+                onClick={() => onAbaMultas(a.id)}
+                title={a.label}
+                aria-label={a.label}
+                aria-current={abaMultasAtiva === a.id ? 'page' : undefined}
+                className={`flex items-center gap-1.5 text-sm py-2 transition-all relative ${
+                  abaMultasAtiva === a.id ? 'text-white font-bold' : 'text-white/70 font-semibold hover:text-white'
+                }`}
+              >
+                <span className="text-lg">{a.icon}</span>
+                <span className="hidden sm:inline">{a.label}</span>
+                {a.badge > 0 && (
+                  <span className="bg-red text-white text-[10px] font-bold leading-none px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                    {a.badge > 99 ? '99+' : a.badge}
+                  </span>
+                )}
+                {abaMultasAtiva === a.id && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(to right, ${mod.from}, ${mod.to})` }} />
                 )}
               </button>

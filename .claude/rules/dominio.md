@@ -66,7 +66,9 @@
   4. Se for uma aba com permissão própria (não só acesso ao módulo), adicionar
      ao `PERMISSAO_POR_ABA` ou ao array de abas do módulo (ex.: `ABAS_CRUZAMENTO`).
   5. **⚠️ OBRIGATÓRIO (24/06/2026):** Adicionar o código e a descrição amigável
-     da nova permissão ao mapa `PERM_DESCRICAO` em `src/components/AdminPanel.jsx`.
+     da nova permissão ao mapa `PERM_DESCRICAO` em `src/components/admin/AbaPerfis.jsx`
+     (o mapa morava em `AdminPanel.jsx` antes do split do painel admin — corrigido
+     aqui em 16/07/2026, achado do A4).
      Esse mapa alimenta a **legenda expansível** que o admin vê ao editar um perfil
      ("ℹ️ O que cada permissão libera?"). Sem isso, a nova permissão aparece no
      formulário sem explicação — o admin não sabe o que está marcando.
@@ -649,6 +651,26 @@
     (PptxGenJS, gráficos nativos editáveis) e PDF, ambos com seleção de slides; Fase
     C: editor de modelos persistindo em `relatorio_modelos` (tabela já criada).
 
+- **Módulo "Multas" (Trilha A, A4 — 16/07/2026):** módulo de topo (padrão
+  Emergências/Apresentação: boolean `mostrarMultas` no `App.jsx`), cor
+  **vermelho institucional** (`RED` + `RED_LIGHT #E23636` em `coresModulo.js`),
+  permissões `multas.ver` / `multas.aba_inconsistencias` / `multas.aba_busca` /
+  `multas.atualizar` (SQL `22-multas-ui.sql`; `multas.atualizar` fora dos perfis
+  seed, como `emerg.upload`). **READ-ONLY**: dados vêm da Edge Function
+  `sync-multas` (A1/A2) — a correção é feita NA PLANILHA, nunca no dashboard.
+  Carga: `useCargaMultas` (`src/hooks/`, sem cache IndexedDB — ~8,2k linhas,
+  sempre busca fresco; expõe `reset()` e `refetch()`). Cruzamento com
+  Sistema Geo/Fiscalização **em memória** no `App.jsx` (`cruzarMultas` de
+  `src/lib/multas.js`, via `normProc`); enquanto as bases carregam, a tela
+  mostra banner âmbar "cruzamento parcial" (o memo recalcula sozinho ao
+  terminar). 3 abas (`ABAS_MULTAS` em `abasPaginas.js`): Visão Geral (KPIs +
+  4 gráficos), Inconsistências (sem processo / processo inexistente, badge
+  com o total no Header) e Busca/Lista (padrão "listar só por ação
+  explícita"). Botão **"Atualizar agora"** (`multas.atualizar`) chama
+  `supabase.functions.invoke('sync-multas', { body: { force: true } })` e
+  refaz o fetch no sucesso; pop-up de resultado com botão "Ok". UI em
+  `src/components/tabs/multas/`; lógica pura + agregações em
+  `src/lib/multas.js` (testes em `src/tests/multas.test.js`).
 - **Tour guiado (onboarding interativo — PR 1 em 08/07/2026, #273):** tours passo
   a passo com a biblioteca **driver.js** (~6 kB gzip, lazy — só carrega quando um
   tour dispara; zero custo no boot). Arquitetura: `src/lib/tourRegistro.js`

@@ -14,7 +14,7 @@ import { ABAS_CRUZAMENTO } from '../lib/abasCruzamento.js'
 // Áreas que devem ter tour — plano completo (PRs 1–4).
 const COBERTURA_EXIGIDA = [
   'home', 'sistemaGeo', 'fiscalizacao', 'cruzamento', 'emergencias',
-  'relatorio', 'configuracoes',
+  'relatorio', 'configuracoes', 'multas',
 ]
 
 // Abas de PERMISSAO_POR_ABA que NÃO exigem mini-tour próprio, com o motivo.
@@ -34,6 +34,10 @@ const ABAS_EMERGENCIAS = [
 // Abas do módulo Configurações (id espelha o array numérico do Header.jsx,
 // bloco mostrarAbasAdmin). 0 (Usuários) é a aba inicial, sem mini-tour próprio.
 const ABAS_CONFIGURACOES = [1, 2, 3]
+
+// Abas do módulo Multas (id espelha o bloco mostrarMultas do Header.jsx).
+// 'geral' fica de fora: é a aba inicial, coberta pelo tour de entrada.
+const ABAS_MULTAS = ['inconsistencias', 'busca']
 
 describe('cobertura dos tours', () => {
   it.each(COBERTURA_EXIGIDA)('a área "%s" tem tour registrado', (id) => {
@@ -76,6 +80,15 @@ describe('cobertura dos tours', () => {
   // 🔒 Trava: toda aba de Configurações (exceto a inicial) precisa de mini-tour.
   for (const abaId of ABAS_CONFIGURACOES) {
     const tourId = `configuracoes.${abaId}`
+    it(`a aba ${tourId} tem mini-tour registrado`, () => {
+      expect(TOURS[tourId], `falta tour para a aba ${tourId}`).toBeDefined()
+      expect(TOURS[tourId].passos.length).toBeGreaterThan(0)
+    })
+  }
+
+  // 🔒 Trava: toda aba de Multas (exceto a inicial) precisa de mini-tour.
+  for (const abaId of ABAS_MULTAS) {
+    const tourId = `multas.${abaId}`
     it(`a aba ${tourId} tem mini-tour registrado`, () => {
       expect(TOURS[tourId], `falta tour para a aba ${tourId}`).toBeDefined()
       expect(TOURS[tourId].passos.length).toBeGreaterThan(0)
