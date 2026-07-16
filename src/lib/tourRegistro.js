@@ -47,6 +47,11 @@ import {
   TOUR_CONFIGURACOES_ATUALIZAR,
   TOUR_CONFIGURACOES_LOGS,
 } from './toursConteudo/tourConfiguracoes.js'
+import {
+  TOUR_MULTAS,
+  TOUR_MULTAS_INCONSISTENCIAS,
+  TOUR_MULTAS_BUSCA,
+} from './toursConteudo/tourMultas.js'
 
 export const TOURS = {
   home: TOUR_HOME,
@@ -75,6 +80,9 @@ export const TOURS = {
   'emergencias.motivo_invalido': TOUR_EMERGENCIAS_MOTIVO_INVALIDO,
   'emergencias.historico': TOUR_EMERGENCIAS_HISTORICO,
   relatorio: TOUR_RELATORIO,
+  multas: TOUR_MULTAS,
+  'multas.inconsistencias': TOUR_MULTAS_INCONSISTENCIAS,
+  'multas.busca': TOUR_MULTAS_BUSCA,
   configuracoes: TOUR_CONFIGURACOES,
   'configuracoes.1': TOUR_CONFIGURACOES_PERFIS,
   'configuracoes.2': TOUR_CONFIGURACOES_ATUALIZAR,

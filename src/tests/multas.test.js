@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest'
-import { buildProcessoSet, situacaoVinculoDe, cruzarMultas, agruparPorVinculo, resumoVinculo } from '../lib/multas.js'
+import {
+  buildProcessoSet,
+  situacaoVinculoDe,
+  cruzarMultas,
+  agruparPorVinculo,
+  resumoVinculo,
+  agregaSituacaoVinculo,
+  fmtValorBRL,
+  valorTotalMultas,
+  agregaMultasPorPermissionaria,
+  agregaMultasPorStatus,
+  agregaMultasPorMes,
+} from '../lib/multas.js'
 
 // ── buildProcessoSet ───────────────────────────────────────────────────
 describe('buildProcessoSet', () => {
@@ -122,5 +134,99 @@ describe('agruparPorVinculo e resumoVinculo', () => {
       processoInexistente: 0,
       semProcesso: 0,
     })
+  })
+
+  it('agregaSituacaoVinculo devolve só os baldes com multas, com label/cor', () => {
+    const r = agregaSituacaoVinculo(cruzadas)
+    expect(r).toHaveLength(4)
+    const geo = r.find((g) => g.situacao === 'vinculado_sistemaGeo')
+    expect(geo).toMatchObject({ nome: 'Vinculada (Sistema Geo)', qtd: 2 })
+    expect(geo.cor).toBeTruthy()
+  })
+
+  it('agregaSituacaoVinculo omite baldes vazios', () => {
+    const r = agregaSituacaoVinculo(cruzarMultas([{ id: 1, num_processo_normalizado: '123' }], [{ processo: '123' }], []))
+    expect(r).toEqual([{ situacao: 'vinculado_sistemaGeo', nome: 'Vinculada (Sistema Geo)', cor: expect.any(String), qtd: 1 }])
+  })
+})
+
+// ── fmtValorBRL / valorTotalMultas ────────────────────────────────────────
+describe('fmtValorBRL', () => {
+  it('formata número como moeda BRL', () => {
+    expect(fmtValorBRL(1234.56)).toBe('R$\xa01.234,56')
+  })
+
+  it('trata null/undefined como zero', () => {
+    expect(fmtValorBRL(null)).toBe('R$\xa00,00')
+    expect(fmtValorBRL(undefined)).toBe('R$\xa00,00')
+  })
+})
+
+describe('valorTotalMultas', () => {
+  it('soma o campo valor das linhas', () => {
+    expect(valorTotalMultas([{ valor: 100 }, { valor: 50.5 }, { valor: null }])).toBe(150.5)
+  })
+
+  it('lida com lista vazia/nula', () => {
+    expect(valorTotalMultas([])).toBe(0)
+    expect(valorTotalMultas(null)).toBe(0)
+  })
+})
+
+// ── agregaMultasPorPermissionaria ──────────────────────────────────────────
+describe('agregaMultasPorPermissionaria', () => {
+  it('consolida unidades NORCREST por padrão e ordena decrescente', () => {
+    const linhas = [
+      { permissionaria: 'NORCREST/NCRS' },
+      { permissionaria: 'NORCREST/NCJL' },
+      { permissionaria: 'HARGROVE' },
+    ]
+    const r = agregaMultasPorPermissionaria(linhas)
+    expect(r[0]).toMatchObject({ nome: 'NORCREST', total: 2 })
+    expect(r[1]).toMatchObject({ nome: 'HARGROVE', total: 1 })
+  })
+
+  it('sem consolidar, mantém as unidades separadas', () => {
+    const linhas = [{ permissionaria: 'NORCREST/NCRS' }, { permissionaria: 'NORCREST/NCJL' }]
+    const r = agregaMultasPorPermissionaria(linhas, { consolidar: false })
+    expect(r).toHaveLength(2)
+  })
+
+  it('ignora linhas sem permissionária', () => {
+    expect(agregaMultasPorPermissionaria([{ permissionaria: '' }, { permissionaria: null }])).toEqual([])
+  })
+})
+
+// ── agregaMultasPorStatus ──────────────────────────────────────────────────
+describe('agregaMultasPorStatus', () => {
+  it('agrupa e ordena por quantidade decrescente', () => {
+    const linhas = [{ status: 'LAVRADO' }, { status: 'LAVRADO' }, { status: 'PENDENTE' }]
+    expect(agregaMultasPorStatus(linhas)).toEqual([
+      { status: 'LAVRADO', qtd: 2 },
+      { status: 'PENDENTE', qtd: 1 },
+    ])
+  })
+
+  it('linhas sem status caem em "Sem status"', () => {
+    expect(agregaMultasPorStatus([{ status: null }])).toEqual([{ status: 'Sem status', qtd: 1 }])
+  })
+})
+
+// ── agregaMultasPorMes ──────────────────────────────────────────────────────
+describe('agregaMultasPorMes', () => {
+  it('agrupa por YYYY-MM e ordena cronologicamente', () => {
+    const linhas = [
+      { data_infracao: '2024-03-15' },
+      { data_infracao: '2024-01-02' },
+      { data_infracao: '2024-01-20' },
+    ]
+    expect(agregaMultasPorMes(linhas)).toEqual([
+      { mes: '2024-01', qtd: 2 },
+      { mes: '2024-03', qtd: 1 },
+    ])
+  })
+
+  it('ignora linhas sem data', () => {
+    expect(agregaMultasPorMes([{ data_infracao: null }, {}])).toEqual([])
   })
 })
