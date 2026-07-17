@@ -225,8 +225,12 @@ function ModuleRow({
       }`}
     >
       <span className="w-1 shrink-0" style={{ background: accent }} />
-      <div className="flex-1 flex flex-col md:flex-row md:items-center gap-3 md:gap-5 py-4 px-5">
-        <div className="flex items-center gap-3 md:w-60 shrink-0">
+      {/* grid (não flex) para as 4 "colunas" ficarem alinhadas entre TODAS as
+          linhas — largura fixa por coluna, em vez de acompanhar o conteúdo
+          de cada módulo (o que fazia "Atualizado em" colidir com "Acessar"
+          quando a data quebrava linha). Achado de 16/07/2026. */}
+      <div className="flex-1 flex flex-col gap-3 py-4 px-5 md:grid md:grid-cols-[240px_1fr_190px_100px] md:items-center md:gap-5">
+        <div className="flex items-center gap-3 min-w-0">
           <div
             className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 text-white"
             style={{ background: accent }}
@@ -243,7 +247,7 @@ function ModuleRow({
           </div>
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0">
           <p className="text-gray-500 text-[13px] leading-snug">{descricao}</p>
           {badges?.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-1.5">
@@ -259,14 +263,17 @@ function ModuleRow({
           )}
         </div>
 
-        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-2 md:gap-1.5 shrink-0 md:w-32">
+        <div className="md:justify-self-end">
           {ultimaAtualizacao && (
-            <span className="flex items-center gap-1 text-[11px] text-gray-400">
-              <IconClock className="w-3 h-3" /> Atualizado em{' '}
+            <span className="flex items-center gap-1 text-[11px] text-gray-400 whitespace-nowrap">
+              <IconClock className="w-3 h-3 shrink-0" /> Atualizado em{' '}
               {ultimaAtualizacao}
             </span>
           )}
-          <span className="flex items-center gap-1 text-navy/70 text-xs font-semibold group-hover:text-navy transition-colors">
+        </div>
+
+        <div className="md:justify-self-end">
+          <span className="flex items-center gap-1 text-navy/70 text-xs font-semibold whitespace-nowrap group-hover:text-navy transition-colors">
             Acessar
             <span className="transition-transform duration-200 group-hover:translate-x-1">
               <IconArrow className="w-3.5 h-3.5" />
