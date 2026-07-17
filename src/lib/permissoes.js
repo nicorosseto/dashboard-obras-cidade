@@ -32,6 +32,10 @@ export const TODAS_PERMISSOES = [
   'emerg.aba_prazo48h',
   'emerg.aba_motivo_invalido',
   'relatorio.ver',
+  'multas.ver',
+  'multas.aba_inconsistencias',
+  'multas.aba_busca',
+  'multas.atualizar',
 ]
 
 // Permissão exigida por cada aba (id usado em paginaAtiva) de cada seção.

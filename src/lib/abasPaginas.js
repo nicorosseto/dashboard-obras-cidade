@@ -33,6 +33,11 @@ export const ABAS_EMERG = [
   { id: 'historico', label: 'Histórico', icon: '🕑' },
 ]
 
+export const ABAS_MULTAS = [
+  { id: 'geral', label: 'Visão Geral', icon: '👁️' },
+  { id: 'busca', label: 'Lista', icon: '🔍' },
+]
+
 export function labelDaAba(lista, id) {
   return lista.find((a) => a.id === id)?.label ?? ''
 }

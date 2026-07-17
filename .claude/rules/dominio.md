@@ -66,7 +66,9 @@
   4. Se for uma aba com permissão própria (não só acesso ao módulo), adicionar
      ao `PERMISSAO_POR_ABA` ou ao array de abas do módulo (ex.: `ABAS_CRUZAMENTO`).
   5. **⚠️ OBRIGATÓRIO (24/06/2026):** Adicionar o código e a descrição amigável
-     da nova permissão ao mapa `PERM_DESCRICAO` em `src/components/AdminPanel.jsx`.
+     da nova permissão ao mapa `PERM_DESCRICAO` em `src/components/admin/AbaPerfis.jsx`
+     (o mapa morava em `AdminPanel.jsx` antes do split do painel admin — corrigido
+     aqui em 16/07/2026, achado do A4).
      Esse mapa alimenta a **legenda expansível** que o admin vê ao editar um perfil
      ("ℹ️ O que cada permissão libera?"). Sem isso, a nova permissão aparece no
      formulário sem explicação — o admin não sabe o que está marcando.
@@ -649,6 +651,89 @@
     (PptxGenJS, gráficos nativos editáveis) e PDF, ambos com seleção de slides; Fase
     C: editor de modelos persistindo em `relatorio_modelos` (tabela já criada).
 
+- **Módulo "Multas" (Trilha A, A4 — 16/07/2026):** módulo de topo (padrão
+  Emergências/Apresentação: boolean `mostrarMultas` no `App.jsx`), cor
+  **vermelho institucional** (`RED` + `RED_LIGHT #E23636` em `coresModulo.js`),
+  permissões `multas.ver` / `multas.aba_inconsistencias` / `multas.aba_busca` /
+  `multas.atualizar` (SQL `22-multas-ui.sql`; `multas.atualizar` fora dos perfis
+  seed, como `emerg.upload`). **READ-ONLY**: dados vêm da Edge Function
+  `sync-multas` (A1/A2) — a correção é feita NA PLANILHA, nunca no dashboard.
+  Carga: `useCargaMultas` (`src/hooks/`, sem cache IndexedDB — ~8,2k linhas,
+  sempre busca fresco; expõe `reset()` e `refetch()`). Cruzamento com
+  Sistema Geo/Fiscalização **em memória** no `App.jsx` (`cruzarMultas` de
+  `src/lib/multas.js`, via `normProc`); enquanto as bases carregam, a tela
+  mostra banner âmbar "cruzamento parcial" (o memo recalcula sozinho ao
+  terminar). 2 abas (`ABAS_MULTAS` em `abasPaginas.js`): Visão Geral (KPIs +
+  gráficos) e Lista (padrão "listar só por ação explícita" — inclui a seção
+  auxiliar de Inconsistências, ver ampliação de 16/07/2026 abaixo). Botão
+  **"Atualizar agora"** (`multas.atualizar`) chama
+  `supabase.functions.invoke('sync-multas', { body: { force: true } })` e
+  refaz o fetch no sucesso; pop-up de resultado com botão "Ok". UI em
+  `src/components/tabs/multas/`; lógica pura + agregações em
+  `src/lib/multas.js` (testes em `src/tests/multas.test.js`).
+  ⚡ **Ampliação (16/07/2026, feedback da validação):** (1) **sidebar de
+  filtros própria** (`SidebarMultas.jsx`, padrão SidebarEmergencias):
+  Período da Infração, Permissionária (NORCREST consolidada), Status da Multa,
+  Situação do Vínculo e Subprefeitura — lógica pura em
+  `aplicarFiltrosMultas`/`FILTROS_VAZIOS_MULTAS` (`multas.js`), estado no
+  `App.jsx`; (2) **drill-down NORCREST por unidade** no gráfico de
+  permissionárias (quando todas as linhas filtradas são NORCREST, desagrega
+  por `normUnidadeNorcrest` de `relatorio.js`, paginado 8/página); (3)
+  **permissionária exibida = grafia do banco Sistema Geo** quando a multa está
+  vinculada (`_permissionaria_exibir` = `geo.permissionaria` ||
+  `multa.permissionaria`) — `cruzarMultas` usa `buildProcessoMap` (Map, não
+  Set) e enriquece também `_status_geo`/`_status_geo_nome`/`_status_fisc`;
+  (4) colunas **Status Sistema Geo** (tooltip com o status real) e **Status
+  Fiscalização** na Busca/Lista.
+  ⚠️ **CORS em Edge Function chamada pela UI (lição de 16/07/2026):** função
+  invocada DO NAVEGADOR precisa responder ao preflight OPTIONS com os
+  headers CORS — sem isso o front vê "Failed to send a request to the Edge
+  Function" (aconteceu com o "Atualizar agora"; pelo painel do Supabase
+  funciona, pois Invoke/cron não passam por CORS). Padrão: bloco
+  `CORS_HEADERS` + `if (req.method === 'OPTIONS')` no topo do
+  `Deno.serve` e `...CORS_HEADERS` em TODAS as Responses (ver
+  `sync-multas/index.ts`). Após mudar a função, é preciso REIMPLANTÁ-LA.
+  ⚡ **2ª rodada de ampliação (16/07/2026):** (1) **aba "Inconsistências"
+  deixou de existir no Header** — virou seção auxiliar/alternável
+  ("Verificar inconsistências", `data-tour="multas-toggle-inconsistencias"`)
+  DENTRO da aba **Lista** (ex-"Busca/Lista"; componente
+  `AbaMultasInconsistencias` reaproveitado sem mudança), porque o usuário
+  principal do sistema não corrige esses erros (vêm de outro departamento,
+  só OBRAS consulta) — é apenas conferência, não precisa de destaque no
+  menu. A permissão `multas.aba_inconsistencias` continua a mesma, só o
+  texto no catálogo mudou (SQL `23-multas-inconsistencias-nota.sql`); (2)
+  **KPIs/gráficos da Visão Geral excluem multas "sem processo"**
+  (`excluirSemProcesso` em `multas.js`) — não representam obra/processo
+  real a acompanhar; os 4 cards de vínculo (Vinculadas/Processo
+  Inexistente/Sem Processo/% Vinculadas) saíram da Visão Geral e ficaram
+  **exclusivamente** dentro da seção de Inconsistências; (3) donut
+  "Situação do Vínculo" removido da Visão Geral, substituído por um
+  gráfico de barras **"Multas por Subprefeitura"**
+  (`agregaMultasPorSubprefeitura`); (4) **layout da tela corrigido**: o
+  `TituloTela` estava fora da coluna de conteúdo (acima de toda a área,
+  "invadindo" a sidebar) — corrigido para o mesmo padrão do layout
+  principal (`Sidebar`/`SidebarSistemaGeo` em `App.jsx`): sidebar é o
+  primeiro item do `flex` da tela, `TituloTela` fica dentro da coluna de
+  conteúdo, ao lado dela. **Regra geral para telas com sidebar própria:**
+  nunca colocar o `TituloTela` num wrapper que englobe a sidebar — ele
+  pertence à coluna de conteúdo.
+- **Home — lista de módulos em linha, não grid (16/07/2026):** `Home.jsx` usa
+  um único componente `ModuleRow` para TODOS os módulos (Sistema Geo,
+  Fiscalização, Análise Integrada, Emergências, Apresentação, Multas) — o
+  antigo `ModuleCard` em grid + o card largo específico de Emergências foram
+  unificados. Motivo: o grid quebrava visualmente a cada módulo novo (card
+  órfão numa linha incompleta, breakpoints para recalcular); uma lista
+  vertical (`flex flex-col gap-3`) só cresce para baixo, sem esse problema.
+  A cor de cada módulo migrou do bloco colorido inteiro para uma faixa fina
+  (`accent`) + o ícone. **Regra para todo módulo novo:** adicionar um bloco
+  `<ModuleRow accent="..." icon={...} titulo="..." subtitulo="..."
+  descricao="..." dataTour="home-card-<slug>" .../>` na lista, na posição
+  desejada — nada de grid/colunas para recalcular. Subtítulos em frase normal
+  (só a inicial maiúscula, nomes próprios mantêm a grafia — ex.: "Fiscalização
+  × Sistema Geo"). ⚠️ **Não esquecer o passo do tour** (`tourHome.js`,
+  `[data-tour="home-card-<slug>"]`) — o Multas (A4, #318) ficou sem esse
+  passo por 3 sessões até ser notado aqui; sempre conferir junto com o
+  checklist de novo módulo do `dominio.md`.
 - **Tour guiado (onboarding interativo — PR 1 em 08/07/2026, #273):** tours passo
   a passo com a biblioteca **driver.js** (~6 kB gzip, lazy — só carrega quando um
   tour dispara; zero custo no boot). Arquitetura: `src/lib/tourRegistro.js`

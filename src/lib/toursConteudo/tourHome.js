@@ -44,13 +44,6 @@ export const TOUR_HOME = {
         'que está só em uma e onde há divergência de dados entre elas.',
     },
     {
-      alvo: '[data-tour="home-card-relatorio"]',
-      titulo: 'Módulo Apresentação',
-      texto:
-        'Prévia do relatório mensal em slides, no formato da apresentação ' +
-        'institucional — com download dos dados e da imagem de cada slide.',
-    },
-    {
       alvo: '[data-tour="home-card-emergencias"]',
       titulo: 'Módulo Emergências',
       permissao: 'emerg.ver',
@@ -58,6 +51,22 @@ export const TOUR_HOME = {
         'Monitora as obras de emergência comunicadas pelas permissionárias. O ' +
         'selo vermelho (quando aparece) indica emergências com o prazo de 48h ' +
         'vencido — as que merecem atenção primeiro.',
+    },
+    {
+      alvo: '[data-tour="home-card-relatorio"]',
+      titulo: 'Módulo Apresentação',
+      texto:
+        'Prévia do relatório mensal em slides, no formato da apresentação ' +
+        'institucional — com download dos dados e da imagem de cada slide.',
+    },
+    {
+      alvo: '[data-tour="home-card-multas"]',
+      titulo: 'Módulo Multas',
+      permissao: 'multas.ver',
+      texto:
+        'Multas de processo sincronizadas periodicamente da planilha de ' +
+        'controle, já cruzadas com o Sistema Geo e a Fiscalização — inclui uma ' +
+        'seção para conferir inconsistências de preenchimento da planilha.',
     },
     {
       alvo: '[data-tour="home-kpis"]',
