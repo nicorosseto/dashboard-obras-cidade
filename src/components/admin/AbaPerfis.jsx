@@ -8,25 +8,38 @@ import ThSort from '../ThSort.jsx'
 import { ModalConfirmacao, sortArr } from './shared.jsx'
 
 const MODULO_LABEL = {
-  fiscalizacao:      'Fiscalização',
-  sistemaGeo:          'Sistema Geo',
+  fiscalizacao: 'Fiscalização',
+  sistemaGeo: 'Sistema Geo',
   analise_integrada: 'Análise Integrada',
-  emergencias:       'Emergências',
+  emergencias: 'Emergências',
+  multas: 'Multas',
 }
 
 // O que cada código de permissão libera na interface (exibido na legenda do formulário)
 const PERM_DESCRICAO = {
-  'fisc.ver':               'Acessa o módulo de Fiscalização (todas as abas padrão)',
-  'fisc.aba_executoras':    'Aba "Executoras" no módulo Fiscalização',
-  'geo.ver':                'Acessa o módulo Sistema Geo (todas as abas padrão)',
-  'geo.aba_cruzamento':     'Aba "Análise Integrada" no módulo Sistema Geo',
-  'geo.aba_subprefeitura':  'Aba "Por Subprefeitura" no módulo Sistema Geo',
-  'emerg.ver':              'Acessa o módulo de Emergências',
-  'emerg.upload':           'Botão "Atualizar dados" no módulo Emergências (importar planilha)',
-  'emerg.aba_processo':     'Aba "Busca por Processo" no módulo Emergências',
-  'emerg.aba_prazo48h':     'Aba "Prazo 48h" no módulo Emergências (controle de SLA)',
-  'emerg.aba_motivo_invalido': 'Aba "Motivo Inválido" no módulo Emergências (emergências que são manutenção/expansão)',
-  'relatorio.ver':          'Acessa o módulo Apresentação (relatório mensal em slides, com download dos dados por slide)',
+  'fisc.ver': 'Acessa o módulo de Fiscalização (todas as abas padrão)',
+  'fisc.aba_executoras': 'Aba "Executoras" no módulo Fiscalização',
+  'geo.ver': 'Acessa o módulo Sistema Geo (todas as abas padrão)',
+  'geo.aba_cruzamento': 'Aba "Análise Integrada" no módulo Sistema Geo',
+  'geo.aba_subprefeitura': 'Aba "Por Subprefeitura" no módulo Sistema Geo',
+  'emerg.ver': 'Acessa o módulo de Emergências',
+  'emerg.upload':
+    'Botão "Atualizar dados" no módulo Emergências (importar planilha)',
+  'emerg.aba_processo': 'Aba "Busca por Processo" no módulo Emergências',
+  'emerg.aba_prazo48h':
+    'Aba "Prazo 48h" no módulo Emergências (controle de SLA)',
+  'emerg.aba_motivo_invalido':
+    'Aba "Motivo Inválido" no módulo Emergências (emergências que são manutenção/expansão)',
+  'relatorio.ver':
+    'Acessa o módulo Apresentação (relatório mensal em slides, com download dos dados por slide)',
+  'multas.ver':
+    'Acessa o módulo Multas (Visão Geral: KPIs e gráficos das multas sincronizadas da planilha)',
+  'multas.aba_inconsistencias':
+    'Seção "Verificar inconsistências" dentro da aba Lista do módulo Multas (multas sem processo ou com processo não encontrado — só conferência)',
+  'multas.aba_busca':
+    'Aba "Lista" no módulo Multas (busca por nº de processo ou auto da multa)',
+  'multas.atualizar':
+    'Botão "Atualizar agora" no módulo Multas (força a sincronização com a planilha)',
 }
 
 /* ------------------------------------------------------------------ */
@@ -99,9 +112,15 @@ export default function AbaPerfis() {
     carregar()
   }, [])
 
-  const MODULO_ORDEM = ['fiscalizacao', 'sistemaGeo', 'analise_integrada', 'emergencias']
+  const MODULO_ORDEM = [
+    'fiscalizacao',
+    'sistemaGeo',
+    'analise_integrada',
+    'emergencias',
+  ]
   const modulos = [...new Set(catalogo.map((c) => c.modulo))].sort(
-    (a, b) => (MODULO_ORDEM.indexOf(a) + 1 || 99) - (MODULO_ORDEM.indexOf(b) + 1 || 99)
+    (a, b) =>
+      (MODULO_ORDEM.indexOf(a) + 1 || 99) - (MODULO_ORDEM.indexOf(b) + 1 || 99)
   )
 
   const perfisOrdenados = useMemo(
@@ -324,9 +343,16 @@ export default function AbaPerfis() {
               </summary>
               <div className="px-3 pb-3 pt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                 {catalogo.map((c) => (
-                  <div key={c.codigo} className="flex gap-1.5 items-start text-[10px] text-gray-600">
-                    <span className="font-mono text-navy/70 shrink-0">{c.codigo}</span>
-                    <span>— {PERM_DESCRICAO[c.codigo] || c.descricao || c.nome}</span>
+                  <div
+                    key={c.codigo}
+                    className="flex gap-1.5 items-start text-[10px] text-gray-600"
+                  >
+                    <span className="font-mono text-navy/70 shrink-0">
+                      {c.codigo}
+                    </span>
+                    <span>
+                      — {PERM_DESCRICAO[c.codigo] || c.descricao || c.nome}
+                    </span>
                   </div>
                 ))}
               </div>

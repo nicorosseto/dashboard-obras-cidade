@@ -80,6 +80,7 @@ const LABEL_MODULO = {
   sistemaGeo: 'Sistema Geo',
   fiscalizacao: 'Fiscalização',
   relatorio: 'Apresentação',
+  multas: 'Multas',
 }
 
 const STORAGE_KEY = (modulo) => `obras_export_cols_${modulo}`
