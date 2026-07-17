@@ -717,6 +717,23 @@
   conteúdo, ao lado dela. **Regra geral para telas com sidebar própria:**
   nunca colocar o `TituloTela` num wrapper que englobe a sidebar — ele
   pertence à coluna de conteúdo.
+- **Home — lista de módulos em linha, não grid (16/07/2026):** `Home.jsx` usa
+  um único componente `ModuleRow` para TODOS os módulos (Sistema Geo,
+  Fiscalização, Análise Integrada, Emergências, Apresentação, Multas) — o
+  antigo `ModuleCard` em grid + o card largo específico de Emergências foram
+  unificados. Motivo: o grid quebrava visualmente a cada módulo novo (card
+  órfão numa linha incompleta, breakpoints para recalcular); uma lista
+  vertical (`flex flex-col gap-3`) só cresce para baixo, sem esse problema.
+  A cor de cada módulo migrou do bloco colorido inteiro para uma faixa fina
+  (`accent`) + o ícone. **Regra para todo módulo novo:** adicionar um bloco
+  `<ModuleRow accent="..." icon={...} titulo="..." subtitulo="..."
+  descricao="..." dataTour="home-card-<slug>" .../>` na lista, na posição
+  desejada — nada de grid/colunas para recalcular. Subtítulos em frase normal
+  (só a inicial maiúscula, nomes próprios mantêm a grafia — ex.: "Fiscalização
+  × Sistema Geo"). ⚠️ **Não esquecer o passo do tour** (`tourHome.js`,
+  `[data-tour="home-card-<slug>"]`) — o Multas (A4, #318) ficou sem esse
+  passo por 3 sessões até ser notado aqui; sempre conferir junto com o
+  checklist de novo módulo do `dominio.md`.
 - **Tour guiado (onboarding interativo — PR 1 em 08/07/2026, #273):** tours passo
   a passo com a biblioteca **driver.js** (~6 kB gzip, lazy — só carrega quando um
   tour dispara; zero custo no boot). Arquitetura: `src/lib/tourRegistro.js`

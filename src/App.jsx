@@ -990,7 +990,6 @@ export default function App() {
           sistemaGeoCarregando={sistemaGeoCarregando}
           geoProgresso={geoProgresso}
           emgVencidas48h={temEmerg ? emgVencidas48h : 0}
-          totalEmergencias={temEmerg ? emergLinhas.length : 0}
           onIniciarTour={() => iniciarTour('home', permissoes)}
         />
       </>
