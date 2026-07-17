@@ -734,6 +734,16 @@
   `[data-tour="home-card-<slug>"]`) — o Multas (A4, #318) ficou sem esse
   passo por 3 sessões até ser notado aqui; sempre conferir junto com o
   checklist de novo módulo do `dominio.md`.
+  ⚡ **Fix de alinhamento (16/07/2026, #323):** o `ModuleRow` usava `flex`
+  para as 4 áreas (identidade/descrição/atualizado/acessar) — sem largura
+  fixa, a data "Atualizado em" podia quebrar linha e colidir com o botão
+  "Acessar", e as colunas não ficavam alinhadas entre módulos diferentes.
+  Trocado para **CSS grid** com colunas de largura fixa a partir de `md:`
+  (`grid-cols-[240px_1fr_190px_100px]`) + `whitespace-nowrap` na data —
+  cada área vira uma "coluna" de verdade, igual numa tabela, alinhada em
+  todas as linhas. Regra geral: quando um layout precisa alinhar a mesma
+  informação em várias linhas/cards irmãos, preferir `grid` com colunas de
+  largura fixa a `flex` (que reflui conforme o conteúdo de cada linha).
 - **Tour guiado (onboarding interativo — PR 1 em 08/07/2026, #273):** tours passo
   a passo com a biblioteca **driver.js** (~6 kB gzip, lazy — só carrega quando um
   tour dispara; zero custo no boot). Arquitetura: `src/lib/tourRegistro.js`

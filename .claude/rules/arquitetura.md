@@ -84,6 +84,17 @@ printf 'VITE_SUPABASE_URL=https://exemplo-dummy.supabase.co\nVITE_SUPABASE_PUBLI
 build imprimir um chunk `index` minúsculo (~19 kB) e nenhum chunk `react`,
 faltou o `.env.local`.
 
+⚠️ **`npm run format` reformata o repositório INTEIRO, não só os arquivos
+tocados na tarefa (achado de 16/07/2026):** muitos arquivos antigos não
+seguem exatamente o estilo atual do Prettier (linhas longas sem quebra), e
+rodar `npm run format` sem escopo gera dezenas de diffs cosméticos em
+arquivos não relacionados à tarefa — poluindo a PR e arriscando conflito com
+outras branches em andamento. **Nunca rodar `npm run format` puro numa
+branch de trabalho.** Formatar só os arquivos que a tarefa de fato tocou:
+`npx prettier --write <arquivo1> <arquivo2> ...`. Se `npm run format` foi
+rodado por engano, `git diff --name-only` e reverter (`git checkout -- `)
+os arquivos fora do escopo antes de commitar.
+
 ## Hook de início de sessão (`.claude/hooks/session-start.sh`)
 
 Script que o Claude Code roda **sozinho no começo de cada sessão** (configurado em
