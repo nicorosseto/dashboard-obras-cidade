@@ -717,8 +717,12 @@
   conteúdo, ao lado dela. **Regra geral para telas com sidebar própria:**
   nunca colocar o `TituloTela` num wrapper que englobe a sidebar — ele
   pertence à coluna de conteúdo.
-- **Home — lista de módulos em linha, não grid (16/07/2026):** `Home.jsx` usa
-  um único componente `ModuleRow` para TODOS os módulos (Sistema Geo,
+- **Home — lista de módulos em linha, não grid (16/07/2026):** decisão
+  tomada com uma **prévia em HTML (Artifact)** antes de tocar em código —
+  comparou lado a lado o grid antigo × a proposta em lista, com o conteúdo
+  real dos 6 módulos; o usuário aprovou com pequenos ajustes de texto antes
+  da implementação (regra geral disso em `CLAUDE.md`, seção 2). `Home.jsx`
+  usa um único componente `ModuleRow` para TODOS os módulos (Sistema Geo,
   Fiscalização, Análise Integrada, Emergências, Apresentação, Multas) — o
   antigo `ModuleCard` em grid + o card largo específico de Emergências foram
   unificados. Motivo: o grid quebrava visualmente a cada módulo novo (card
