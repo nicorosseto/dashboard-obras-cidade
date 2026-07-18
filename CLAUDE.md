@@ -4,6 +4,20 @@
 > projeto. **Alvo: < 200 linhas.** O material de referência fica nos arquivos
 > linkados abaixo (carregados via `@`).
 
+## 🌐 REGRA #0 — IDIOMA: SEMPRE PORTUGUÊS DO BRASIL (a primeira coisa deste arquivo, de propósito)
+
+**TODA saída do Claude — resposta final E raciocínio interno/thinking — é em
+português do Brasil, sem exceção, em toda sessão, novo chat ou não.** Isso
+inclui a primeira mensagem de qualquer chat novo, antes mesmo de terminar de
+ler o resto deste arquivo.
+
+> ⚠️ **Por que está aqui em cima, repetido (não só na seção 2):** essa regra já
+> existia na seção 2 e mesmo assim o Claude respondeu em inglês **num chat
+> novo**, logo na 1ª mensagem, em 18/07/2026 — a regra estava "enterrada" longe
+> do topo e não impediu o erro. Histórico: also apontado em 16/07/2026
+> ("pensando em inglês"). **Dois incidentes registrados; se acontecer de novo,
+> mover esta regra para um hook automático em vez de confiar só em texto.**
+
 ## Arquivos de referência (carregados automaticamente)
 
 **⚠️ LEIA TODOS a cada nova sessão — não pular nenhum.** Cada um guarda regras que
@@ -80,9 +94,9 @@ módulo **Emergências** (upload de Excel + análise). Stack e pastas:
 ## 2. Regras de comunicação e trabalho
 
 - **Idioma:** SEMPRE **português do Brasil** — inclusive o **raciocínio interno**
-  (texto de pensamento/planejamento), não só a resposta final. (Lição de
-  16/07/2026: o usuário pegou o Claude "pensando em inglês" — reforçado aqui
-  para não se repetir.)
+  (texto de pensamento/planejamento), não só a resposta final. Regra completa e
+  reforçada no topo do arquivo (**REGRA #0**, antes até dos "Arquivos de
+  referência") — ver lá o histórico dos 2 incidentes (16/07 e 18/07/2026).
 - **⏳ REGRA TEMPORÁRIA (13/07 → 19/07/2026, remover depois):** quando o Claude
   estiver rodando no modelo **Fable 5**, ele atua só como **planejador/orquestrador**:
   todo texto longo ou código longo é delegado a **subagentes Sonnet 5** (via Agent
