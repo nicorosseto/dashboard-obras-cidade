@@ -97,12 +97,6 @@ módulo **Emergências** (upload de Excel + análise). Stack e pastas:
   (texto de pensamento/planejamento), não só a resposta final. Regra completa e
   reforçada no topo do arquivo (**REGRA #0**, antes até dos "Arquivos de
   referência") — ver lá o histórico dos 2 incidentes (16/07 e 18/07/2026).
-- **⏳ REGRA TEMPORÁRIA (13/07 → 19/07/2026, remover depois):** quando o Claude
-  estiver rodando no modelo **Fable 5**, ele atua só como **planejador/orquestrador**:
-  todo texto longo ou código longo é delegado a **subagentes Sonnet 5** (via Agent
-  tool, `model: "sonnet"`), e o Fable apenas revisa/integra o resultado. Edições
-  curtas e pontuais podem ser feitas diretamente. **Após 19/07/2026, apagar esta
-  regra** (pedido do usuário em 13/07/2026).
 - **⚠️ O usuário trabalha 100% pelo NAVEGADOR** (Claude Code web, GitHub, Vercel,
   Supabase) — **sem terminal local**. Portanto:
   - **NUNCA** pedir que ele rode comandos locais (`npm run dev`, `npm install`,
@@ -172,10 +166,13 @@ Objetivo: histórico limpo, legível e em pt-br (o público é o setor público 
      (NÃO squash — squash faria as branches divergirem e exigiria force-push).
   4. Espelhamento `main` → `homologacao` é **automático** (GitHub Action
      `.github/workflows/espelhar-main-homologacao.yml`) — Claude não roda nada.
-- **⚡ Atalho docs-only (24/06/2026):** PR só com docs (`docs/`, `.claude/`, `CLAUDE.md`,
-  `README`) — zero código/banco/interface — vai direto à **`main`** (nada a validar em
-  homologação). Merge "Squash and merge"; espelhamento automático. Misturou docs +
-  código → fluxo normal.
+- **⚡ Atalho docs-only (24/06/2026; ampliado 19/07/2026):** PR só com docs (`docs/`,
+  `.claude/`, `CLAUDE.md`, `README`) **ou** ferramental do espelhamento de portfólio
+  (`mirror/` — scripts/config de anonimização, sem código de app/banco/interface;
+  decisão do usuário em 19/07/2026, motivada pelas PRs #329–#335 que passaram pela
+  homologação sem ter nada a validar lá) — zero código/banco/interface do dashboard —
+  vai direto à **`main`** (nada a validar em homologação). Merge "Squash and merge";
+  espelhamento automático. Misturou docs/mirror + código do app → fluxo normal.
 - **Toda descrição de PR diz qual botão de merge usar e se apaga a branch** (o usuário
   segue o escrito): trabalho (`feat/`, `fix/`…) → **apagar**; promoção → **NUNCA apagar**
   (a head é a `homologacao`, de vida longa; apagá-la redireciona os PRs abertos para a
