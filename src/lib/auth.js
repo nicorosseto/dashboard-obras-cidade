@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { ehModoDemo, DEMO_PROFILE } from './demo.js'
 
 // Domínio fictício usado apenas para usuários internos (login por username).
 // Não há restrição de domínio no login: quem tem conta criada pelo admin entra.
@@ -40,6 +41,8 @@ export function garantirMarcaLogin() {
 }
 
 export function sessaoExpirada() {
+  // Modo demo: sessão do visitante nunca expira sozinha.
+  if (ehModoDemo()) return false
   const t = Number(localStorage.getItem(LOGIN_EM_KEY) || 0)
   if (!t) return false
   return Date.now() - t > SESSAO_MAX_HORAS * 60 * 60 * 1000
@@ -60,6 +63,8 @@ export async function signIn(input, password) {
 }
 
 export async function signOut(user) {
+  // Modo demo: não há sessão real no Supabase Auth para encerrar.
+  if (ehModoDemo()) return
   if (user) await logAccess(user, 'logout')
   const { error } = await supabase.auth.signOut()
   if (error) throw error
@@ -82,6 +87,7 @@ export async function getSession() {
 }
 
 export async function getProfile(userId) {
+  if (ehModoDemo()) return DEMO_PROFILE
   const { data } = await supabase
     .from('profiles')
     .select('*')
@@ -91,6 +97,7 @@ export async function getProfile(userId) {
 }
 
 export async function isAdmin(userId) {
+  if (ehModoDemo()) return false
   const profile = await getProfile(userId)
   // `ativo` só indica conclusão do 1º acesso, não bloqueio: admin é admin
   // mesmo com 1º acesso pendente.
