@@ -775,6 +775,63 @@
   entrada no 1º acesso ao módulo + mini-tours por aba no 1º clique, ids
   `<modulo>` / `<modulo>.<aba>`).
 
+- **Modo demo (portfólio público, decisão de 19/07/2026 — Opção B):** flag
+  `VITE_DEMO_MODE=true` faz o app rodar 100% estático, sem NENHUMA chamada ao
+  Supabase (nem Auth, nem tabelas) — usado no deploy Vercel do repo público
+  (mirror `dashboard-obras-cidade`), nunca em produção/homologação/dev normal.
+  Helper `ehModoDemo()` em `src/lib/demo.js` (lê a flag a cada chamada, não em
+  module-load — necessário para os testes simularem os dois cenários).
+  - **Login:** sem tela de Login — `App.jsx` seta uma `DEMO_SESSION` fake
+    ("Visitante (demo)") direto no primeiro `useEffect`, sem falar com
+    `supabase.auth`. `signOut`/`getProfile`/`isAdmin`/`sessaoExpirada`
+    (`auth.js`) têm bypass: `signOut` não faz nada (`handleSignOut` do
+    `App.jsx` mantém a sessão viva no modo demo — não bloqueia o portfólio
+    atrás de um login que não existe, "sair" só volta pra Home), `getProfile`
+    devolve `DEMO_PROFILE` (`role: 'visitante'`, nunca `'admin'` — o painel de
+    Configurações fica automaticamente inacessível), `sessaoExpirada` sempre
+    `false`.
+  - **Permissões:** `carregarPermissoes()` (`permissoes.js`) devolve
+    `permissoesDemo()` — TODAS as permissões de visualização do catálogo,
+    **exceto** `emerg.upload` e `multas.atualizar` (as únicas de escrita).
+    Não depende do parâmetro `isAdmin`.
+  - **Dados:** os hooks de carga (`useCargaFiscalizacao/SistemaGeo/Emergencias/
+    Multas`, `useAvisoAtualizacao`) têm um branch `if (ehModoDemo())` que troca
+    `fetchAll`/`versaoTabela`/`fetchDatasModulos` (Supabase) por
+    `demoFetchJSON(nome)` (`fetch` de `public/demo-data/<nome>.json`) — sem
+    cache IndexedDB (`lerCache`/`gravarCache` puladas) e sem polling
+    (`useAvisoAtualizacao` lê `meta.json` uma vez, não repete a cada 3 min).
+    Snapshots inexistentes (classificação de motivos) entram como array vazio
+    — sem erro no console.
+  - **Escrita desligada:** `salvarClassifMotivos` (`App.jsx`) é no-op no modo
+    demo. Tour guiado: `tour.js` usa um `Map` em memória
+    (`toursVistosDemo`) em vez da tabela `tour_visto` — o convite pode
+    reaparecer a cada F5 (aceitável: reforça que é uma demonstração).
+  - **Faixa visual:** `getAmbiente()` (`env.js`) devolve a faixa "🔍
+    DEMONSTRAÇÃO — DADOS FICTÍCIOS PARA PORTFÓLIO" (teal) **antes** de checar
+    `VITE_APP_ENV` — tem precedência sobre a faixa de homologação.
+  - **Dados sintéticos (Fase 1):** `scripts/gerar-dados-demo.mjs` gera
+    `public/demo-data/*.json` (sistemaGeo ~8k, fiscalizações ~5k, emergências
+    ~3k, posicionamento de obras ~2k, multas ~500, `meta.json`) com PRNG
+    determinístico (seed fixa — reproduzível), usando os **nomes reais** do
+    sistema (NORCREST com unidades, HARGROVE, WINSLOW, siglas de subprefeitura,
+    status reais do catálogo) — o script do mirror de portfólio
+    (`mirror/espelhar-portfolio.sh`) já sabe trocar esses nomes pelos
+    fictícios do repo público. Não é amostra real (exigiria acesso ao banco);
+    trocável no futuro regenerando os mesmos JSONs a partir de uma amostra
+    real anonimizada, sem mudar código do app.
+  - **⚠️ Deploy demo no Vercel — 3 variáveis, não 1:** além de
+    `VITE_DEMO_MODE=true`, o deploy da demo PRECISA de
+    `VITE_SUPABASE_URL`/`VITE_SUPABASE_PUBLISHABLE_KEY` com **valores dummy**
+    (ex.: `https://exemplo-dummy.supabase.co` / `chave-dummy`): o
+    `src/lib/supabase.js` lança erro no topo do módulo se elas faltarem e o
+    minificador elimina o app inteiro como código morto (mesmo fenômeno do
+    build local, ver `arquitetura.md`). O cliente Supabase criado com URL
+    dummy é inofensivo — no modo demo nenhuma chamada chega a ele.
+    ⚠️ Recíproca no ambiente local: o Vitest lê o `.env.local`; rodar
+    `npm test` com `VITE_DEMO_MODE=true` deixado lá (ex.: depois de um smoke
+    test do modo demo) derruba o teste "ehModoDemo() é false por padrão" —
+    remover a flag do `.env.local` antes de rodar a suíte.
+
 ## Glossário de domínio
 
 - **Permissionária:** empresa autorizada a operar em via pública (ex.: NORCREST).

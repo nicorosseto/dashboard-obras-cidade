@@ -23,7 +23,7 @@ export default [
 
   // Ajustes específicos do projeto
   {
-    files: ['**/*.{js,jsx}'],
+    files: ['**/*.{js,jsx,mjs}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

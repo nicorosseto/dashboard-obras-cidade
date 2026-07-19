@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchAll } from '../lib/supabase.js'
+import { ehModoDemo, demoFetchJSON } from '../lib/demo.js'
 
 // ── Carga Multas (A4) — módulo de topo "Multas" ───────────────────────
 // Gateada por `multas.ver` (mesmo padrão de useCargaEmergencias). Sem cache
@@ -15,7 +16,9 @@ export function useCargaMultas(session, permissoes) {
     // com erro ou re-render (mesma regra dos demais hooks de carga — ver
     // dominio.md, "Cards da Home travados em carregamento indefinido").
     try {
-      const linhas = await fetchAll('multas', '*', 1000)
+      const linhas = ehModoDemo()
+        ? await demoFetchJSON('multas')
+        : await fetchAll('multas', '*', 1000)
       setMultasLinhas(linhas)
     } catch (e) {
       console.error('Erro ao carregar multas:', e)
