@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchDatasModulos } from '../lib/supabase.js'
+import { ehModoDemo, demoFetchJSON } from '../lib/demo.js'
 
 const DATAS_VAZIAS = { sistemaGeo: null, fiscalizacoes: null, emergencias: null }
 const INTERVALO_POLLING_MS = 3 * 60 * 1000
@@ -20,33 +21,55 @@ export function useAvisoAtualizacao(session) {
 
   useEffect(() => {
     if (!session) return
+    // Modo demo: sem snapshots de upload — as datas vêm do meta.json estático.
+    if (ehModoDemo()) {
+      demoFetchJSON('meta')
+        .then((m) =>
+          setDatasModulos({
+            sistemaGeo: m.sistemaGeo ?? null,
+            fiscalizacoes: m.fiscalizacoes ?? null,
+            emergencias: m.emergencias ?? null,
+          })
+        )
+        .catch(() => {})
+      return
+    }
     atualizarDatasModulos().catch(() => {})
   }, [session])
 
   // Após upload do próprio usuário: re-fetch para que o polling não dispare
   // falso positivo ("dados de outro usuário") para quem acabou de importar.
+  // (Modo demo: não há upload, o evento nunca dispara — inofensivo manter.)
   useEffect(() => {
     function handleUploadConcluido() {
       atualizarDatasModulos().catch(() => {})
     }
     window.addEventListener('obras:upload-concluido', handleUploadConcluido)
-    return () => window.removeEventListener('obras:upload-concluido', handleUploadConcluido)
+    return () =>
+      window.removeEventListener(
+        'obras:upload-concluido',
+        handleUploadConcluido
+      )
   }, [])
 
   // Checa se outro usuário atualizou os dados enquanto este estava logado.
   // Compara uploaded_at atual do banco com o que foi carregado na sessão.
   // Não dispara durante uploads do próprio usuário (datasModulos é atualizado
   // pelo confirmarUpload → setDatasModulos, então o "novo" upstream === local).
+  // Modo demo: sem polling (dados estáticos, nunca mudam sozinhos).
   useEffect(() => {
-    if (!session) return
+    if (!session || ehModoDemo()) return
     const checar = async () => {
       try {
         const novo = await fetchDatasModulos()
         setDatasModulos((prev) => {
           const atualizados = []
-          if (novo.sistemaGeo && novo.sistemaGeo !== prev.sistemaGeo) atualizados.push('Sistema Geo')
-          if (novo.fiscalizacoes && novo.fiscalizacoes !== prev.fiscalizacoes) atualizados.push('Fiscalização')
-          if (novo.emergencias && novo.emergencias !== prev.emergencias) atualizados.push('Emergências')
+          if (novo.sistemaGeo && novo.sistemaGeo !== prev.sistemaGeo)
+            atualizados.push('Sistema Geo')
+          if (novo.fiscalizacoes && novo.fiscalizacoes !== prev.fiscalizacoes)
+            atualizados.push('Fiscalização')
+          if (novo.emergencias && novo.emergencias !== prev.emergencias)
+            atualizados.push('Emergências')
           if (atualizados.length > 0) setModulosAtualizados(atualizados)
           return prev // não altera datasModulos — mantém a referência local para comparar
         })

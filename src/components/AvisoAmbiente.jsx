@@ -1,4 +1,5 @@
 import { getAmbiente } from '../lib/env.js'
+import { ehModoDemo } from '../lib/demo.js'
 
 // Faixa fina no topo da tela avisando quando o app NÃO está em produção
 // (ambiente de teste/preview ou desenvolvimento local). Serve para você nunca
@@ -20,7 +21,10 @@ export default function AvisoAmbiente() {
         padding: '4px 8px',
       }}
     >
-      {ambiente.emoji} {ambiente.label} — você NÃO está no banco de produção
+      {ambiente.emoji} {ambiente.label}
+      {ehModoDemo()
+        ? ' — nenhum dado real, tudo gerado sinteticamente'
+        : ' — você NÃO está no banco de produção'}
     </div>
   )
 }

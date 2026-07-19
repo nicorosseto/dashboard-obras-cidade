@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { fetchAll, versaoTabela } from '../lib/supabase.js'
 import { lerCache, gravarCache } from '../lib/cache.js'
 import { abasPermitidas } from '../lib/permissoes.js'
+import { ehModoDemo, demoFetchJSON } from '../lib/demo.js'
 
 // Colunas do sistemaGeo usadas pelo dashboard (exclui 'etapa' e 'created_at').
 const GEO_COLS =
@@ -39,6 +40,17 @@ export function useCargaSistemaGeo(session, permissoes) {
       // effect re-disparava com a carga em voo, o ref bloqueava uma nova carga
       // e o spinner ficava preso para sempre (só o Shift+F5 resolvia).
       try {
+        // Modo demo: sem cache IndexedDB, lê direto do JSON estático.
+        if (ehModoDemo()) {
+          setSistemaGeoCarregando(true)
+          const linhas = await demoFetchJSON('sistemaGeo')
+          if (!cancelado) {
+            setSistemaGeoLinhas(linhas)
+            setGeoProgresso({ carregadas: linhas.length, total: linhas.length })
+          }
+          return
+        }
+
         const cache = await lerCache('sistemaGeo')
         if (cache?.linhas?.length && !cancelado) {
           setSistemaGeoLinhas(cache.linhas) // mostra na hora
@@ -53,8 +65,11 @@ export function useCargaSistemaGeo(session, permissoes) {
         const tinhaCache = !!cache?.linhas?.length
         if (!tinhaCache) setSistemaGeoCarregando(true)
 
-        const linhas = await fetchAll('sistemaGeo', GEO_COLS, 1000, (carregadas, total) =>
-          setGeoProgresso({ carregadas, total })
+        const linhas = await fetchAll(
+          'sistemaGeo',
+          GEO_COLS,
+          1000,
+          (carregadas, total) => setGeoProgresso({ carregadas, total })
         )
         if (cancelado) return
         setSistemaGeoLinhas(linhas)

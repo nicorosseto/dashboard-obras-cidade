@@ -12,13 +12,24 @@
 // nada (para não dar alarme falso no site real).
 
 import { NAVY } from './cores.js'
+import { ehModoDemo } from './demo.js'
 
 const appEnv = import.meta.env.VITE_APP_ENV
 
 export const IS_PRODUCTION = appEnv === 'production'
 
 // Retorna os dados do aviso visual, ou null quando não deve aparecer (produção).
+// A faixa de DEMO tem precedência sobre qualquer outra (homologação/dev):
+// é o deploy público de portfólio, sempre com dados fictícios.
 export function getAmbiente() {
+  if (ehModoDemo()) {
+    return {
+      label: 'DEMONSTRAÇÃO — DADOS FICTÍCIOS PARA PORTFÓLIO',
+      cor: '#0f766e',
+      emoji: '🔍',
+    }
+  }
+
   if (appEnv === 'production') return null
 
   if (appEnv === 'preview') {

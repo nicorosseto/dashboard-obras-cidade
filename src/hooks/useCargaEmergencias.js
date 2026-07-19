@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchAll, versaoTabela } from '../lib/supabase.js'
 import { lerCache, gravarCache } from '../lib/cache.js'
+import { ehModoDemo, demoFetchJSON } from '../lib/demo.js'
 
 // ── Carga Emergências (após login, junto com os demais módulos) ────
 // Carrega assim que as permissões chegam (não espera o usuário entrar no
@@ -12,7 +13,10 @@ export function useCargaEmergencias(session, permissoes) {
   const [motivoClassif, setMotivoClassif] = useState([])
   const [motivoOverrides, setMotivoOverrides] = useState([])
   const [emergCarregando, setEmergCarregando] = useState(true)
-  const [emergProgresso, setEmergProgresso] = useState({ carregadas: 0, total: 0 })
+  const [emergProgresso, setEmergProgresso] = useState({
+    carregadas: 0,
+    total: 0,
+  })
   const emergCarregadasRef = useRef(false)
 
   useEffect(() => {
@@ -32,6 +36,27 @@ export function useCargaEmergencias(session, permissoes) {
       // der erro. Antes o setEmergCarregando(false) ficava sob `if (!cancelado)`
       // e o ref-guard prendia a tela de Emergências em "Carregando" para sempre.
       try {
+        // Modo demo: sem cache, sem tabelas de classificação (não editáveis
+        // aqui) — lê emergências + posicionamento dos JSONs estáticos.
+        if (ehModoDemo()) {
+          setEmergCarregando(true)
+          const [linhas, obras] = await Promise.all([
+            demoFetchJSON('emergencias'),
+            demoFetchJSON('emergencias_obras'),
+          ])
+          if (!cancelado) {
+            setEmergLinhas(linhas)
+            setEmergProgresso({
+              carregadas: linhas.length,
+              total: linhas.length,
+            })
+            setEmergObras(obras)
+            setMotivoClassif([])
+            setMotivoOverrides([])
+          }
+          return
+        }
+
         const cache = await lerCache('emergencias')
         if (cache?.linhas?.length && !cancelado) setEmergLinhas(cache.linhas)
 
@@ -53,7 +78,11 @@ export function useCargaEmergencias(session, permissoes) {
         if (!cancelado) setEmergObras(obras)
 
         // Classificação dos motivos de natureza (válido/inválido por termo) + overrides.
-        const classif = await fetchAll('motivo_natureza_classificacao', '*', 1000)
+        const classif = await fetchAll(
+          'motivo_natureza_classificacao',
+          '*',
+          1000
+        )
         if (!cancelado) setMotivoClassif(classif)
         const overrides = await fetchAll('motivo_natureza_override', '*', 1000)
         if (!cancelado) setMotivoOverrides(overrides)

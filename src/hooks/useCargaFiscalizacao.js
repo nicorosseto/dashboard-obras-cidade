@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchAll } from '../lib/supabase.js'
 import { traduzErro } from '../lib/mensagens.js'
+import { ehModoDemo, demoFetchJSON } from '../lib/demo.js'
 
 // ── Carga OBRAS/Fiscalização (só após login) ───────────────────────
 export function useCargaFiscalizacao(session) {
@@ -14,7 +15,10 @@ export function useCargaFiscalizacao(session) {
     if (carregadasRef.current) return
     carregadasRef.current = true
     setCarregando(true)
-    fetchAll('vw_fiscalizacao_enriquecida')
+    const promessa = ehModoDemo()
+      ? demoFetchJSON('fiscalizacoes')
+      : fetchAll('vw_fiscalizacao_enriquecida')
+    promessa
       .then(setTodasLinhas)
       .catch((e) => setErro(traduzErro(e.message || String(e))))
       .finally(() => setCarregando(false))
