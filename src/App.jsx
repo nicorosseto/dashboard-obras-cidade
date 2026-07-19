@@ -44,6 +44,7 @@ import SidebarMultas from './components/tabs/multas/SidebarMultas.jsx'
 import { FILTROS_GEO_VAZIOS } from './lib/filtrosGeo.js'
 import { FILTROS_CRUZAMENTO_VAZIOS } from './lib/filtrosCruzamento.js'
 import { carregarPermissoes, abasPermitidas } from './lib/permissoes.js'
+import { ehModoDemo, DEMO_SESSION } from './lib/demo.js'
 import {
   agruparMotivos,
   resolverDefs,
@@ -321,6 +322,12 @@ export default function App() {
 
   // ── Autenticação ──────────────────────────────────────────────────
   useEffect(() => {
+    // Modo demo (portfólio público): nunca fala com o Supabase Auth — a
+    // sessão do "Visitante (demo)" é fixa, sem tela de login.
+    if (ehModoDemo()) {
+      setSession(DEMO_SESSION)
+      return
+    }
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session ?? null)
     })
@@ -626,6 +633,8 @@ export default function App() {
   )
 
   async function salvarClassifMotivos({ defs = [], overrides = [] }) {
+    // Modo demo: read-only, sem gravação no banco (não há banco).
+    if (ehModoDemo()) return
     const agora = new Date().toISOString()
     if (defs.length) {
       const payload = defs.map((c) => ({
@@ -749,14 +758,19 @@ export default function App() {
   }
 
   async function handleSignOut() {
-    try {
-      await signOut(session?.user)
-    } catch {
-      // ignora erros no logout
+    // Modo demo: não há tela de login para "cair" — sair só volta pra Home,
+    // mantendo a sessão fake do visitante (não faz sentido bloquear o
+    // portfólio público atrás de um login que não existe).
+    if (!ehModoDemo()) {
+      try {
+        await signOut(session?.user)
+      } catch {
+        // ignora erros no logout
+      }
+      setSession(null)
+      setProfile(null)
+      setPermissoes(null)
     }
-    setSession(null)
-    setProfile(null)
-    setPermissoes(null)
     resetFiscalizacao()
     setPaginaAtiva(1)
     setMostrarHome(true)
