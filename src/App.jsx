@@ -765,7 +765,13 @@ export default function App() {
   async function handleSignOut() {
     // Modo demo: não há tela de login para "cair" — sair só volta pra Home,
     // mantendo a sessão fake do visitante (não faz sentido bloquear o
-    // portfólio público atrás de um login que não existe).
+    // portfólio público atrás de um login que não existe). Por isso os
+    // reset() dos hooks de carga TAMBÉM ficam de fora: eles zeram os dados
+    // em memória, e no fluxo real isso é seguro porque `session` muda logo
+    // em seguida (login/logout real), o que já dispara a re-busca nos hooks
+    // (dependem de `session`/`permissoes`). No modo demo `session` nunca
+    // muda — reset() sem re-busca deixava a Home (e os módulos) travados em
+    // zero até um F5 (achado do usuário em produção — 20/07/2026).
     if (!ehModoDemo()) {
       try {
         await signOut(session?.user)
@@ -775,17 +781,17 @@ export default function App() {
       setSession(null)
       setProfile(null)
       setPermissoes(null)
+      resetFiscalizacao()
+      resetSistemaGeo()
+      resetMultas()
     }
-    resetFiscalizacao()
     setPaginaAtiva(1)
     setMostrarHome(true)
     setMostrarEmergencias(false)
     setMostrarRelatorio(false)
     setMostrarMultas(false)
     setFiltros(FILTROS_VAZIOS)
-    resetSistemaGeo()
     setSistemaGeoFiltros(FILTROS_GEO_VAZIOS)
-    resetMultas()
   }
 
   function handleSecaoChange(secao) {
