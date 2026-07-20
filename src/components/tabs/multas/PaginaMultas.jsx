@@ -1,9 +1,49 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../../lib/supabase.js'
 import { traduzErro } from '../../../lib/mensagens.js'
 import { LoadingConteudo } from '../../Loading.jsx'
 import AbaMultasGeral from './AbaMultasGeral.jsx'
 import AbaMultasBusca from './AbaMultasBusca.jsx'
+
+// Overlay de "Sincronizando…" — cobre só o conteúdo do módulo (mesmo padrão
+// `fixed inset-0 z-50` do ModalResultado abaixo, que já convive bem com o
+// Header por cima). Bloqueia clique no conteúdo; trocar de módulo continua
+// possível pelo Header (fora desta árvore) e interrompe a sincronização de
+// verdade — ver AbortController em handleAtualizarAgora/useEffect de cleanup.
+function OverlaySincronizando() {
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center">
+        <svg
+          className="w-10 h-10 mx-auto mb-3 animate-spin text-red"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-90"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
+        </svg>
+        <h3 className="text-sm font-bold text-navy uppercase tracking-wide mb-1">
+          Sincronizando…
+        </h3>
+        <p className="text-sm text-gray-600">
+          Buscando a planilha de multas mais recente. Isso pode levar alguns
+          segundos — trocar de módulo cancela a sincronização.
+        </p>
+      </div>
+    </div>
+  )
+}
 
 // Pop-up de resultado da sincronização — exige confirmação manual (regra do
 // dominio.md: nenhum pop-up fecha sozinho por timer).
@@ -70,12 +110,25 @@ export default function PaginaMultas({
 }) {
   const [sincronizando, setSincronizando] = useState(false)
   const [resultado, setResultado] = useState(null) // { titulo, mensagem, erro }
+  const abortRef = useRef(null)
+
+  // Trocar de módulo desmonta PaginaMultas de verdade (App.jsx faz `if
+  // (mostrarMultas) return (...)`, não esconde por CSS) — o cleanup abaixo
+  // roda nesse instante e cancela a requisição em voo de verdade (não só
+  // esconde o overlay), evitando gravação/gasto de rede para algo que o
+  // usuário já abandonou.
+  useEffect(() => {
+    return () => abortRef.current?.abort()
+  }, [])
 
   async function handleAtualizarAgora() {
     setSincronizando(true)
+    const controller = new AbortController()
+    abortRef.current = controller
     try {
       const { data, error } = await supabase.functions.invoke('sync-multas', {
         body: { force: true },
+        signal: controller.signal,
       })
       if (error) throw error
       await onAtualizado?.()
@@ -102,13 +155,22 @@ export default function PaginaMultas({
         erro: false,
       })
     } catch (e) {
+      // Abort deliberado (usuário trocou de módulo) — não é falha, não
+      // mostra popup de erro. Não dá pra checar e.name/message: o
+      // functions-js do supabase-js SEMPRE re-embrulha qualquer falha do
+      // fetch (rede, CORS, abort…) como FunctionsFetchError com a mesma
+      // mensagem genérica "Failed to send a request to the Edge Function"
+      // — inclusive a mensagem que apareceu em produção por causa do CORS
+      // (ver dominio.md). Só `controller.signal.aborted` distingue com
+      // certeza um abort deliberado de uma falha de verdade.
+      if (controller.signal.aborted) return
       setResultado({
         titulo: 'Falha na sincronização',
         mensagem: traduzErro(e?.message || String(e)),
         erro: true,
       })
     } finally {
-      setSincronizando(false)
+      if (!controller.signal.aborted) setSincronizando(false)
     }
   }
 
@@ -174,6 +236,8 @@ export default function PaginaMultas({
           </button>
         </div>
       )}
+
+      {sincronizando && <OverlaySincronizando />}
 
       {resultado && (
         <ModalResultado
