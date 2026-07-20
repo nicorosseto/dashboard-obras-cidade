@@ -130,6 +130,18 @@ módulo **Emergências** (upload de Excel + análise). Stack e pastas:
   rodar o checklist de `@.claude/rules/github.md` (seção "Checklist de docs") e avisar
   no chat o resultado: *"📝 Docs: progresso.md ✅ · diário ✅"* (ou abrir PR de docs se
   ficou pendente). O usuário **não precisa pedir** — é obrigatório a cada entrega.
+- **🪞 Perguntar sobre o mirror a cada melhoria/correção (regra de 20/07/2026,
+  OBRIGATÓRIA):** ao entregar QUALQUER PR de melhoria ou correção que mexa em
+  **código/interface** (não docs-only), **perguntar EXPLICITAMENTE ao usuário** se
+  essa mudança deve subir para o **mirror público** (`dashboard-obras-cidade`). Se a
+  resposta for sim: antes do sync, checar se a mudança introduz algum **nome/
+  identificador real novo** (permissionária, domínio, sigla, sistema, e-mail, ID de
+  infra…) que precise entrar em `mirror/replacements.txt`/`excluir.txt`; só então
+  rodar `mirror/espelhar-portfolio.sh` (validar sem `--push`) e depois
+  `--push --force-push`. **Nunca automático, sempre deliberado** — o sync do mirror
+  não tem gatilho automático de propósito (risco de vazar dado real sob LGPD; decisão
+  registrada em `docs/progresso.md`, "estratégia de re-sync"). O usuário **não precisa
+  lembrar de pedir** — a pergunta é minha, a cada entrega de código.
 - **Ao dar o "prompt para novo chat"** (limite de contexto): checar os **dois gaps**:
   1. `git log origin/main..HEAD --oneline` — commits na branch de trabalho ainda nem na
      `homologacao` (o risco real). Se houver, o prompt DEVE nomear a branch: *"A branch
@@ -147,8 +159,12 @@ módulo **Emergências** (upload de Excel + análise). Stack e pastas:
 
 - **`dashboard-obras-cidade`:** PRIVADO — dados sensíveis (emails reais, domínio
   `@orgao-exemplo.gov.br`, senhas-padrão em seeds).
-- **Mirror de portfólio (futuro):** repo público separado, anonimizado via
-  `git filter-repo` preservando o histórico real. Ver `docs/pesquisa-portfolio-2026.md`.
+- **Mirror de portfólio (`dashboard-obras-cidade`, PUBLICADO desde 18/07/2026):**
+  repo público separado, anonimizado via `git filter-repo` (ferramental em
+  `mirror/`, ver `mirror/README-interno.md`). Re-sync é **manual e deliberado**
+  (`mirror/espelhar-portfolio.sh --push --force-push`) — a cada melhoria/correção de
+  código eu **pergunto** ao usuário se deve subir (regra na seção 2, "🪞 Perguntar
+  sobre o mirror"). Ver `docs/pesquisa-portfolio-2026.md`.
 - **Docs mestres:** `docs/prd.md` (visão), `docs/progresso.md` (execução),
   `docs/plano-de-acao.html` (roteiro). `guia-do-projeto.html` e `roteiro-modulos.html`
   são material didático.
