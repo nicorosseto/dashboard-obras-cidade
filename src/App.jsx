@@ -696,9 +696,17 @@ export default function App() {
     () => aplicarFiltrosMultas(multasCruzadas, multasFiltros),
     [multasCruzadas, multasFiltros]
   )
+  // Só entram no filtro nomes de permissionária que vieram do Sistema Geo
+  // (`_situacao_vinculo === 'vinculado_sistemaGeo'` garante que
+  // `_permissionaria_exibir` é o `geo.permissionaria`, não o texto cru da
+  // planilha de multas) — decisão de 20/07/2026: como os processos sem
+  // número não são analisados, o texto não tratado da própria planilha de
+  // multas não deve poluir a lista de opções do filtro. Não afeta os dados
+  // exibidos por padrão (sem filtro ativo, `aplicarFiltrosMultas` mostra tudo).
   const multasPermissionariasDisponiveis = useMemo(() => {
     const s = new Set()
     for (const r of multasCruzadas) {
+      if (r._situacao_vinculo !== 'vinculado_sistemaGeo') continue
       const p = r._permissionaria_exibir || r.permissionaria
       if (p) s.add(p)
     }
