@@ -147,6 +147,11 @@ export default function PaginaMultas({
         )
       if (semProcesso != null)
         partes.push(`${semProcesso.toLocaleString('pt-BR')} sem número de processo`)
+      const orfasRemovidas = data?.orfas_removidas ?? data?.orfasRemovidas
+      if (orfasRemovidas)
+        partes.push(
+          `${orfasRemovidas.toLocaleString('pt-BR')} linha(s) removida(s) (não estavam mais na planilha)`
+        )
       setResultado({
         titulo: 'Sincronização concluída',
         mensagem: partes.length
