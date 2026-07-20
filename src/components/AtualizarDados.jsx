@@ -292,8 +292,9 @@ function UploadSistemaGeo() {
                 processos prontos para importar
               </li>
               <li>
-                🔁 {fmtNumero(arquivo.analise.duplicadosRemovidos)} linhas duplicadas
-                removidas (mantida a de data mais recente por processo)
+                🔁 {fmtNumero(arquivo.analise.duplicadosRemovidos)} linhas
+                duplicadas removidas (mantida a de data mais recente por
+                processo)
               </li>
               {arquivo.analise.semProcesso > 0 && (
                 <li>
@@ -622,9 +623,8 @@ function UploadFiscalizacao() {
             </p>
             <ul className="text-xs text-gray-700 space-y-1">
               <li>
-                ✅{' '}
-                <strong>{fmtNumero(arquivo.analise.linhas.length)}</strong> laudos
-                prontos para importar
+                ✅ <strong>{fmtNumero(arquivo.analise.linhas.length)}</strong>{' '}
+                laudos prontos para importar
               </li>
               {arquivo.analise.duplicadosRemovidos > 0 && (
                 <li>
@@ -697,12 +697,16 @@ function UploadFiscalizacao() {
                 {arquivo.analise.porStatus.semStatus > 0 && (
                   <li className="text-amber-700">
                     Sem status:{' '}
-                    <strong>{fmtNumero(arquivo.analise.porStatus.semStatus)}</strong>
+                    <strong>
+                      {fmtNumero(arquivo.analise.porStatus.semStatus)}
+                    </strong>
                   </li>
                 )}
                 <li className="pt-0.5 text-gray-500">
                   Com não conformidade:{' '}
-                  <strong>{fmtNumero(arquivo.analise.comNaoConformidade)}</strong>
+                  <strong>
+                    {fmtNumero(arquivo.analise.comNaoConformidade)}
+                  </strong>
                 </li>
               </ul>
             </div>
@@ -716,46 +720,63 @@ function UploadFiscalizacao() {
             <div className="text-xs text-gray-700 space-y-1">
               <div className="flex justify-between">
                 <span>Total de laudos</span>
-                <strong className="tabular-nums">{fmtNumero(arquivo.analise.linhas.length)}</strong>
+                <strong className="tabular-nums">
+                  {fmtNumero(arquivo.analise.linhas.length)}
+                </strong>
               </div>
               <div className="flex justify-between text-gray-500 pl-3">
                 <span>= Com não conformidade (col. O = X)</span>
-                <span className="tabular-nums">{fmtNumero(arquivo.analise.comNaoConformidade)}</span>
+                <span className="tabular-nums">
+                  {fmtNumero(arquivo.analise.comNaoConformidade)}
+                </span>
               </div>
               {arquivo.analise.validacao.ncEmAndamento > 0 && (
                 <div className="flex justify-between text-gray-400 pl-6">
                   <span>Em andamento</span>
-                  <span className="tabular-nums">{fmtNumero(arquivo.analise.validacao.ncEmAndamento)}</span>
+                  <span className="tabular-nums">
+                    {fmtNumero(arquivo.analise.validacao.ncEmAndamento)}
+                  </span>
                 </div>
               )}
               {arquivo.analise.validacao.ncSolucionado > 0 && (
                 <div className="flex justify-between text-gray-400 pl-6">
                   <span>Solucionado</span>
-                  <span className="tabular-nums">{fmtNumero(arquivo.analise.validacao.ncSolucionado)}</span>
+                  <span className="tabular-nums">
+                    {fmtNumero(arquivo.analise.validacao.ncSolucionado)}
+                  </span>
                 </div>
               )}
               {arquivo.analise.validacao.ncSemStatus > 0 && (
                 <div className="flex justify-between text-amber-600 pl-6">
                   <span>NC sem status definido</span>
-                  <span className="tabular-nums">{fmtNumero(arquivo.analise.validacao.ncSemStatus)}</span>
+                  <span className="tabular-nums">
+                    {fmtNumero(arquivo.analise.validacao.ncSemStatus)}
+                  </span>
                 </div>
               )}
               <div className="flex justify-between text-gray-500 pl-3">
                 <span>+ Sem não conformidade</span>
                 <span className="tabular-nums">
-                  {fmtNumero(arquivo.analise.linhas.length - arquivo.analise.comNaoConformidade)}
+                  {fmtNumero(
+                    arquivo.analise.linhas.length -
+                      arquivo.analise.comNaoConformidade
+                  )}
                 </span>
               </div>
               {arquivo.analise.validacao.semNcLegAtendida > 0 && (
                 <div className="flex justify-between text-gray-400 pl-6">
                   <span>Legislação Atendida</span>
-                  <span className="tabular-nums">{fmtNumero(arquivo.analise.validacao.semNcLegAtendida)}</span>
+                  <span className="tabular-nums">
+                    {fmtNumero(arquivo.analise.validacao.semNcLegAtendida)}
+                  </span>
                 </div>
               )}
               {arquivo.analise.validacao.semNcSemStatus > 0 && (
                 <div className="flex justify-between text-amber-600 pl-6">
                   <span>Sem status (sem NC)</span>
-                  <span className="tabular-nums">{fmtNumero(arquivo.analise.validacao.semNcSemStatus)}</span>
+                  <span className="tabular-nums">
+                    {fmtNumero(arquivo.analise.validacao.semNcSemStatus)}
+                  </span>
                 </div>
               )}
             </div>
@@ -765,9 +786,11 @@ function UploadFiscalizacao() {
           {arquivo.analise.solucionadoSemData > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-sm p-4">
               <p className="text-xs text-amber-800">
-                ⚠️ <strong>{fmtNumero(arquivo.analise.solucionadoSemData)}</strong> laudo(s) marcado(s)
-                como Solucionado sem data de encerramento — corrija no Consolidador antes de
-                importar, se possível. Não bloqueia a importação.
+                ⚠️{' '}
+                <strong>{fmtNumero(arquivo.analise.solucionadoSemData)}</strong>{' '}
+                laudo(s) marcado(s) como Solucionado sem data de encerramento —
+                corrija no Consolidador antes de importar, se possível. Não
+                bloqueia a importação.
               </p>
             </div>
           )}
@@ -775,10 +798,9 @@ function UploadFiscalizacao() {
           {/* Confirmação */}
           <div className="bg-red-50 border border-red-200 rounded-sm p-4 space-y-3">
             <p className="text-xs text-red-700">
-              ⚠️ A importação{' '}
-              <strong>substitui TODOS os dados</strong> de Fiscalização pelos
-              da planilha. A operação testa a permissão de escrita antes de
-              apagar qualquer coisa.
+              ⚠️ A importação <strong>substitui TODOS os dados</strong> de
+              Fiscalização pelos da planilha. A operação testa a permissão de
+              escrita antes de apagar qualquer coisa.
             </p>
             <div className="flex gap-2">
               <button
@@ -795,8 +817,8 @@ function UploadFiscalizacao() {
                 onClick={confirmarImportacao}
                 className="flex-1 py-2 bg-red text-white text-xs font-semibold rounded-sm hover:opacity-90 transition-opacity"
               >
-                Substituir os dados (
-                {fmtNumero(arquivo.analise.linhas.length)} laudos)
+                Substituir os dados ({fmtNumero(arquivo.analise.linhas.length)}{' '}
+                laudos)
               </button>
             </div>
           </div>
@@ -831,6 +853,14 @@ function HistoricoImportacoes() {
 
   if (carregando) return <LoadingInline mensagem="Carregando histórico..." />
   if (erro) return <p className="text-xs text-red-600">{erro}</p>
+
+  return <TabelaHistoricoImportacoes linhas={linhas} />
+}
+
+// Tabela pura (sem busca de dados) — extraída para ser reaproveitada pelo
+// AtualizarDadosDemo.jsx (modo demo), que alimenta as mesmas colunas com
+// dados fictícios (SNAPSHOTS_DEMO) em vez de consultar `importacoes_snapshots`.
+export function TabelaHistoricoImportacoes({ linhas }) {
   if (!linhas.length)
     return (
       <p className="text-xs text-gray-400 text-center py-4">

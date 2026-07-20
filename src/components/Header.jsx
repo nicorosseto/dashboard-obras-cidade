@@ -3,8 +3,10 @@ import BotaoTour from './tour/BotaoTour.jsx'
 import ModuleDropdown from './ModuleDropdown.jsx'
 import { signOut, nomeExibicao } from '../lib/auth.js'
 import { ABAS_CRUZAMENTO } from '../lib/abasCruzamento.js'
+import { ABAS_ADMIN } from '../lib/abasPaginas.js'
 import { abasCruzamentoPermitidas } from '../lib/permissoes.js'
 import { coresModulo } from '../lib/coresModulo.js'
+import { ehModoDemo } from '../lib/demo.js'
 
 function Logo({ src, alt }) {
   return (
@@ -528,12 +530,13 @@ export default function Header({
         )}
         {mostrarAbasAdmin && (
           <nav className="flex items-center gap-4" data-tour="header-abas">
-            {[
-              { id: 0, label: 'Usuários', icon: '👤' },
-              { id: 1, label: 'Perfis de Acesso', icon: '🛡️' },
-              { id: 2, label: 'Atualizar Dados', icon: '🔄' },
-              { id: 3, label: 'Log de Acessos', icon: '📋' },
-            ].map((a) => (
+            {/* Modo demo: aba "Log de Acessos" (id 3) não tem valor de
+                portfólio (é interna) e ficaria em branco — filtrada aqui,
+                sem alterar ABAS_ADMIN (usada fora do modo demo também). */}
+            {(ehModoDemo()
+              ? ABAS_ADMIN.filter((a) => a.id !== 3)
+              : ABAS_ADMIN
+            ).map((a) => (
               <button
                 key={a.id}
                 onClick={() => onAbaAdmin(a.id)}

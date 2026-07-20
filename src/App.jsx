@@ -731,6 +731,11 @@ export default function App() {
   const multasFiltrosAtivos = contarFiltrosAtivosMultas(multasFiltros) > 0
 
   const isAdmin = profile?.role === 'admin'
+  // Configurações também fica acessível ao visitante da demo pública, mas
+  // SOMENTE LEITURA (AdminPanel despacha para as versões *Demo* — ver
+  // demoAdminData.js). Não confundir com `isAdmin`: essa continua exigindo
+  // admin de verdade, para as ações reais (RPCs, uploads, exclusões).
+  const podeVerConfiguracoes = isAdmin || ehModoDemo()
 
   // ── Permissões derivadas (sem permissão → elemento some da interface) ──
   const abasFisc = useMemo(
@@ -999,7 +1004,9 @@ export default function App() {
           temCruzamento={temCruzamento}
           temRelatorio={temRelatorio}
           temMultas={temMultas}
-          onAbrirConfiguracoes={isAdmin ? handleAbrirConfiguracoes : undefined}
+          onAbrirConfiguracoes={
+            podeVerConfiguracoes ? handleAbrirConfiguracoes : undefined
+          }
           onSignOut={handleSignOut}
           sistemaGeoCarregando={sistemaGeoCarregando}
           geoProgresso={geoProgresso}
@@ -1046,7 +1053,7 @@ export default function App() {
           onPagina={() => {}}
           user={session?.user}
           onSignOut={handleSignOut}
-          showAdmin={isAdmin}
+          showAdmin={podeVerConfiguracoes}
           secaoAtiva={secaoAtiva}
           onHome={handleHome}
           onIniciarTour={
@@ -1144,7 +1151,7 @@ export default function App() {
           onPagina={() => {}}
           user={session?.user}
           onSignOut={handleSignOut}
-          showAdmin={isAdmin}
+          showAdmin={podeVerConfiguracoes}
           secaoAtiva={secaoAtiva}
           onHome={handleHome}
           onIniciarTour={
@@ -1227,7 +1234,7 @@ export default function App() {
           onPagina={() => {}}
           user={session?.user}
           onSignOut={handleSignOut}
-          showAdmin={isAdmin}
+          showAdmin={podeVerConfiguracoes}
           secaoAtiva={secaoAtiva}
           onHome={handleHome}
           onIniciarTour={
@@ -1360,7 +1367,7 @@ export default function App() {
         profile={profile}
         user={session?.user}
         onSignOut={handleSignOut}
-        showAdmin={isAdmin}
+        showAdmin={podeVerConfiguracoes}
         secaoAtiva={secaoAtiva}
         onSecao={handleSecaoChange}
         onHome={handleHome}
@@ -1471,8 +1478,9 @@ export default function App() {
               paginaAtiva !== 4 &&
               semDataGeo > 0 && <AvisoSemData n={semDataGeo} />}
 
-            {/* Admin page */}
-            {isAdminPage && isAdmin && (
+            {/* Admin page (Configurações) — admin de verdade ou visitante da
+                demo (somente leitura, ver AdminPanel.jsx) */}
+            {isAdminPage && podeVerConfiguracoes && (
               <Suspense
                 fallback={
                   <LoadingInline mensagem="Carregando Configurações..." />
