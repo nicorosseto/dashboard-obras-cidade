@@ -171,6 +171,11 @@ export function valorTotalMultas(linhas) {
   return (linhas || []).reduce((acc, m) => acc + (Number(m.valor) || 0), 0)
 }
 
+// Soma o campo `area_m2` de uma lista de multas.
+export function areaTotalMultas(linhas) {
+  return (linhas || []).reduce((acc, m) => acc + (Number(m.area_m2) || 0), 0)
+}
+
 // Agrupa por permissionária (consolidando unidades NORCREST por padrão, mesma
 // régua usada nas demais telas do sistema), devolvendo [{ nome, total }]
 // ordenado do maior para o menor. Usa `_permissionaria_exibir` (nome no

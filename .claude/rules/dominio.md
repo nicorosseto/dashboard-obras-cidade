@@ -717,6 +717,18 @@
   conteúdo, ao lado dela. **Regra geral para telas com sidebar própria:**
   nunca colocar o `TituloTela` num wrapper que englobe a sidebar — ele
   pertence à coluna de conteúdo.
+  ⚡ **3ª rodada de ampliação (20/07/2026):** card **"Área Total (m²)"** na
+  Visão Geral (mesmo escopo/exclusão dos outros 2 KPIs — `excluirSemProcesso`)
+  e colunas **Subprefeitura**/**Área (m²)** nas tabelas de Inconsistências
+  (ao lado de Logradouro) e da aba Lista (após Status) — os dois campos já
+  vinham do banco (`area_m2`/`subprefeitura`, gravados pelo `sync-multas`),
+  só faltava exibir. **Filtro de Permissionária mais estrito:** a lista de
+  opções do filtro (`multasPermissionariasDisponiveis` em `App.jsx`) passou
+  a considerar **só** linhas com `_situacao_vinculo === 'vinculado_sistemaGeo'`
+  — antes incluía também o texto cru da própria planilha de multas (grafia
+  não tratada) para linhas sem vínculo; como processos sem número não são
+  analisados, esses nomes só poluíam as opções. Não afeta os dados exibidos
+  sem filtro ativo, só o que aparece como opção selecionável.
 - **Home — lista de módulos em linha, não grid (16/07/2026):** decisão
   tomada com uma **prévia em HTML (Artifact)** antes de tocar em código —
   comparou lado a lado o grid antigo × a proposta em lista, com o conteúdo
