@@ -1,5 +1,9 @@
 import { useMemo, useState } from 'react'
-import { fmtNumero, fmtData } from '../../../lib/aggregations.js'
+import {
+  fmtNumero,
+  fmtData,
+  fmtAreaDecimal,
+} from '../../../lib/aggregations.js'
 import { agruparPorVinculo, fmtValorBRL } from '../../../lib/multas.js'
 import BotaoExportarGrafico from '../../BotaoExportarGrafico.jsx'
 import { KpiCard, PaginacaoBusca } from '../emerg/shared.jsx'
@@ -16,6 +20,12 @@ const COLUNAS = [
     transform: (v, r) => v || r?.permissionaria || '—',
   },
   { key: 'logradouro', label: 'Logradouro' },
+  { key: 'subprefeitura', label: 'Subprefeitura' },
+  {
+    key: 'area_m2',
+    label: 'Área (m²)',
+    transform: (v) => fmtAreaDecimal(v),
+  },
   { key: 'valor', label: 'Valor', transform: (v) => fmtValorBRL(v) },
   {
     key: 'data_infracao',
@@ -83,6 +93,12 @@ function TabelaGrupo({ titulo, linhas, cor, modulo }) {
                     </td>
                     <td className="p-2 whitespace-nowrap">
                       {m.logradouro || '—'}
+                    </td>
+                    <td className="p-2 whitespace-nowrap">
+                      {m.subprefeitura || '—'}
+                    </td>
+                    <td className="p-2 whitespace-nowrap tabular-nums">
+                      {fmtAreaDecimal(m.area_m2)}
                     </td>
                     <td className="p-2 whitespace-nowrap tabular-nums">
                       {fmtValorBRL(m.valor)}

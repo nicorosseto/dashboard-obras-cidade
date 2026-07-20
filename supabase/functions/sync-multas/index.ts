@@ -594,6 +594,12 @@ Deno.serve(async (req: Request) => {
       `[sync-multas] download OK: ${(buffer.byteLength / 1024 / 1024).toFixed(1)} MB`
     )
 
+    // Carimbo do início desta sincronização — usado no final para achar
+    // linhas "órfãs" (ver comentário perto do DELETE abaixo). Capturado
+    // ANTES do parse porque cada linha ganha seu próprio `atualizado_em`
+    // durante o parse (linha a linha) — precisa ser garantidamente mais
+    // antigo que o de qualquer linha desta sincronização.
+    const inicioSync = new Date()
     const linhas = parseLinhas(buffer)
 
     // Upsert por lotes (500), on conflict auto_multa. Linhas sem
@@ -655,18 +661,52 @@ Deno.serve(async (req: Request) => {
       )
     }
 
+    // Limpeza de linhas órfãs (achado 20/07/2026): upsert sozinho NUNCA
+    // remove uma multa que saiu da planilha — ela ficava "fantasma" no
+    // banco pra sempre, inflando "Total de Multas"/Inconsistências de
+    // forma diferente em cada ambiente, conforme o histórico de
+    // sincronizações de cada um (homologação acumulou mais ao longo do
+    // desenvolvimento; produção, recém-criada, tinha menos). Toda linha
+    // desta sincronização tem `atualizado_em >= inicioSync` (setado
+    // durante o parse/upsert acima) — o que sobrou mais velho que isso
+    // não estava mais na planilha lida agora. Roda só AQUI, depois que
+    // TODOS os upserts acima terminaram sem erro — se o parse ou algum
+    // lote tivesse falhado, o catch já teria interrompido antes de
+    // chegar aqui, preservando a regra de ouro (nunca perder dado por
+    // uma sincronização que falha no meio do caminho). Best-effort: uma
+    // falha aqui não derruba a sincronização (os dados corretos já
+    // foram gravados) — só tenta de novo no próximo sync.
+    let orfasRemovidas = 0
+    try {
+      const { error: errorLimpeza, count } = await supabase
+        .from('multas')
+        .delete({ count: 'exact' })
+        .lt('atualizado_em', inicioSync.toISOString())
+      if (errorLimpeza) throw errorLimpeza
+      orfasRemovidas = count ?? 0
+      if (orfasRemovidas > 0) {
+        console.log(
+          `[sync-multas] ${orfasRemovidas} linha(s) órfã(s) removida(s) (não estavam mais na planilha)`
+        )
+      }
+    } catch (errLimpeza) {
+      console.error(
+        `[sync-multas] limpeza de linhas órfãs falhou (não bloqueia a sincronização): ${errLimpeza instanceof Error ? errLimpeza.message : String(errLimpeza)}`
+      )
+    }
+
     await supabase
       .from('multas_sync_config')
       .update({
         ultima_sync_em: new Date().toISOString(),
         ultima_sync_status: 'sucesso',
-        ultima_sync_detalhe: `${linhas.length} linhas processadas (${comChave.length} com chave, ${semChave.length} sem chave)`,
+        ultima_sync_detalhe: `${linhas.length} linhas processadas (${comChave.length} com chave, ${semChave.length} sem chave, ${orfasRemovidas} órfã(s) removida(s))`,
         atualizado_em: new Date().toISOString(),
       })
       .eq('id', 1)
 
     console.log(
-      `[sync-multas] sync concluída: ${linhas.length} linhas (${comChave.length} com chave, ${semChave.length} sem chave)`
+      `[sync-multas] sync concluída: ${linhas.length} linhas (${comChave.length} com chave, ${semChave.length} sem chave, ${orfasRemovidas} órfã(s) removida(s))`
     )
 
     // Contagem compatível com o card "Total de Multas" da Visão Geral do
@@ -686,6 +726,7 @@ Deno.serve(async (req: Request) => {
         sem_processo: semProcessoTotal,
         com_chave: comChave.length,
         sem_chave: semChave.length,
+        orfas_removidas: orfasRemovidas,
       }),
       { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
     )
