@@ -7,7 +7,8 @@ import { LoadingInline } from '../Loading.jsx'
 import ThSort from '../ThSort.jsx'
 import { ModalConfirmacao, sortArr } from './shared.jsx'
 
-const MODULO_LABEL = {
+// Exportado para reuso em AbaPerfisDemo.jsx (modo demo, somente leitura).
+export const MODULO_LABEL = {
   fiscalizacao: 'Fiscalização',
   sistemaGeo: 'Sistema Geo',
   analise_integrada: 'Análise Integrada',
@@ -15,8 +16,9 @@ const MODULO_LABEL = {
   multas: 'Multas',
 }
 
-// O que cada código de permissão libera na interface (exibido na legenda do formulário)
-const PERM_DESCRICAO = {
+// O que cada código de permissão libera na interface (exibido na legenda do
+// formulário). Exportado para reuso em AbaPerfisDemo.jsx.
+export const PERM_DESCRICAO = {
   'fisc.ver': 'Acessa o módulo de Fiscalização (todas as abas padrão)',
   'fisc.aba_executoras': 'Aba "Executoras" no módulo Fiscalização',
   'geo.ver': 'Acessa o módulo Sistema Geo (todas as abas padrão)',

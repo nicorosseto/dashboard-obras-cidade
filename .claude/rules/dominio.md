@@ -831,6 +831,50 @@
     `npm test` com `VITE_DEMO_MODE=true` deixado lá (ex.: depois de um smoke
     test do modo demo) derruba o teste "ehModoDemo() é false por padrão" —
     remover a flag do `.env.local` antes de rodar a suíte.
+  - **Ampliação — painel de Configurações somente leitura na demo
+    (20/07/2026):** o visitante da demo pública passou a abrir também o
+    painel de **Configurações** (pedido do usuário: "tem bastante coisa
+    importante, principalmente em relação à atualização dos dados"), mas
+    sem virar admin de verdade e sem nenhuma ação funcionar de fato —
+    Opção C do que foi discutido: Usuários e Perfis de Acesso "ao vivo"
+    somente leitura + Histórico de importações "ao vivo"; o fluxo completo
+    de upload fica de fora (só citado como código visível no repo).
+    - `App.jsx` ganhou `podeVerConfiguracoes = isAdmin || ehModoDemo()`,
+      **separada** de `isAdmin` (que continua só admin de verdade, usada nas
+      ações reais). É essa variável — não `isAdmin` — que controla o link
+      "Configurações" do Rodape da Home, o item "Configurações" do
+      `ModuleDropdown` (atalho ⚙ dentro de cada módulo) e a renderização do
+      `AdminPanel` na página 5.
+    - `AdminPanel.jsx` despacha para versões `*Demo` quando `ehModoDemo()`:
+      `AbaUsuariosDemo.jsx`, `AbaPerfisDemo.jsx` e `AtualizarDadosDemo.jsx`
+      (abas 0, 1 e 2). A aba 3 (**Log de Acessos**) **some da navegação** no
+      modo demo — filtrada em `Header.jsx` no ponto de uso de `ABAS_ADMIN`
+      (`.filter(a => a.id !== 3)`), sem alterar `ABAS_ADMIN` em si (usada
+      fora do modo demo também).
+    - **Dados fictícios** em `src/lib/demoAdminData.js` (hand-written, baixo
+      volume): `USUARIOS_DEMO` (~10 perfis de `profiles`), `PERFIS_DEMO`
+      (~5 perfis de acesso fictícios: Visualização completa, Fiscalização,
+      Sistema Geo, Emergências, Multas), `PERFIL_PERMISSOES_DEMO` (matriz
+      perfil→permissões usando os códigos **reais** de `TODAS_PERMISSOES`,
+      para a tela sair coerente) e `SNAPSHOTS_DEMO` (~8 registros de
+      histórico de importação, mesmas colunas de `importacoes_snapshots`).
+    - `AbaUsuariosDemo.jsx`/`AbaPerfisDemo.jsx` reaproveitam o máximo
+      possível do visual real: `loginDisplay` (exportada de
+      `AbaUsuarios.jsx`) e `MODULO_LABEL`/`PERM_DESCRICAO` (exportadas de
+      `AbaPerfis.jsx`) — nada de duplicar rótulos. Toda ação de escrita
+      (criar/editar/excluir usuário ou perfil, redefinir senha, trocar
+      tipo/perfil/"1º acesso") vira elemento **desabilitado** com
+      `title="Indisponível nesta demonstração pública"` — nenhuma delas
+      abre modal/formulário. A aba Perfis mantém uma interação legítima
+      (não é ação de escrita): trocar qual perfil tem a matriz de
+      permissões exibida.
+    - `AtualizarDadosDemo.jsx` não simula o fluxo de upload — só mostra uma
+      nota explicando isso e o histórico (`SNAPSHOTS_DEMO`). Reaproveita o
+      componente `TabelaHistoricoImportacoes`, extraído de dentro de
+      `AtualizarDados.jsx` (antes era só o corpo de `HistoricoImportacoes`,
+      que buscava e renderizava junto) — agora a busca via Supabase e a
+      tabela pura são duas funções separadas, e a tabela pura é usada tanto
+      pela versão real (dados do banco) quanto pela demo (`SNAPSHOTS_DEMO`).
 
 ## Glossário de domínio
 

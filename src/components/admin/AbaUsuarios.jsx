@@ -11,7 +11,8 @@ import { ModalConfirmacao, sortArr } from './shared.jsx'
 
 // Login exibido na tela: usuário interno aparece só pelo username (o
 // domínio @obras.app é detalhe técnico); externo mostra o e-mail cru.
-function loginDisplay(u) {
+// Exportada para reuso em AbaUsuariosDemo.jsx (modo demo, somente leitura).
+export function loginDisplay(u) {
   return isInternalUser(u.email)
     ? u.username || u.email?.split('@')[0] || ''
     : u.email || ''
