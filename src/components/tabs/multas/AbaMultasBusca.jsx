@@ -1,5 +1,9 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { fmtData, fmtNumero } from '../../../lib/aggregations.js'
+import {
+  fmtData,
+  fmtNumero,
+  fmtAreaDecimal,
+} from '../../../lib/aggregations.js'
 import {
   fmtValorBRL,
   SITUACAO_VINCULO_LABEL,
@@ -58,6 +62,8 @@ const COLUNAS_EXPORT = [
   { key: 'num_processo', label: 'Nº Processo' },
   { key: 'permissionaria', label: 'Permissionária' },
   { key: 'status', label: 'Status' },
+  { key: 'subprefeitura', label: 'Subprefeitura' },
+  { key: 'area_m2', label: 'Área (m²)', transform: (v) => fmtAreaDecimal(v) },
   { key: 'valor', label: 'Valor', transform: (v) => fmtValorBRL(v) },
   {
     key: 'data_infracao',
@@ -299,6 +305,8 @@ export default function AbaMultasBusca({ linhas, podeVerInconsistencias }) {
                     <th className="p-2 whitespace-nowrap">Nº Processo</th>
                     <th className="p-2 whitespace-nowrap">Permissionária</th>
                     <th className="p-2 whitespace-nowrap">Status</th>
+                    <th className="p-2 whitespace-nowrap">Subprefeitura</th>
+                    <th className="p-2 whitespace-nowrap">Área (m²)</th>
                     <th className="p-2 whitespace-nowrap">Valor</th>
                     <th className="p-2 whitespace-nowrap">Data Infração</th>
                     <th className="p-2 whitespace-nowrap">
@@ -328,6 +336,12 @@ export default function AbaMultasBusca({ linhas, podeVerInconsistencias }) {
                       <td className="p-2 whitespace-nowrap">
                         {m.status || '—'}
                       </td>
+                      <td className="p-2 whitespace-nowrap">
+                        {m.subprefeitura || '—'}
+                      </td>
+                      <td className="p-2 whitespace-nowrap tabular-nums">
+                        {fmtAreaDecimal(m.area_m2)}
+                      </td>
                       <td className="p-2 whitespace-nowrap tabular-nums">
                         {fmtValorBRL(m.valor)}
                       </td>
@@ -350,7 +364,10 @@ export default function AbaMultasBusca({ linhas, podeVerInconsistencias }) {
                   ))}
                   {pagina.length === 0 && (
                     <tr>
-                      <td colSpan={9} className="p-4 text-center text-gray-400">
+                      <td
+                        colSpan={11}
+                        className="p-4 text-center text-gray-400"
+                      >
                         {buscaAplicada
                           ? `Nenhum resultado para "${buscaAplicada}".`
                           : 'Nenhuma multa carregada.'}

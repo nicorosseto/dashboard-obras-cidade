@@ -10,6 +10,30 @@ Editor), Edge Functions são **implantadas** (deploy) no painel do Supabase.
 > (Edge Functions → Deploy a new function → colar o código), não a CLI
 > (`supabase functions deploy`).
 
+> 🚨 **Regra de ouro, reforçada após incidente real (20/07/2026):** cada
+> Edge Function existe em **dois projetos Supabase separados**
+> (`obras-dev`/homologação e produção) — implantar em um NUNCA implanta no
+> outro. **Toda vez que o código de `index.ts` mudar, reimplantar nos DOIS**,
+> mesmo que só um esteja "na sua frente" no momento. Não existe meio-termo
+> "documentar o status e voltar depois" — o `Status:` desta página descreve
+> o estado no momento em que foi escrito e **fica desatualizado silenciosamente**
+> a cada novo commit no arquivo; não é uma fonte confiável de "já está tudo
+> certo", só um retrato do que foi feito até aquela data. Antes de confiar
+> nela, cheque `git log -- supabase/functions/sync-multas/index.ts` e
+> pergunte: "esse commit mais recente já foi reimplantado nos dois projetos?"
+> > 🧨 **Caso real:** entre 13–16/07/2026, `index.ts` mudou 3 vezes (#313,
+> > #319, #321 — dedup por chave sintética, CORS, campos `com_processo`/
+> > `sem_processo` no retorno). Só a `obras-dev` foi reimplantada logo
+> > depois; a de produção ficou parada numa versão bem mais antiga (ou nem
+> > existia com o nome certo — achado à parte: uma função `swift-service`
+> > apareceu no lugar de `sync-multas`, causando "Failed to send a request
+> > to the Edge Function" até ser corrigida). Depois de recriar a função de
+> > produção com o código atual, uma sincronização "ao mesmo tempo" nos dois
+> > ambientes deu resultados **diferentes** (popup sem os campos novos em
+> > homologação, contagem de linhas levemente diferente) — sintoma direto de
+> > duas versões de código diferentes lendo a mesma planilha. Homologação
+> > também precisa ser reimplantada com o código atual para os dois baterem.
+
 ## `sync-multas` (Trilha A — módulo Multas)
 
 Baixa a planilha "CONTROLE DE AÇÕES FISCAIS - OBRAS / CORBETT" (Google

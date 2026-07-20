@@ -14,10 +14,11 @@ import {
   LineChart,
   Line,
 } from 'recharts'
-import { fmtNumero } from '../../../lib/aggregations.js'
+import { fmtNumero, fmtAreaDecimal } from '../../../lib/aggregations.js'
 import {
   fmtValorBRL,
   valorTotalMultas,
+  areaTotalMultas,
   agregaMultasPorPermissionaria,
   agregaMultasPorStatus,
   agregaMultasPorMes,
@@ -34,7 +35,7 @@ import {
   usePaginadorGrafico,
   ControlePaginacao,
 } from '../../charts/PaginadorGrafico.jsx'
-import { NAVY, RED } from '../../../lib/cores.js'
+import { NAVY, NAVY_MID, RED } from '../../../lib/cores.js'
 
 const COR_STATUS = {
   LAVRADO: NAVY,
@@ -54,6 +55,10 @@ export default function AbaMultasGeral({ linhas }) {
   const total = linhasValidas.length
   const valorTotal = useMemo(
     () => valorTotalMultas(linhasValidas),
+    [linhasValidas]
+  )
+  const areaTotal = useMemo(
+    () => areaTotalMultas(linhasValidas),
     [linhasValidas]
   )
 
@@ -110,7 +115,7 @@ export default function AbaMultasGeral({ linhas }) {
 
   return (
     <div className="space-y-4" data-tour="multas-kpis">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <KpiCard label="Total de Multas" valor={total} cor={RED} destaque />
         <div
           className="bg-white rounded-md shadow-card px-3 py-2.5 border-l-4"
@@ -127,6 +132,23 @@ export default function AbaMultasGeral({ linhas }) {
             style={{ color: NAVY }}
           >
             {fmtValorBRL(valorTotal)}
+          </div>
+        </div>
+        <div
+          className="bg-white rounded-md shadow-card px-3 py-2.5 border-l-4"
+          style={{ borderLeftColor: NAVY_MID }}
+        >
+          <div
+            className="text-[9px] uppercase tracking-wider text-gray-500 font-semibold truncate"
+            title="Área Total (m²)"
+          >
+            Área Total (m²)
+          </div>
+          <div
+            className="font-bold mt-0.5 tabular-nums text-2xl"
+            style={{ color: NAVY_MID }}
+          >
+            {fmtAreaDecimal(areaTotal)}
           </div>
         </div>
       </div>
