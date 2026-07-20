@@ -59,9 +59,15 @@ export const PERMISSAO_POR_ABA = {
 }
 
 // Permissões que o visitante da demo NUNCA recebe, mesmo sendo todas de
-// visualização: upload/atualização de dados (não há gravação no modo demo)
-// e nada de admin (o visitante nunca é admin — ver DEMO_PROFILE).
-const EXCLUIDAS_DEMO = new Set(['emerg.upload', 'multas.atualizar'])
+// visualização: upload/atualização de dados (não há gravação no modo demo),
+// nada de admin (o visitante nunca é admin — ver DEMO_PROFILE), e o módulo
+// Apresentação (decisão do usuário em 19/07/2026 — fora do escopo do
+// portfólio público por ora).
+const EXCLUIDAS_DEMO = new Set([
+  'emerg.upload',
+  'multas.atualizar',
+  'relatorio.ver',
+])
 
 // Conjunto de permissões do visitante da demo: todas as de visualização do
 // catálogo, exceto as de escrita. Exportada também para o gerador de testes.
