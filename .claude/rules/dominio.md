@@ -253,6 +253,22 @@
   before initialization` (temporal dead zone) só na hora de navegar para o
   módulo, não pego pelos testes automatizados (só funções puras, não cobrem
   hooks React). Achado e corrigido nesta mesma extração — ver `progresso.md`.
+  ⚠️ **Erro de carga silencioso = "zerado até um Shift+F5" (22/07/2026):**
+  `useCargaSistemaGeo` só logava a exceção da carga no `console.error` (nunca
+  visível ao usuário) e o `sistemaGeoCarregadoRef` travava em `true` mesmo em
+  caso de falha — sem retry automático, qualquer erro transitório (timeout do
+  Supabase, rate limit, blip de rede) na busca das ~175 mil linhas deixava
+  Home + módulo Sistema Geo com "0" pelo resto da sessão, só resolvido por reload
+  completo (nova montagem = ref reiniciado = nova tentativa, que geralmente
+  dava certo por a causa ser transitória — daí a impressão de que "só
+  Shift+F5 resolve"). `useCargaFiscalizacao` já não tinha esse problema por
+  expor `erro` (App.jsx bloqueia a tela com mensagem clara). Corrigido:
+  `useCargaSistemaGeo` ganhou `sistemaGeoErro` (via `traduzErro`) + `retry()`, e
+  `AvisoErroCarga.jsx` (banner fixo no rodapé, padrão do `AvisoAtualizacao`)
+  mostra "Tentar novamente" nos 5 layouts do `App.jsx`. **Regra geral para
+  qualquer novo hook de carga de dataset grande:** nunca deixar um `catch`
+  só com `console.error` — sempre expor um estado de erro visível (mensagem
+  ou banner) e uma forma de tentar de novo sem precisar de reload manual.
 - **Upload de emergências em modal (23/06/2026):** os painéis de upload (planilha
   principal + posicionamento) saíram do corpo da tela (ocupavam muito espaço) e
   foram para um **modal** acionado pelo botão "Atualizar dados" (canto superior
