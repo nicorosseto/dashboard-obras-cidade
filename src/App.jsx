@@ -116,6 +116,7 @@ import {
 } from './lib/tour.js'
 import BarraProgresso from './components/BarraProgresso.jsx'
 import AvisoAtualizacao from './components/AvisoAtualizacao.jsx'
+import AvisoErroCarga from './components/AvisoErroCarga.jsx'
 
 // Ícones para módulos
 function IconMap() {
@@ -265,7 +266,9 @@ export default function App() {
     sistemaGeoLinhas,
     sistemaGeoCarregando,
     geoProgresso,
+    sistemaGeoErro,
     reset: resetSistemaGeo,
+    retry: retrySistemaGeo,
   } = useCargaSistemaGeo(session, permissoes)
   const {
     emergLinhas,
@@ -967,6 +970,14 @@ export default function App() {
     />
   )
 
+  // ── Aviso de falha na carga do Sistema Geo (comum a todos os layouts) ──
+  const avisoErroSistemaGeo = sistemaGeoErro && (
+    <AvisoErroCarga
+      mensagem={`Não foi possível carregar os dados do Sistema Geo: ${sistemaGeoErro}`}
+      onTentarNovamente={retrySistemaGeo}
+    />
+  )
+
   // ── Home (após login, antes de escolher seção) ────────────────────
   if (mostrarHome) {
     // Convite do tour: só no 1º acesso (tour_visto), nunca por cima da troca
@@ -981,6 +992,7 @@ export default function App() {
       <>
         {sistemaGeoCarregando && <BarraProgresso {...geoProgresso} />}
         {avisoAtualizacao}
+        {avisoErroSistemaGeo}
         {mostrarAlterarSenha && (
           <AlterarSenhaModal
             obrigatorio={!!profile?.primeiro_acesso}
@@ -1037,6 +1049,7 @@ export default function App() {
       <div className="min-h-screen bg-grey-bg flex flex-col">
         {sistemaGeoCarregando && <BarraProgresso {...geoProgresso} />}
         {avisoAtualizacao}
+        {avisoErroSistemaGeo}
         {mostrarAlterarSenha && (
           <AlterarSenhaModal
             obrigatorio={!!profile?.primeiro_acesso}
@@ -1135,6 +1148,7 @@ export default function App() {
       <div className="min-h-screen bg-grey-bg flex flex-col">
         {sistemaGeoCarregando && <BarraProgresso {...geoProgresso} />}
         {avisoAtualizacao}
+        {avisoErroSistemaGeo}
         {mostrarAlterarSenha && (
           <AlterarSenhaModal
             obrigatorio={!!profile?.primeiro_acesso}
@@ -1218,6 +1232,7 @@ export default function App() {
       <div className="min-h-screen bg-grey-bg flex flex-col">
         {sistemaGeoCarregando && <BarraProgresso {...geoProgresso} />}
         {avisoAtualizacao}
+        {avisoErroSistemaGeo}
         {mostrarAlterarSenha && (
           <AlterarSenhaModal
             obrigatorio={!!profile?.primeiro_acesso}
@@ -1350,6 +1365,7 @@ export default function App() {
     <div className="min-h-screen bg-grey-bg flex flex-col">
       {sistemaGeoCarregando && <BarraProgresso {...geoProgresso} />}
       {avisoAtualizacao}
+      {avisoErroSistemaGeo}
       {mostrarAlterarSenha && (
         <AlterarSenhaModal
           obrigatorio={!!profile?.primeiro_acesso}
