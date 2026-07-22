@@ -8,7 +8,14 @@
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-Deploy-000000?style=flat-square&logo=vercel&logoColor=white)
 
-**[→ Acessar o dashboard em produção](https://dashboard-obras-cidade.vercel.app)**
+**[→ Acessar a demo ao vivo](https://dashboard-obras-cidade.vercel.app/)** — sem
+login, dados fictícios gerados sinteticamente (ver seção abaixo).
+
+---
+
+## ⚠️ Sobre este repositório
+
+Este é um **espelho público** (mirror), gerado a partir de um repositório privado onde o projeto está **em uso real** por um órgão da Prefeitura de São Paulo. Por conta da **LGPD** (Lei Geral de Proteção de Dados) e de políticas de confidencialidade do setor público, todo o histórico de commits foi processado antes da publicação: nomes de departamentos, empresas parceiras/permissionárias, e-mails, domínios internos e identificadores técnicos de infraestrutura (banco de dados, deploy) foram **substituídos por versões fictícias**. Nenhum dado real de fiscalização, usuário ou empresa aparece neste repositório — o código e a arquitetura são reais, os nomes não.
 
 ---
 
@@ -18,7 +25,7 @@ O **OBRAS** (Departamento de Controle e Uso de Vias Públicas) é o órgão resp
 
 Antes deste sistema, o acompanhamento era feito em planilhas Excel compartilhadas manualmente. Este dashboard centraliza os dados em tempo real, com visualizações interativas que permitem à equipe identificar gargalos por permissionária, subprefeitura e período.
 
-O sistema está em **uso real** pela equipe da OBRAS.
+O sistema está em **uso real** pela equipe do OBRAS.
 
 ---
 
@@ -55,7 +62,8 @@ Upload e análise de ocorrências de emergências em vias públicas.
 - Upload aceita planilha principal + planilha auxiliar de posicionamento de obras (formato Excel)
 
 ### Painel Administrativo
-Exclusivo para usuários com perfil `admin`.
+Exclusivo para usuários com perfil `admin` — **não navegável na demo pública**
+(o código completo está em `src/components/admin/`).
 - Criação e gestão de usuários internos (domínio `@obras.app`)
 - Perfis de acesso dinâmicos — cada perfil define quais módulos e abas o usuário enxerga
 - Redefinição de senhas com fluxo obrigatório de primeiro acesso
@@ -114,7 +122,7 @@ VITE_APP_ENV=development   # development | preview | production
 O projeto usa um fluxo **homologação-primeiro**:
 
 1. Branch de trabalho parte da `homologacao` → merge com **Squash and merge**
-2. Validação na URL fixa `homolog-dashboard-obras-cidade.vercel.app`
+2. Validação num ambiente de homologação dedicado
 3. PR de promoção `homologacao → main` com **Create a merge commit**
 4. GitHub Action espelha `main → homologacao` automaticamente
 
@@ -131,7 +139,7 @@ Todas as tabelas têm políticas RLS ativas. Usuários autenticados podem ler; e
 O Supabase Auth rejeita domínios sem MX válido (`@obras.app`). A solução usa uma função PostgreSQL com `SECURITY DEFINER` que insere diretamente em `auth.users`, contornando a validação de e-mail sem expor a `service_role`.
 
 ### Permissões por perfil de acesso
-Controle fino de visibilidade de módulos e abas. Perfis são criados dinamicamente pelo admin; sem permissão, o elemento some da interface. Admin ignora perfis e enxerga tudo. RLS continua "qualquer autenticado lê" — a restrição por módulo no banco é trabalho futuro (Onda 4).
+Controle fino de visibilidade de módulos e abas. Perfis são criados dinamicamente pelo admin; sem permissão, o elemento some da interface. Admin ignora perfis e enxerga tudo. RLS continua "qualquer autenticado lê" — a restrição por módulo no banco é trabalho futuro.
 
 ### Carga paginada automática do Sistema Geo
 O Supabase tem limite de 1.000 linhas por request. `fetchAll()` em `src/lib/supabase.js` pagina em ondas de 8 páginas paralelas, para por esgotamento (não pelo `count`, que pode vir subestimado em tabelas grandes), com retry e timeout por requisição.
@@ -201,16 +209,15 @@ dashboard-obras-cidade/
 │       └── subprefeituras-sp.geojson
 ├── .github/workflows/
 │   └── espelhar-main-homologacao.yml  # Espelha main → homologacao após cada promoção
-├── scripts/                       # Scripts Python de importação (Excel → Supabase)
 ├── supabase/                      # Scripts SQL (schema, policies, fixes, seed)
-└── docs/                          # Documentação interna do projeto
+└── docs/                          # Documentação técnica do projeto
 ```
 
 ---
 
 ## Licença
 
-Este projeto é de uso interno da Prefeitura de São Paulo / OBRAS. O código-fonte é privado.
+Este é um espelho público, com fins de portfólio, de um projeto cujo código-fonte original é de uso interno da Prefeitura de São Paulo. Nomes, dados e identificadores foram anonimizados conforme descrito no início deste README.
 
 ---
 
