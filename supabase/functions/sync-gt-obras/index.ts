@@ -461,13 +461,17 @@ function parseCompatibCamila(linhasXml: Linha[]): Record<string, unknown>[] {
       }
     }
 
-    const temAlgumDado = Object.keys(mapeada).some(
-      (k) =>
-        !['linha_planilha', 'atualizado_em'].includes(k) &&
-        mapeada[k] != null &&
-        mapeada[k] !== ''
-    )
-    if (!temAlgumDado) continue
+    // Linha válida = tem PERMISSIONÁRIA OU PROCESSO (critério da própria
+    // planilha — seção 2.1 do plano: "1.856 linhas com permissionária ou
+    // processo, de 3.102 linhas de grade"). Um "algum campo preenchido"
+    // genérico contava também linhas-fantasma da grade (só com uma
+    // observação solta, sem processo nem empresa) — achado em produção
+    // em 27/07/2026 (total_linhas veio 2.238 em vez de ~1.856, quase
+    // todo o excesso caindo em sem_processo).
+    const temPermissionariaOuProcesso =
+      (mapeada.permissionaria != null && mapeada.permissionaria !== '') ||
+      (mapeada.num_processo != null && mapeada.num_processo !== '')
+    if (!temPermissionariaOuProcesso) continue
 
     const numProcessoBruto = mapeada.num_processo as string | null
     const semProcesso = !numProcessoBruto
