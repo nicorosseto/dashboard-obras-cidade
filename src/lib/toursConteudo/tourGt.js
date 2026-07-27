@@ -18,8 +18,10 @@ export const TOUR_GT = {
     },
     {
       alvo: '[data-tour="header-abas"]',
-      titulo: '2 abas',
-      texto: 'Visão Geral (KPIs e gráficos) e Lista (busca por nº de processo).',
+      titulo: '3 abas',
+      texto:
+        'Visão Geral (KPIs e gráficos), Análise de Status (aprofundamento ' +
+        'por status, pendências e recape) e Lista (busca por nº de processo).',
     },
     {
       alvo: '[data-tour="gt-atualizar"]',
@@ -73,6 +75,57 @@ export const TOUR_GT_BUSCA = {
       alvo: '[data-tour="gt-busca-filtrar"]',
       titulo: 'Listar tudo',
       texto: 'Sem digitar nada, clique aqui para listar todas as obras carregadas.',
+    },
+    {
+      alvo: '[data-tour="gt-toggle-inconsistencias"]',
+      titulo: 'Verificar inconsistências',
+      texto:
+        'O raio-x dos erros de preenchimento da planilha [GT - Obras]: ' +
+        'divergência do painel DASH, processos não encontrados, duplicados ' +
+        'e grafias ambíguas. A correção é sempre feita na planilha.',
+    },
+  ],
+}
+
+export const TOUR_GT_ANALISE = {
+  id: 'gt.analise',
+  versao: 1,
+  titulo: 'GT Obras — Análise de Status',
+  passos: [
+    {
+      alvo: '[data-tour="gt-analise-status"]',
+      titulo: 'Funil de status',
+      texto:
+        'Distribuição por compatibilizada/paralisada — filtrando por uma ' +
+        'única situação na sidebar, o gráfico detalha os status individuais.',
+    },
+    {
+      alvo: '[data-tour="gt-analise-pendencias"]',
+      titulo: 'Pendências acionáveis',
+      texto:
+        'O que está parado esperando alguém agir (deliberação interna, ' +
+        'resposta da permissionária, assinatura…), com a metragem em risco.',
+    },
+    {
+      alvo: '[data-tour="gt-analise-status-ano"]',
+      titulo: 'Status × ano',
+      texto:
+        'Separa passivo antigo de fluxo corrente — um status concentrado ' +
+        'no ano mais recente é fila de trabalho, não acúmulo histórico.',
+    },
+    {
+      alvo: '[data-tour="gt-analise-tecnica"]',
+      titulo: 'Carga por técnica',
+      texto:
+        'Quantas análises cada técnica fez e a taxa de compatibilização ' +
+        'de cada uma — medida de produtividade individual, use com cuidado.',
+    },
+    {
+      alvo: '[data-tour="gt-analise-recape"]',
+      titulo: 'Recape × status da obra',
+      texto:
+        'O cruzamento que é a razão de ser do GT: obra ainda paralisada ' +
+        'numa via cujo recape já foi concluído é o pior caso.',
     },
   ],
 }

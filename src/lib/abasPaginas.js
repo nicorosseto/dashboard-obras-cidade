@@ -40,6 +40,7 @@ export const ABAS_MULTAS = [
 
 export const ABAS_GT = [
   { id: 'geral', label: 'Visão Geral', icon: '👁️' },
+  { id: 'analise', label: 'Análise de Status', icon: '📊' },
   { id: 'busca', label: 'Lista', icon: '🔍' },
 ]
 

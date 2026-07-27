@@ -853,6 +853,7 @@ export default function App() {
   const podeUploadEmerg = permissoes?.has('emerg.upload') ?? false
   const podeAtualizarMultas = permissoes?.has('multas.atualizar') ?? false
   const podeAtualizarGt = permissoes?.has('gt.atualizar') ?? false
+  const podeVerAnaliseGt = !permissoes || permissoes.has('gt.aba_analise')
 
   // ── Handlers ─────────────────────────────────────────────────────
   function handleLogin(sess) {
@@ -1566,6 +1567,7 @@ export default function App() {
                     carregando={gtCarregando}
                     basesCarregando={basesGtCarregando}
                     abaAtiva={abaGt}
+                    podeVerAnalise={podeVerAnaliseGt}
                     podeVerBusca={!permissoes || permissoes.has('gt.aba_lista')}
                     podeAtualizar={podeAtualizarGt}
                     onAtualizado={refetchGt}

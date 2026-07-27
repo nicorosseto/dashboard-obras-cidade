@@ -561,6 +561,9 @@ export default function Header({
           <nav className="flex items-center gap-4" data-tour="header-abas">
             {[
               { id: 'geral', label: 'Visão Geral', icon: '👁️' },
+              ...(!permissoes || permissoes.has('gt.aba_analise')
+                ? [{ id: 'analise', label: 'Análise de Status', icon: '📊' }]
+                : []),
               ...(!permissoes || permissoes.has('gt.aba_lista')
                 ? [{ id: 'busca', label: 'Lista', icon: '🔍' }]
                 : []),

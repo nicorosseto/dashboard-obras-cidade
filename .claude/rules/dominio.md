@@ -746,7 +746,7 @@
   analisados, esses nomes só poluíam as opções. Não afeta os dados exibidos
   sem filtro ativo, só o que aparece como opção selecionável.
 
-- **Módulo "GT Obras" (em construção, Fase 1 — 27/07/2026):**
+- **Módulo "GT Obras" (em construção, Fase 4 de 5 — 27/07/2026):**
   compatibilização de obras de permissionárias × programação de recape,
   alimentado pela planilha "[GT - Obras]" (Google Drive, mesma conta de
   serviço `obras-multas-leitor` do Multas — D5). Plano completo em
@@ -790,9 +790,17 @@
     `intervalo_minutos`/agendador, só o status da última execução.
   - **UI por fases (27/07/2026, decisão do usuário):** produção só
     quando o módulo estiver 100% pronto — sem promover fase a fase.
-    Fase 3 entregou Visão Geral + Lista; a aba "Análise de Status" e a
-    seção "Verificar inconsistências" (dentro da Lista, padrão Multas)
-    ficam para a Fase 4.
+    Fase 3 entregou Visão Geral + Lista; a **Fase 4** entregou a aba
+    "Análise de Status" (funil com drill-down, "Pendências Acionáveis",
+    "Status × Ano", "Metragem por Status", "Carga por Técnica", matriz
+    "Recape × Status") e a seção "Verificar inconsistências" dentro da
+    Lista (padrão Multas: toggle, sem permissão própria — bundle em
+    `gt.aba_lista`, mesma lógica de `gt.aba_analise` para a aba nova).
+    Falta a Fase 5 (dados demo + promoção).
+    ⚠️ **D6/D7 do plano seguem em aberto:** a "Carga por Técnica" expõe
+    nome de pessoa física — D7 (nomes reais × mirror público) precisa
+    ser resolvido antes de qualquer sync do mirror que inclua este
+    módulo.
   - **Cor índigo em inline style, não classe Tailwind:** `INDIGO`/
     `INDIGO_LIGHT` (`src/lib/cores.js`) seguem o padrão já usado para
     cores institucionais fora das 4 do `@theme` (violeta da Análise

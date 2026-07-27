@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabase.js'
 import { traduzErro } from '../../../lib/mensagens.js'
 import { LoadingConteudo } from '../../Loading.jsx'
 import AbaGtGeral from './AbaGtGeral.jsx'
+import AbaGtAnalise from './AbaGtAnalise.jsx'
 import AbaGtLista from './AbaGtLista.jsx'
 
 // Overlay de "Sincronizando…" — mesmo padrão do PaginaMultas.jsx.
@@ -100,6 +101,7 @@ export default function PaginaGtObras({
   carregando,
   basesCarregando,
   abaAtiva,
+  podeVerAnalise,
   podeVerBusca,
   podeAtualizar,
   onAtualizado,
@@ -235,8 +237,11 @@ export default function PaginaGtObras({
           {abaAtiva === 'geral' && (
             <AbaGtGeral linhas={linhas} gtDash={gtDash} />
           )}
+          {abaAtiva === 'analise' && podeVerAnalise && (
+            <AbaGtAnalise linhas={linhas} />
+          )}
           {abaAtiva === 'busca' && podeVerBusca && (
-            <AbaGtLista linhas={linhas} />
+            <AbaGtLista linhas={linhas} gtDash={gtDash} />
           )}
         </>
       )}

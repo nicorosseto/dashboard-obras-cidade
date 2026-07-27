@@ -53,7 +53,7 @@ const ABAS_MULTAS = ['busca']
 
 // Abas do módulo GT Obras (id espelha o bloco mostrarGt do Header.jsx).
 // 'geral' fica de fora: é a aba inicial, coberta pelo tour de entrada.
-const ABAS_GT = ['busca']
+const ABAS_GT = ['analise', 'busca']
 
 describe('cobertura dos tours', () => {
   it.each(COBERTURA_EXIGIDA)('a área "%s" tem tour registrado', (id) => {

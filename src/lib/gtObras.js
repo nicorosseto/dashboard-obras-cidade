@@ -71,6 +71,34 @@ export const STATUS_GT = [
   'CANCELADO',
 ]
 
+// Cor por status individual (seção 8.2 do plano — funil/drill-down e
+// "Status × Ano"). Grupados visualmente pela cor-base do status_grupo
+// (verde = compatibilizada, âmbar = paralisada), mas cada status ganha um
+// tom distinto para não confundir séries num gráfico empilhado.
+export const STATUS_GT_COR = {
+  'AEO EMITIDO': '#1F7A4D',
+  LIBERAR: '#3FA872',
+  'DOCS ASSINADOS': '#0EA5E9',
+  'AGUARDANDO DELIBERAÇÃO': '#D97706',
+  'AGUARDANDO COMUNIQUE-SE': '#F59E0B',
+  'CAMILA VERIFICAR': '#8B5CF6',
+  SEGURAR: '#EF4444',
+  'NÃO EMITIR': '#6B7280',
+  'AGUARDANDO ASSINATURA': '#EC4899',
+  CANCELADO: '#9CA3AF',
+}
+
+// Os 5 status "parados esperando alguém" (painel "Pendências acionáveis",
+// seção 8.2.2 do plano) — chave = texto exato da coluna STATUS, valor =
+// quem precisa agir para destravar.
+export const STATUS_PENDENCIA_ESPERA = {
+  'AGUARDANDO DELIBERAÇÃO': 'Decisão interna OBRAS',
+  'AGUARDANDO COMUNIQUE-SE': 'Resposta da permissionária',
+  'CAMILA VERIFICAR': 'Conferência nominal',
+  SEGURAR: 'Retido deliberadamente',
+  'AGUARDANDO ASSINATURA': 'Assinatura',
+}
+
 // ── Agrupamento por processo (achado do usuário, 27/07/2026) ──────────
 // Um processo pode ter mais de uma via/trecho na aba "COMPATIB. CAMILA"
 // (célula mesclada no Excel para permissionária/status/etc. — a Edge
@@ -255,6 +283,104 @@ export function agregaGtStatusGrupoPorAno(linhas) {
     bucket[grupo] += 1
   }
   return Array.from(porAno.values()).sort((a, b) => a.ano - b.ano)
+}
+
+// Status individual × ano do processo (barras empilhadas, seção 8.2.3 do
+// plano) — mais granular que `agregaGtStatusGrupoPorAno` (que só separa
+// compatibilizada/paralisada): evidencia achados como "AGUARDANDO
+// DELIBERAÇÃO concentra em 2026" que o agrupamento por status_grupo
+// esconde (LIBERAR e AGUARDANDO DELIBERAÇÃO caem em grupos diferentes).
+// Cada linha do retorno tem uma chave por status de `STATUS_GT` (0 quando
+// ausente naquele ano) — pronta para um `<Bar>` por status com `stackId`.
+export function agregaGtPorStatusEAno(linhas) {
+  const porAno = new Map()
+  for (const r of agruparGtPorProcesso(linhas)) {
+    const ano = r.ano_processo
+    if (!ano || !r.status) continue
+    if (!porAno.has(ano)) {
+      const bucket = { ano }
+      for (const s of STATUS_GT) bucket[s] = 0
+      porAno.set(ano, bucket)
+    }
+    const bucket = porAno.get(ano)
+    if (bucket[r.status] === undefined) bucket[r.status] = 0
+    bucket[r.status] += 1
+  }
+  return Array.from(porAno.values()).sort((a, b) => a.ano - b.ano)
+}
+
+// Painel "Pendências acionáveis" (seção 8.2.2 do plano) — separa o que
+// está parado esperando alguém, com a metragem em risco de cada status.
+// Mantém as 5 linhas mesmo com contagem zero (tabela estável, mesmo shape
+// da planilha de referência do plano).
+export function pendenciasAcionaveisGt(linhas) {
+  const porStatus = new Map()
+  for (const status of Object.keys(STATUS_PENDENCIA_ESPERA)) {
+    porStatus.set(status, {
+      status,
+      esperaQuem: STATUS_PENDENCIA_ESPERA[status],
+      qtd: 0,
+      metragem: 0,
+    })
+  }
+  for (const r of agruparGtPorProcesso(linhas)) {
+    const bucket = porStatus.get(r.status)
+    if (!bucket) continue
+    bucket.qtd += 1
+    bucket.metragem += Number(r.area_m2) || 0
+  }
+  const linhasPend = Array.from(porStatus.values())
+  const totalQtd = linhasPend.reduce((acc, b) => acc + b.qtd, 0)
+  const totalMetragem = linhasPend.reduce((acc, b) => acc + b.metragem, 0)
+  return { linhas: linhasPend, totalQtd, totalMetragem }
+}
+
+// Metragem por status individual (seção 8.2.6 do plano) — não só
+// contagem, quanto de m² está em cada etapa.
+export function agregaGtMetragemPorStatus(linhas) {
+  const m = new Map()
+  for (const r of agruparGtPorProcesso(linhas)) {
+    if (!r.status) continue
+    m.set(r.status, (m.get(r.status) || 0) + (Number(r.area_m2) || 0))
+  }
+  return Array.from(m.entries())
+    .map(([status, metragem]) => ({ status, metragem }))
+    .sort((a, b) => b.metragem - a.metragem)
+}
+
+// Situação do recape × status da obra (matriz, seção 8.2.5 do plano) — o
+// cruzamento que é a razão de ser do GT: obra ainda paralisada numa via
+// cujo recape já está CONCLUÍDO é o pior caso (via nova que será aberta de
+// novo). ⚠️ Opera no nível de VIA (linhas cruas, sem agrupar por
+// processo) — a situação do recape é um atributo do trecho, não do
+// processo (mesma ressalva de `agregaGtPorSituacaoRecape`).
+export function matrizGtRecapeStatus(linhas) {
+  const m = new Map()
+  for (const r of linhas || []) {
+    const situacao = r.situacao_recape_norm || 'SEM INFORMAÇÃO'
+    if (!m.has(situacao)) {
+      m.set(situacao, {
+        situacao,
+        compatibilizada: 0,
+        paralisada: 0,
+        nao_classificado: 0,
+        total: 0,
+      })
+    }
+    const bucket = m.get(situacao)
+    const grupo = bucket[r.status_grupo] !== undefined ? r.status_grupo : 'nao_classificado'
+    bucket[grupo] += 1
+    bucket.total += 1
+  }
+  return Array.from(m.values()).sort((a, b) => b.total - a.total)
+}
+
+// "Pior caso" do cruzamento acima: recape já CONCLUÍDO mas obra ainda
+// paralisada — a via será reaberta pela permissionária depois de recapeada.
+export function recapeConcluidoParalisadoGt(linhas) {
+  return (linhas || []).filter(
+    (r) => r.situacao_recape_norm === 'CONCLUIDO' && r.status_grupo === 'paralisada'
+  ).length
 }
 
 // Carga por técnica (coluna X) + taxa de compatibilização de cada uma

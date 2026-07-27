@@ -4,10 +4,17 @@ import {
   STATUS_GRUPO_LABEL,
   STATUS_GRUPO_COR,
   STATUS_GT,
+  STATUS_GT_COR,
+  STATUS_PENDENCIA_ESPERA,
   agruparGtPorProcesso,
   kpisGt,
   agregaGtPorStatusGrupo,
   agregaGtPorStatus,
+  agregaGtPorStatusEAno,
+  pendenciasAcionaveisGt,
+  agregaGtMetragemPorStatus,
+  matrizGtRecapeStatus,
+  recapeConcluidoParalisadoGt,
   agregaGtPorPermissionaria,
   todasGtNorcrest,
   agregaGtPorUnidadeNorcrest,
@@ -413,6 +420,120 @@ describe('agregaGtPorSituacaoRecape', () => {
       { situacao: 'CONCLUIDO', total: 2 },
       { situacao: 'SEM INFORMAÇÃO', total: 1 },
     ])
+  })
+})
+
+// ── STATUS_GT_COR / STATUS_PENDENCIA_ESPERA (Fase 4) ────────────────────
+describe('STATUS_GT_COR', () => {
+  it('tem uma cor para cada um dos 10 status de STATUS_GT', () => {
+    for (const status of STATUS_GT) {
+      expect(STATUS_GT_COR[status], `falta cor para "${status}"`).toBeTruthy()
+    }
+  })
+})
+
+describe('STATUS_PENDENCIA_ESPERA', () => {
+  it('as 5 chaves existem em STATUS_GT', () => {
+    for (const status of Object.keys(STATUS_PENDENCIA_ESPERA)) {
+      expect(STATUS_GT).toContain(status)
+    }
+  })
+})
+
+// ── agregaGtPorStatusEAno (Fase 4 — seção 8.2.3 do plano) ──────────────
+describe('agregaGtPorStatusEAno', () => {
+  it('separa por status individual dentro do mesmo ano', () => {
+    const linhas = [
+      { ano_processo: 2026, status: 'AGUARDANDO DELIBERAÇÃO' },
+      { ano_processo: 2026, status: 'LIBERAR' },
+      { ano_processo: 2026, status: 'LIBERAR' },
+      { ano_processo: 2025, status: 'AGUARDANDO DELIBERAÇÃO' },
+    ]
+    const r = agregaGtPorStatusEAno(linhas)
+    expect(r).toHaveLength(2)
+    const ano2026 = r.find((x) => x.ano === 2026)
+    const ano2025 = r.find((x) => x.ano === 2025)
+    expect(ano2026['AGUARDANDO DELIBERAÇÃO']).toBe(1)
+    expect(ano2026['LIBERAR']).toBe(2)
+    expect(ano2026['CANCELADO']).toBe(0)
+    expect(ano2025['AGUARDANDO DELIBERAÇÃO']).toBe(1)
+  })
+
+  it('ignora linhas sem ano ou sem status', () => {
+    expect(agregaGtPorStatusEAno([{ ano_processo: null, status: 'LIBERAR' }])).toEqual([])
+    expect(agregaGtPorStatusEAno([{ ano_processo: 2025, status: null }])).toEqual([])
+  })
+})
+
+// ── pendenciasAcionaveisGt (Fase 4 — seção 8.2.2 do plano) ─────────────
+describe('pendenciasAcionaveisGt', () => {
+  it('soma qtde e metragem dos 5 status de espera, mantém as 5 linhas mesmo zeradas', () => {
+    const linhas = [
+      { status: 'AGUARDANDO DELIBERAÇÃO', area_m2: 100 },
+      { status: 'AGUARDANDO DELIBERAÇÃO', area_m2: 50 },
+      { status: 'SEGURAR', area_m2: 20 },
+      { status: 'AEO EMITIDO', area_m2: 999 }, // fora do painel — ignorado
+    ]
+    const r = pendenciasAcionaveisGt(linhas)
+    expect(r.linhas).toHaveLength(5)
+    const deliberacao = r.linhas.find((l) => l.status === 'AGUARDANDO DELIBERAÇÃO')
+    expect(deliberacao).toMatchObject({ qtd: 2, metragem: 150 })
+    const assinatura = r.linhas.find((l) => l.status === 'AGUARDANDO ASSINATURA')
+    expect(assinatura).toMatchObject({ qtd: 0, metragem: 0 })
+    expect(r.totalQtd).toBe(3)
+    expect(r.totalMetragem).toBe(170)
+  })
+})
+
+// ── agregaGtMetragemPorStatus (Fase 4 — seção 8.2.6 do plano) ──────────
+describe('agregaGtMetragemPorStatus', () => {
+  it('soma area_m2 por status, decrescente', () => {
+    const linhas = [
+      { status: 'LIBERAR', area_m2: 100 },
+      { status: 'LIBERAR', area_m2: 50 },
+      { status: 'CANCELADO', area_m2: 300 },
+    ]
+    expect(agregaGtMetragemPorStatus(linhas)).toEqual([
+      { status: 'CANCELADO', metragem: 300 },
+      { status: 'LIBERAR', metragem: 150 },
+    ])
+  })
+})
+
+// ── matrizGtRecapeStatus / recapeConcluidoParalisadoGt (seção 8.2.5) ───
+describe('matrizGtRecapeStatus', () => {
+  it('cruza situação do recape × status_grupo, no nível de via', () => {
+    const linhas = [
+      { situacao_recape_norm: 'CONCLUIDO', status_grupo: 'paralisada' },
+      { situacao_recape_norm: 'CONCLUIDO', status_grupo: 'compatibilizada' },
+      { situacao_recape_norm: 'EM ANDAMENTO', status_grupo: 'paralisada' },
+    ]
+    const r = matrizGtRecapeStatus(linhas)
+    const concluido = r.find((x) => x.situacao === 'CONCLUIDO')
+    expect(concluido).toMatchObject({
+      compatibilizada: 1,
+      paralisada: 1,
+      nao_classificado: 0,
+      total: 2,
+    })
+  })
+
+  it('sem situação cai em "SEM INFORMAÇÃO"', () => {
+    const r = matrizGtRecapeStatus([{ situacao_recape_norm: null, status_grupo: 'paralisada' }])
+    expect(r).toEqual([
+      { situacao: 'SEM INFORMAÇÃO', compatibilizada: 0, paralisada: 1, nao_classificado: 0, total: 1 },
+    ])
+  })
+})
+
+describe('recapeConcluidoParalisadoGt', () => {
+  it('conta só recape CONCLUIDO com obra paralisada (o pior caso)', () => {
+    const linhas = [
+      { situacao_recape_norm: 'CONCLUIDO', status_grupo: 'paralisada' },
+      { situacao_recape_norm: 'CONCLUIDO', status_grupo: 'compatibilizada' },
+      { situacao_recape_norm: 'EM ANDAMENTO', status_grupo: 'paralisada' },
+    ]
+    expect(recapeConcluidoParalisadoGt(linhas)).toBe(1)
   })
 })
 

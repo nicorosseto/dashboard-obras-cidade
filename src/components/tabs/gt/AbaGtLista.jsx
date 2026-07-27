@@ -9,6 +9,8 @@ import { LoadingInline } from '../../Loading.jsx'
 import BotaoExportarGrafico from '../../BotaoExportarGrafico.jsx'
 import { PaginacaoBusca } from '../emerg/shared.jsx'
 import { normProc } from '../../../lib/emergencias.js'
+import AbaGtInconsistencias from './AbaGtInconsistencias.jsx'
+import { inconsistenciasGt } from '../../../lib/gtObras.js'
 
 const PAGE_SIZE = 50
 const DEBOUNCE_MS = 250
@@ -72,16 +74,20 @@ const COLUNAS_EXPORT = [
 ]
 
 // Aba "Lista" — padrão obrigatório do dominio.md: só lista por ação explícita
-// (botão "Filtrar" ou digitar um número de processo). Nesta fase (F3) ainda
-// não tem a seção de inconsistências (vem na F4, junto com a aba "Análise
-// de Status").
+// (botão "Filtrar" ou digitar um número de processo). A partir da Fase 4
+// (padrão do módulo Multas, 2ª rodada de ampliação de 16/07/2026) esta aba
+// também hospeda, como seção auxiliar/alternável, o "raio-x" de
+// inconsistências da planilha — o usuário principal do GT não corrige esses
+// erros (a edição é sempre na planilha), então a visão é só para
+// conferência, sem destaque próprio no menu.
 //
 // ⚠️ Agrupa por processo (agruparGtPorProcesso) antes de listar — um
 // processo com várias vias/trechos vira UMA linha na tabela (com todas as
 // vias listadas dentro da mesma célula e a metragem somada), nunca uma
 // linha por trecho (achado do usuário, 27/07/2026: contar/listar por
 // trecho duplicava o processo e inflava a contagem).
-export default function AbaGtLista({ linhas }) {
+export default function AbaGtLista({ linhas, gtDash }) {
+  const [mostrarInconsistencias, setMostrarInconsistencias] = useState(false)
   const porProcesso = useMemo(() => agruparGtPorProcesso(linhas), [linhas])
   const [busca, setBusca] = useState('')
   const [buscaAplicada, setBuscaAplicada] = useState('')
@@ -146,8 +152,53 @@ export default function AbaGtLista({ linhas }) {
   const totalPag = Math.ceil(resultadoExibido.length / PAGE_SIZE)
   const pagina = resultadoExibido.slice(pag * PAGE_SIZE, (pag + 1) * PAGE_SIZE)
 
+  const totalInconsistencias = useMemo(() => {
+    const g = inconsistenciasGt(linhas)
+    return (
+      g.semProcesso.length +
+      g.processoNaoEncontrado.length +
+      g.duplicados.length +
+      g.situacaoRecapeAmbigua.length
+    )
+  }, [linhas])
+
+  if (mostrarInconsistencias) {
+    return (
+      <div className="space-y-3">
+        <button
+          onClick={() => setMostrarInconsistencias(false)}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-navy hover:text-red transition-colors"
+        >
+          <svg
+            className="w-3.5 h-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Voltar para a lista de processos
+        </button>
+        <AbaGtInconsistencias linhasCruzadas={linhas} gtDash={gtDash} />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-3">
+      <div className="flex justify-end">
+        <button
+          onClick={() => setMostrarInconsistencias(true)}
+          data-tour="gt-toggle-inconsistencias"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-sm border border-grey-line text-gray-600 hover:border-red hover:text-red transition-colors"
+        >
+          <span aria-hidden>⚠️</span>
+          Verificar inconsistências da planilha ({totalInconsistencias})
+        </button>
+      </div>
       <div
         className="bg-white rounded-md shadow-card p-4 space-y-4"
         data-tour="gt-busca-campo"
