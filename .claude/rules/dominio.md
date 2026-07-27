@@ -745,6 +745,47 @@
   não tratada) para linhas sem vínculo; como processos sem número não são
   analisados, esses nomes só poluíam as opções. Não afeta os dados exibidos
   sem filtro ativo, só o que aparece como opção selecionável.
+
+- **Módulo "GT Obras" (em construção, Fase 1 — 27/07/2026):**
+  compatibilização de obras de permissionárias × programação de recape,
+  alimentado pela planilha "[GT - Obras]" (Google Drive, mesma conta de
+  serviço `obras-multas-leitor` do Multas — D5). Plano completo em
+  `docs/plano-modulo-gt-obras.md`. Particularidades já decididas:
+  - **Mapear colunas por POSIÇÃO, não por nome:** a aba `COMPATIB. CAMILA`
+    tem cabeçalhos repetidos (`TRECHO` 4×, `ÁREA TOTAL DA VIA (m²)` 2×) —
+    diferente do `sync-multas` (que mapeia por nome de cabeçalho). A
+    Edge Function `sync-gt-obras` valida a sanidade do cabeçalho (posições
+    esperadas na linha 2) e **aborta** a sincronização se não bater, em
+    vez de gravar dado deslocado.
+  - **Regra de "obra compatibilizada" (D1, decisão do usuário em
+    27/07/2026):** status `AEO EMITIDO` ou `LIBERAR` = compatibilizada;
+    os outros 8 status (`AGUARDANDO DELIBERAÇÃO`, `CANCELADO`, `DOCS
+    ASSINADOS`, `AGUARDANDO COMUNIQUE-SE`, `CAMILA VERIFICAR`, `SEGURAR`,
+    `NÃO EMITIR`, `AGUARDANDO ASSINATURA`) = paralisada (dicotomia
+    binária). Um status novo/desconhecido (planilha viva) cai em
+    `status_grupo = 'nao_classificado'` — nunca quebra a sincronização
+    nem é classificado por adivinhação.
+  - **`num_processo` não é chave única** (48 processos aparecem em mais
+    de uma linha, um por trecho) — upsert por **chave sintética** (hash
+    de processo + via + trechos + linha da planilha), sem o caminho dual
+    "com/sem chave natural" que o `sync-multas` usa para `auto_multa`.
+  - **`tem_erro_formula` (gt_dash) tem escopo deliberadamente limitado:**
+    só cobre o que foi **confirmado por screenshot do usuário** em
+    27/07/2026 (valor negativo, ou `compatibilizadas + paralisadas ≠
+    qtde_obras` — caso real: linha `AXWELL TELECOM` do bloco
+    2025/2026). Os `#REF!`/valores negativos citados na análise inicial
+    do plano (bloco-resumo lateral da aba `COMPATIB. CAMILA`, colunas
+    AB:AE) **não foram confirmados** nos screenshots enviados e ficam
+    **fora do parser** até nova verificação — não hard-codar esses
+    números específicos em testes/Edge Function. A divergência entre a
+    soma dos 3 blocos anuais e o bloco "Total Geral" (confirmada: 3.135
+    somado vs. 3.134 declarado) é checada à parte, no front-end
+    (`conferirDashVsBase`, Fase 2), não linha a linha na Edge Function.
+  - **Sem cron (D4, decisão do usuário):** diferente do `sync-multas`
+    (que tem cron + botão manual), aqui a sincronização **só roda pelo
+    botão "Atualizar agora"** — `gt_sync_config` não tem
+    `intervalo_minutos`/agendador, só o status da última execução.
+
 - **Home — lista de módulos em linha, não grid (16/07/2026):** decisão
   tomada com uma **prévia em HTML (Artifact)** antes de tocar em código —
   comparou lado a lado o grid antigo × a proposta em lista, com o conteúdo
