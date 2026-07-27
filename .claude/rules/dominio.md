@@ -770,12 +770,15 @@
     de processo + via + trechos + linha da planilha), sem o caminho dual
     "com/sem chave natural" que o `sync-multas` usa para `auto_multa`.
   - **`tem_erro_formula` (gt_dash) tem escopo deliberadamente limitado:**
-    só cobre o que foi **confirmado por screenshot do usuário** em
-    27/07/2026 (valor negativo, ou `compatibilizadas + paralisadas ≠
-    qtde_obras` — caso real: linha `AXWELL TELECOM` do bloco
-    2025/2026). Os `#REF!`/valores negativos citados na análise inicial
-    do plano (bloco-resumo lateral da aba `COMPATIB. CAMILA`, colunas
-    AB:AE) **não foram confirmados** nos screenshots enviados e ficam
+    cobre valor negativo ou `compatibilizadas + paralisadas ≠ qtde_obras`
+    como **rede de segurança geral** — nenhum caso real desse tipo está
+    confirmado até agora (a linha `AXWELL TELECOM` do bloco
+    2025/2026, citada inicialmente como exemplo, era erro de leitura do
+    screenshot pelo executor; a sincronização real mostrou a linha
+    zerada, sem anomalia — corrigido em 27/07/2026). Os `#REF!`/valores
+    negativos citados na análise inicial do plano (bloco-resumo lateral
+    da aba `COMPATIB. CAMILA`, colunas AB:AE) **não foram confirmados**
+    nos screenshots enviados e ficam
     **fora do parser** até nova verificação — não hard-codar esses
     números específicos em testes/Edge Function. A divergência entre a
     soma dos 3 blocos anuais e o bloco "Total Geral" (confirmada: 3.135

@@ -565,13 +565,14 @@ function parseDash(linhasXml: Linha[]): Record<string, unknown>[] {
       tipoLinha = 'agrupamento'
     else if (permissionariaNorm === 'OUTROS') tipoLinha = 'agrupamento'
 
-    // tem_erro_formula (D2): só o que já foi CONFIRMADO por screenshot do
-    // usuário em 27/07/2026 — valor negativo, ou
-    // compatibilizadas + paralisadas ≠ qtde_obras (caso real: NW3
-    // TELECOMIUNICAÇÕES no bloco 2025/2026). A divergência de soma entre
-    // os 3 blocos anuais e o "total_geral" é checada à parte, no
-    // front-end (conferirDashVsBase, Fase 2) — não dá para comparar
-    // blocos aqui, linha a linha.
+    // tem_erro_formula (D2): valor negativo, ou
+    // compatibilizadas + paralisadas ≠ qtde_obras — rede de segurança
+    // geral (nenhum caso real confirmado até 27/07/2026; o exemplo
+    // citado inicialmente, AXWELL TELECOM, era erro de leitura
+    // do screenshot pelo executor — a linha real está zerada). A
+    // divergência de soma entre os 3 blocos anuais e o "total_geral" é
+    // checada à parte, no front-end (conferirDashVsBase, Fase 2) — não
+    // dá para comparar blocos aqui, linha a linha.
     let temErro = false
     if (qtdeObras != null && qtdeObras < 0) temErro = true
     if (obrasCompat != null && obrasCompat < 0) temErro = true

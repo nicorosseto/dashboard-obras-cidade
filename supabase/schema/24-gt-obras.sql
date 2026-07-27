@@ -150,11 +150,13 @@ create table if not exists public.gt_dash (
 );
 
 -- `tem_erro_formula = true` quando: valor negativo, ou
--- `obras_compatibilizadas + obras_paralisadas <> qtde_obras` (achado
--- confirmado por screenshot do usuário em 27/07/2026 — ex.: NW3
--- TELECOMIUNICAÇÕES no bloco 2025/2026), ou soma dos 3 blocos anuais ≠
--- bloco "total_geral" (achado confirmado: 3.135 somado vs. 3.134
--- declarado). Ver docs/plano-modulo-gt-obras.md, seção 6.6/8.3.
+-- `obras_compatibilizadas + obras_paralisadas <> qtde_obras` (rede de
+-- segurança geral — nenhum caso real confirmado até 27/07/2026; o
+-- exemplo citado inicialmente, AXWELL TELECOM, era erro de
+-- leitura de screenshot pelo executor, não da planilha). A soma dos 3
+-- blocos anuais ≠ bloco "total_geral" (achado confirmado: 3.135 somado
+-- vs. 3.134 declarado) é checada à parte, no front-end. Ver
+-- docs/plano-modulo-gt-obras.md, seção 6.6/8.3.
 
 alter table public.gt_dash enable row level security;
 

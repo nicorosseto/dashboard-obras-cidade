@@ -233,9 +233,10 @@ nenhum cron job no painel do Supabase.
 ### Limitações conhecidas (aceitas, não bloqueiam a promoção)
 
 - Sem retry/backoff no download do Drive, igual ao sync-multas.
-- `tem_erro_formula` (gt_dash) só cobre o que foi confirmado por
-  screenshot do usuário em 27/07/2026 (valor negativo, ou
-  `compatibilizadas + paralisadas ≠ qtde_obras`) — a divergência de soma
+- `tem_erro_formula` (gt_dash) cobre valor negativo ou
+  `compatibilizadas + paralisadas ≠ qtde_obras` como rede de segurança
+  geral — nenhum caso real está confirmado até 27/07/2026 (o primeiro
+  teste real veio com `linhas_dash_com_erro: 0`). A divergência de soma
   entre os 3 blocos anuais e o "Total Geral" é checada à parte, no
   front-end (Fase 2). Os `#REF!`/negativos do bloco-resumo lateral da
   aba `COMPATIB. CAMILA` (colunas AB:AE) seguem sem confirmação e **fora
