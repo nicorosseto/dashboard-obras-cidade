@@ -81,6 +81,7 @@ const LABEL_MODULO = {
   fiscalizacao: 'Fiscalização',
   relatorio: 'Apresentação',
   multas: 'Multas',
+  gt: 'GT Obras',
 }
 
 const STORAGE_KEY = (modulo) => `obras_export_cols_${modulo}`

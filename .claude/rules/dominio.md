@@ -788,6 +788,17 @@
     (que tem cron + botão manual), aqui a sincronização **só roda pelo
     botão "Atualizar agora"** — `gt_sync_config` não tem
     `intervalo_minutos`/agendador, só o status da última execução.
+  - **UI por fases (27/07/2026, decisão do usuário):** produção só
+    quando o módulo estiver 100% pronto — sem promover fase a fase.
+    Fase 3 entregou Visão Geral + Lista; a aba "Análise de Status" e a
+    seção "Verificar inconsistências" (dentro da Lista, padrão Multas)
+    ficam para a Fase 4.
+  - **Cor índigo em inline style, não classe Tailwind:** `INDIGO`/
+    `INDIGO_LIGHT` (`src/lib/cores.js`) seguem o padrão já usado para
+    cores institucionais fora das 4 do `@theme` (violeta da Análise
+    Integrada, teal da Apresentação, âmbar de Emergências…) — nunca
+    `text-red`/`accent-red` (essas são só para as 4 cores do tema);
+    sempre `style={{ color: INDIGO }}` ou equivalente.
 
 - **Home — lista de módulos em linha, não grid (16/07/2026):** decisão
   tomada com uma **prévia em HTML (Artifact)** antes de tocar em código —

@@ -14,6 +14,7 @@ export const MODULO_LABEL = {
   analise_integrada: 'Análise Integrada',
   emergencias: 'Emergências',
   multas: 'Multas',
+  gt: 'GT Obras',
 }
 
 // O que cada código de permissão libera na interface (exibido na legenda do
@@ -42,6 +43,14 @@ export const PERM_DESCRICAO = {
     'Aba "Lista" no módulo Multas (busca por nº de processo ou auto da multa)',
   'multas.atualizar':
     'Botão "Atualizar agora" no módulo Multas (força a sincronização com a planilha)',
+  'gt.ver':
+    'Acessa o módulo GT Obras (Visão Geral: KPIs e gráficos da compatibilização de obras × recape)',
+  'gt.aba_analise':
+    'Aba "Análise de Status" no módulo GT Obras (aprofundamento por status, pendências acionáveis, carga por técnica)',
+  'gt.aba_lista':
+    'Aba "Lista" no módulo GT Obras (busca por nº de processo + seção "Verificar inconsistências")',
+  'gt.atualizar':
+    'Botão "Atualizar agora" no módulo GT Obras (força a sincronização com a planilha)',
 }
 
 /* ------------------------------------------------------------------ */

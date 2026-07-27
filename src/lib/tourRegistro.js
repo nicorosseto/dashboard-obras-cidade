@@ -48,6 +48,7 @@ import {
   TOUR_CONFIGURACOES_LOGS,
 } from './toursConteudo/tourConfiguracoes.js'
 import { TOUR_MULTAS, TOUR_MULTAS_BUSCA } from './toursConteudo/tourMultas.js'
+import { TOUR_GT, TOUR_GT_BUSCA } from './toursConteudo/tourGt.js'
 
 export const TOURS = {
   home: TOUR_HOME,
@@ -78,6 +79,8 @@ export const TOURS = {
   relatorio: TOUR_RELATORIO,
   multas: TOUR_MULTAS,
   'multas.busca': TOUR_MULTAS_BUSCA,
+  gt: TOUR_GT,
+  'gt.busca': TOUR_GT_BUSCA,
   configuracoes: TOUR_CONFIGURACOES,
   'configuracoes.1': TOUR_CONFIGURACOES_PERFIS,
   'configuracoes.2': TOUR_CONFIGURACOES_ATUALIZAR,

@@ -1,6 +1,6 @@
 import { fmtNumero, fmtDataHora, fmtDataSP } from '../lib/aggregations.js'
 import { useState, useCallback } from 'react'
-import { NAVY, RED } from '../lib/cores.js'
+import { NAVY, RED, INDIGO } from '../lib/cores.js'
 import BotaoTour from '../components/tour/BotaoTour.jsx'
 import Rodape from '../components/Rodape.jsx'
 
@@ -97,6 +97,24 @@ function IconTicket({ className = 'w-10 h-10' }) {
     >
       <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z" />
       <line x1="12" y1="6" x2="12" y2="18" strokeDasharray="2 2" />
+    </svg>
+  )
+}
+
+function IconGt({ className = 'w-10 h-10' }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3" />
+      <path d="M9 17H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3" />
+      <line x1="8" y1="12" x2="16" y2="12" />
     </svg>
   )
 }
@@ -315,6 +333,7 @@ export default function Home({
   temCruzamento = false,
   temRelatorio = false,
   temMultas = false,
+  temGt = false,
   onAbrirConfiguracoes,
   onSignOut,
   onIniciarTour,
@@ -328,7 +347,8 @@ export default function Home({
     !onAbrirEmergencias &&
     !temCruzamento &&
     !temRelatorio &&
-    !temMultas
+    !temMultas &&
+    !temGt
 
   const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0 })
   const handleMouseMove = useCallback((e) => {
@@ -460,6 +480,7 @@ export default function Home({
           temCruzamento ||
           temRelatorio ||
           temMultas ||
+          temGt ||
           onAbrirEmergencias) && (
           <div className="flex flex-col gap-3">
             {temGeo && (
@@ -562,6 +583,21 @@ export default function Home({
                 descricao="Multas de processo sincronizadas da planilha de controle, já cruzadas com Sistema Geo e Fiscalização — inconsistências de preenchimento em destaque."
                 ultimaAtualizacao={null}
                 onClick={() => onNavigate('multas')}
+                carregando={sistemaGeoCarregando}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+              />
+            )}
+            {temGt && (
+              <ModuleRow
+                accent={INDIGO}
+                icon={<IconGt className="w-5 h-5" />}
+                titulo="GT Obras"
+                subtitulo="Compatibilização × recape"
+                dataTour="home-card-gt"
+                descricao="Compatibilização entre obras de permissionárias e a programação de recape das vias, sincronizada da planilha do Grupo de Trabalho (GT)."
+                ultimaAtualizacao={null}
+                onClick={() => onNavigate('gt')}
                 carregando={sistemaGeoCarregando}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}

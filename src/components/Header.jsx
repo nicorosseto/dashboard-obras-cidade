@@ -150,6 +150,25 @@ function IconTicket() {
   )
 }
 
+// Ícone do módulo GT Obras — "link" (compatibilizar = ligar duas agendas).
+function IconGt() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-full h-full"
+    >
+      <path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3" />
+      <path d="M9 17H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+    </svg>
+  )
+}
+
 function IconSettings() {
   return (
     <svg
@@ -173,15 +192,18 @@ function getModuleConfig(
   paginaAtiva,
   mostrarEmergencias,
   mostrarRelatorio,
-  mostrarMultas
+  mostrarMultas,
+  mostrarGt
 ) {
   const cor = coresModulo(
     secaoAtiva,
     paginaAtiva,
     mostrarEmergencias,
     mostrarRelatorio,
-    mostrarMultas
+    mostrarMultas,
+    mostrarGt
   )
+  if (mostrarGt) return { label: 'GT Obras', icon: <IconGt />, ...cor }
   if (mostrarMultas) return { label: 'Multas', icon: <IconTicket />, ...cor }
   if (mostrarRelatorio)
     return { label: 'Apresentação', icon: <IconSlides />, ...cor }
@@ -211,6 +233,7 @@ export default function Header({
   mostrarEmergencias = false,
   mostrarRelatorio = false,
   mostrarMultas = false,
+  mostrarGt = false,
   abaEmergAtiva = 'geral',
   onAbaEmerg = () => {},
   totalInformadasEmerg = 0,
@@ -218,6 +241,8 @@ export default function Header({
   motivoPendentes = 0,
   abaMultasAtiva = 'geral',
   onAbaMultas = () => {},
+  abaGtAtiva = 'geral',
+  onAbaGt = () => {},
   abaAdminAtiva = 0,
   onAbaAdmin = () => {},
   onAbrirConfiguracoes = () => {},
@@ -240,13 +265,15 @@ export default function Header({
     paginaAtiva,
     mostrarEmergencias,
     mostrarRelatorio,
-    mostrarMultas
+    mostrarMultas,
+    mostrarGt
   )
   const accentGradient = `linear-gradient(to right, ${mod.from}, ${mod.to})`
   const mostrarAbas =
     !mostrarEmergencias &&
     !mostrarRelatorio &&
     !mostrarMultas &&
+    !mostrarGt &&
     paginaAtiva !== 5
   const mostrarAbasAdmin = paginaAtiva === 5
   const mostrarAbasCruzamento =
@@ -309,13 +336,15 @@ export default function Header({
             <ModuleDropdown
               modules={modules}
               activeModuleId={
-                mostrarMultas
-                  ? 'multas'
-                  : mostrarRelatorio
-                    ? 'relatorio'
-                    : mostrarEmergencias
-                      ? 'emergencias'
-                      : secaoAtiva
+                mostrarGt
+                  ? 'gt'
+                  : mostrarMultas
+                    ? 'multas'
+                    : mostrarRelatorio
+                      ? 'relatorio'
+                      : mostrarEmergencias
+                        ? 'emergencias'
+                        : secaoAtiva
               }
               onSelect={onSelectModule}
               showAdmin={showAdmin}
@@ -517,6 +546,40 @@ export default function Header({
                 <span className="text-lg">{a.icon}</span>
                 <span className="hidden sm:inline">{a.label}</span>
                 {abaMultasAtiva === a.id && (
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-0.5"
+                    style={{
+                      background: `linear-gradient(to right, ${mod.from}, ${mod.to})`,
+                    }}
+                  />
+                )}
+              </button>
+            ))}
+          </nav>
+        )}
+        {mostrarGt && (
+          <nav className="flex items-center gap-4" data-tour="header-abas">
+            {[
+              { id: 'geral', label: 'Visão Geral', icon: '👁️' },
+              ...(!permissoes || permissoes.has('gt.aba_lista')
+                ? [{ id: 'busca', label: 'Lista', icon: '🔍' }]
+                : []),
+            ].map((a) => (
+              <button
+                key={a.id}
+                onClick={() => onAbaGt(a.id)}
+                title={a.label}
+                aria-label={a.label}
+                aria-current={abaGtAtiva === a.id ? 'page' : undefined}
+                className={`flex items-center gap-1.5 text-sm py-2 transition-all relative ${
+                  abaGtAtiva === a.id
+                    ? 'text-white font-bold'
+                    : 'text-white/70 font-semibold hover:text-white'
+                }`}
+              >
+                <span className="text-lg">{a.icon}</span>
+                <span className="hidden sm:inline">{a.label}</span>
+                {abaGtAtiva === a.id && (
                   <div
                     className="absolute bottom-0 left-0 right-0 h-0.5"
                     style={{

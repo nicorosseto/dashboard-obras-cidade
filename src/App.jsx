@@ -33,6 +33,7 @@ import {
   ABAS_ADMIN,
   ABAS_EMERG,
   ABAS_MULTAS,
+  ABAS_GT,
   labelDaAba,
 } from './lib/abasPaginas.js'
 import { ABAS_CRUZAMENTO } from './lib/abasCruzamento.js'
@@ -41,6 +42,7 @@ import Sidebar from './components/Sidebar.jsx'
 import SidebarSistemaGeo from './components/SidebarSistemaGeo.jsx'
 import SidebarCruzamento from './components/SidebarCruzamento.jsx'
 import SidebarMultas from './components/tabs/multas/SidebarMultas.jsx'
+import SidebarGt from './components/tabs/gt/SidebarGt.jsx'
 import { FILTROS_GEO_VAZIOS } from './lib/filtrosGeo.js'
 import { FILTROS_CRUZAMENTO_VAZIOS } from './lib/filtrosCruzamento.js'
 import { carregarPermissoes, abasPermitidas } from './lib/permissoes.js'
@@ -56,10 +58,18 @@ import {
   aplicarFiltrosMultas,
   contarFiltrosAtivosMultas,
 } from './lib/multas.js'
+import {
+  cruzarGtObras,
+  FILTROS_VAZIOS_GT,
+  aplicarFiltrosGt,
+  contarFiltrosAtivosGt,
+  agregaGtPorStatusGrupo,
+} from './lib/gtObras.js'
 import { useCargaFiscalizacao } from './hooks/useCargaFiscalizacao.js'
 import { useCargaSistemaGeo } from './hooks/useCargaSistemaGeo.js'
 import { useCargaEmergencias } from './hooks/useCargaEmergencias.js'
 import { useCargaMultas } from './hooks/useCargaMultas.js'
+import { useCargaGtObras } from './hooks/useCargaGtObras.js'
 import { useAvisoAtualizacao } from './hooks/useAvisoAtualizacao.js'
 import KPIStrip from './components/KPIStrip.jsx'
 import KPIStripGeo from './components/KPIStripGeo.jsx'
@@ -104,6 +114,9 @@ const PaginaEmergencias = lazy(
 )
 const PaginaMultas = lazy(
   () => import('./components/tabs/multas/PaginaMultas.jsx')
+)
+const PaginaGtObras = lazy(
+  () => import('./components/tabs/gt/PaginaGtObras.jsx')
 )
 import { LoadingPage, LoadingInline } from './components/Loading.jsx'
 import AlterarSenhaModal from './components/AlterarSenhaModal.jsx'
@@ -220,6 +233,22 @@ function IconTicket() {
   )
 }
 
+function IconGt() {
+  return (
+    <svg
+      className="w-4 h-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3" />
+      <path d="M9 17H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+    </svg>
+  )
+}
+
 const FILTROS_VAZIOS = {
   dataIni: null,
   dataFim: null,
@@ -288,6 +317,15 @@ export default function App() {
     reset: resetMultas,
     refetch: refetchMultas,
   } = useCargaMultas(session, permissoes)
+  const {
+    gtLinhas,
+    gtDash,
+    gtCarregando,
+    gtErro,
+    reset: resetGt,
+    refetch: refetchGt,
+    retry: retryGt,
+  } = useCargaGtObras(session, permissoes)
   const { datasModulos, modulosAtualizados, limparModulosAtualizados } =
     useAvisoAtualizacao(session)
 
@@ -306,16 +344,21 @@ export default function App() {
   const [mostrarEmergencias, setMostrarEmergencias] = useState(false)
   const [mostrarRelatorio, setMostrarRelatorio] = useState(false)
   const [mostrarMultas, setMostrarMultas] = useState(false)
+  const [mostrarGt, setMostrarGt] = useState(false)
   const [secaoAtiva, setSecaoAtiva] = useState('fiscalizacao')
   const [paginaAtiva, setPaginaAtiva] = useState(1)
   const [mostrarAlterarSenha, setMostrarAlterarSenha] = useState(false)
   const [abaEmergencias, setAbaEmergencias] = useState('geral')
   const [abaMultas, setAbaMultas] = useState('geral')
+  const [abaGt, setAbaGt] = useState('geral')
   // Filtros da sidebar de Multas (item 1 da melhoria de 16/07/2026) — mesmo
   // padrão de FILTROS_VAZIOS_EMERG: estado aqui no App.jsx, aplicado sobre
   // `multasCruzadas` (o cruzamento em memória com Sistema Geo/Fiscalização).
   const [multasFiltros, setMultasFiltros] = useState(FILTROS_VAZIOS_MULTAS)
   const [multasSidebarAberta, setMultasSidebarAberta] = useState(false)
+  // Filtros da sidebar de GT Obras — mesmo padrão de Multas.
+  const [gtFiltros, setGtFiltros] = useState(FILTROS_VAZIOS_GT)
+  const [gtSidebarAberta, setGtSidebarAberta] = useState(false)
   // Tour guiado: null = indisponível/carregando (nunca oferece); Map (tour_id
   // -> status 'concluido'|'dispensado') = pronto
   const [toursVistos, setToursVistos] = useState(null)
@@ -411,6 +454,10 @@ export default function App() {
       const aba = abaMultas !== 'geral' ? `multas.${abaMultas}` : null
       return { tourModuloId: 'multas', tourAbaId: aba }
     }
+    if (mostrarGt) {
+      const aba = abaGt !== 'geral' ? `gt.${abaGt}` : null
+      return { tourModuloId: 'gt', tourAbaId: aba }
+    }
     if (mostrarEmergencias) {
       const aba =
         abaEmergencias !== 'geral' ? `emergencias.${abaEmergencias}` : null
@@ -437,7 +484,8 @@ export default function App() {
     !!profile?.primeiro_acesso ||
     (secaoAtiva === 'sistemaGeo' && sistemaGeoCarregando) ||
     (mostrarEmergencias && emergCarregando) ||
-    (mostrarMultas && multasCarregando)
+    (mostrarMultas && multasCarregando) ||
+    (mostrarGt && gtCarregando)
 
   const oferecerTourModulo =
     !!tourModuloId &&
@@ -741,6 +789,42 @@ export default function App() {
   }, [multasCruzadas])
   const multasFiltrosAtivos = contarFiltrosAtivosMultas(multasFiltros) > 0
 
+  // ── GT Obras: cruzamento em memória com Sistema Geo/Fiscalização ───────
+  const gtCruzadas = useMemo(
+    () => cruzarGtObras(gtLinhas, sistemaGeoLinhas, todasLinhas),
+    [gtLinhas, sistemaGeoLinhas, todasLinhas]
+  )
+  const basesGtCarregando = sistemaGeoCarregando || carregando
+
+  const gtFiltradas = useMemo(
+    () => aplicarFiltrosGt(gtCruzadas, gtFiltros),
+    [gtCruzadas, gtFiltros]
+  )
+  const gtPermissionariasDisponiveis = useMemo(() => {
+    const s = new Set()
+    for (const r of gtCruzadas) {
+      const p = r._permissionaria_exibir || r.permissionaria
+      if (p) s.add(p)
+    }
+    return Array.from(s).sort((a, b) => a.localeCompare(b, 'pt'))
+  }, [gtCruzadas])
+  const gtStatusGrupoDisponiveis = useMemo(
+    () => agregaGtPorStatusGrupo(gtCruzadas),
+    [gtCruzadas]
+  )
+  const gtSubprefeiturasDisponiveis = useMemo(
+    () => listaSubprefeituras(gtCruzadas),
+    [gtCruzadas]
+  )
+  const gtAnosDisponiveis = useMemo(() => {
+    const s = new Set()
+    for (const r of gtCruzadas) {
+      if (r.ano_processo) s.add(r.ano_processo)
+    }
+    return Array.from(s).sort((a, b) => a - b)
+  }, [gtCruzadas])
+  const gtFiltrosAtivos = contarFiltrosAtivosGt(gtFiltros) > 0
+
   const isAdmin = profile?.role === 'admin'
   // Configurações também fica acessível ao visitante da demo pública, mas
   // SOMENTE LEITURA (AdminPanel despacha para as versões *Demo* — ver
@@ -763,10 +847,12 @@ export default function App() {
   const temEmerg = permissoes?.has('emerg.ver') ?? false
   const temRelatorio = permissoes?.has('relatorio.ver') ?? false
   const temMultas = permissoes?.has('multas.ver') ?? false
+  const temGt = permissoes?.has('gt.ver') ?? false
   const podeExportarFisc = permissoes?.has('fisc.exportar') ?? false
   const podeExportarGeo = permissoes?.has('geo.exportar') ?? false
   const podeUploadEmerg = permissoes?.has('emerg.upload') ?? false
   const podeAtualizarMultas = permissoes?.has('multas.atualizar') ?? false
+  const podeAtualizarGt = permissoes?.has('gt.atualizar') ?? false
 
   // ── Handlers ─────────────────────────────────────────────────────
   function handleLogin(sess) {
@@ -795,12 +881,14 @@ export default function App() {
       resetFiscalizacao()
       resetSistemaGeo()
       resetMultas()
+      resetGt()
     }
     setPaginaAtiva(1)
     setMostrarHome(true)
     setMostrarEmergencias(false)
     setMostrarRelatorio(false)
     setMostrarMultas(false)
+    setMostrarGt(false)
     setFiltros(FILTROS_VAZIOS)
     setSistemaGeoFiltros(FILTROS_GEO_VAZIOS)
   }
@@ -814,6 +902,7 @@ export default function App() {
     setMostrarEmergencias(false)
     setMostrarRelatorio(false)
     setMostrarMultas(false)
+    setMostrarGt(false)
     window.scrollTo(0, 0)
   }
 
@@ -822,6 +911,7 @@ export default function App() {
     setMostrarEmergencias(false)
     setMostrarRelatorio(false)
     setMostrarMultas(false)
+    setMostrarGt(false)
     setPaginaAtiva(1)
     window.scrollTo(0, 0)
   }
@@ -832,6 +922,7 @@ export default function App() {
       setMostrarEmergencias(false)
       setMostrarRelatorio(false)
       setMostrarMultas(false)
+      setMostrarGt(false)
       setSecaoAtiva('sistemaGeo')
       setPaginaAtiva(4)
       window.scrollTo(0, 0)
@@ -845,6 +936,10 @@ export default function App() {
       handleAbrirMultas()
       return
     }
+    if (secao === 'gt') {
+      handleAbrirGt()
+      return
+    }
     handleSecaoChange(secao)
   }
 
@@ -853,6 +948,7 @@ export default function App() {
     setMostrarEmergencias(false)
     setMostrarRelatorio(false)
     setMostrarMultas(false)
+    setMostrarGt(false)
     setPaginaAtiva(5)
     window.scrollTo(0, 0)
   }
@@ -862,6 +958,7 @@ export default function App() {
     setMostrarHome(false)
     setMostrarRelatorio(false)
     setMostrarMultas(false)
+    setMostrarGt(false)
     window.scrollTo(0, 0)
   }
 
@@ -870,6 +967,7 @@ export default function App() {
     setMostrarHome(false)
     setMostrarEmergencias(false)
     setMostrarMultas(false)
+    setMostrarGt(false)
     window.scrollTo(0, 0)
   }
 
@@ -878,6 +976,16 @@ export default function App() {
     setMostrarHome(false)
     setMostrarEmergencias(false)
     setMostrarRelatorio(false)
+    setMostrarGt(false)
+    window.scrollTo(0, 0)
+  }
+
+  function handleAbrirGt() {
+    setMostrarGt(true)
+    setMostrarHome(false)
+    setMostrarEmergencias(false)
+    setMostrarRelatorio(false)
+    setMostrarMultas(false)
     window.scrollTo(0, 0)
   }
 
@@ -888,11 +996,14 @@ export default function App() {
       handleAbrirRelatorio()
     } else if (moduleId === 'multas') {
       handleAbrirMultas()
+    } else if (moduleId === 'gt') {
+      handleAbrirGt()
     } else if (moduleId === 'cruzamento') {
       setMostrarHome(false)
       setMostrarEmergencias(false)
       setMostrarRelatorio(false)
       setMostrarMultas(false)
+      setMostrarGt(false)
       setSecaoAtiva('sistemaGeo')
       setPaginaAtiva(4)
       window.scrollTo(0, 0)
@@ -932,8 +1043,17 @@ export default function App() {
       })
     if (temMultas)
       list.push({ id: 'multas', label: 'Multas', icon: <IconTicket /> })
+    if (temGt) list.push({ id: 'gt', label: 'GT Obras', icon: <IconGt /> })
     return list
-  }, [temGeo, temFisc, temCruzamento, temEmerg, temRelatorio, temMultas])
+  }, [
+    temGeo,
+    temFisc,
+    temCruzamento,
+    temEmerg,
+    temRelatorio,
+    temMultas,
+    temGt,
+  ])
 
   // Última atualização = max(data_inicio fisc, data_cadastro geo)
   const ultimaAtualizacao = useMemo(() => {
@@ -975,6 +1095,14 @@ export default function App() {
     <AvisoErroCarga
       mensagem={`Não foi possível carregar os dados do Sistema Geo: ${sistemaGeoErro}`}
       onTentarNovamente={retrySistemaGeo}
+    />
+  )
+
+  // ── Aviso de falha na carga do GT Obras (só na tela do módulo) ──────
+  const avisoErroGt = gtErro && (
+    <AvisoErroCarga
+      mensagem={`Não foi possível carregar os dados do GT Obras: ${gtErro}`}
+      onTentarNovamente={retryGt}
     />
   )
 
@@ -1030,6 +1158,7 @@ export default function App() {
           temCruzamento={temCruzamento}
           temRelatorio={temRelatorio}
           temMultas={temMultas}
+          temGt={temGt}
           onAbrirConfiguracoes={
             podeVerConfiguracoes ? handleAbrirConfiguracoes : undefined
           }
@@ -1337,6 +1466,121 @@ export default function App() {
           todasFisc={[]}
           todasGeo={[]}
           moduloAtivo="multas"
+          mostrarFisc={false}
+          mostrarGeo={false}
+        />
+        <Rodape />
+      </div>
+    )
+  }
+
+  // ── Tela dedicada do módulo GT Obras (isolada do resto) ─────────────
+  if (mostrarGt) {
+    return (
+      <div className="min-h-screen bg-grey-bg flex flex-col">
+        {sistemaGeoCarregando && <BarraProgresso {...geoProgresso} />}
+        {avisoAtualizacao}
+        {avisoErroSistemaGeo}
+        {avisoErroGt}
+        {mostrarAlterarSenha && (
+          <AlterarSenhaModal
+            obrigatorio={!!profile?.primeiro_acesso}
+            onConcluido={() => {
+              setMostrarAlterarSenha(false)
+              setProfile((p) => (p ? { ...p, primeiro_acesso: false } : p))
+            }}
+            onFechar={
+              profile?.primeiro_acesso
+                ? undefined
+                : () => setMostrarAlterarSenha(false)
+            }
+          />
+        )}
+        {oferecerTourModulo && (
+          <ConviteTour
+            titulo="Conhecer o módulo GT Obras?"
+            texto="Primeira vez neste módulo — posso mostrar as abas, os KPIs e o botão de atualização, em menos de um minuto."
+            onAceitar={() => {
+              registrarTourVisto(tourModuloId, 'concluido')
+              iniciarTour(tourModuloId, permissoes)
+            }}
+            onRecusar={() => registrarTourVisto(tourModuloId, 'dispensado')}
+          />
+        )}
+        <Header
+          paginaAtiva={0}
+          onPagina={() => {}}
+          user={session?.user}
+          onSignOut={handleSignOut}
+          showAdmin={podeVerConfiguracoes}
+          secaoAtiva={secaoAtiva}
+          onHome={handleHome}
+          onIniciarTour={
+            tourModuloId && TOURS[tourModuloId] ? handleRevisarTour : undefined
+          }
+          onAlterarSenha={() => setMostrarAlterarSenha(true)}
+          abasPermitidas={[]}
+          modules={modules}
+          onSelectModule={handleSelectModule}
+          mostrarGt={true}
+          abaGtAtiva={abaGt}
+          onAbaGt={setAbaGt}
+          permissoes={permissoes}
+          abaAdminAtiva={0}
+          onAbaAdmin={() => {}}
+          onAbrirConfiguracoes={handleAbrirConfiguracoes}
+        />
+        <div className="flex-1 flex overflow-hidden">
+          {!gtCarregando && gtCruzadas.length > 0 && (
+            <SidebarGt
+              aberto={gtSidebarAberta}
+              onToggle={() => setGtSidebarAberta((o) => !o)}
+              filtros={gtFiltros}
+              setFiltros={setGtFiltros}
+              onLimpar={() => setGtFiltros(FILTROS_VAZIOS_GT)}
+              permissionarias={gtPermissionariasDisponiveis}
+              statusGrupoDisponiveis={gtStatusGrupoDisponiveis}
+              subprefeiturasDisponiveis={gtSubprefeiturasDisponiveis}
+              anosDisponiveis={gtAnosDisponiveis}
+              totalFiltrado={gtFiltradas.length}
+              totalGeral={gtCruzadas.length}
+              filtrosAtivos={gtFiltrosAtivos}
+            />
+          )}
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="px-4 sm:px-6 pt-3 shrink-0">
+              <TituloTela
+                titulo={labelDaAba(ABAS_GT, abaGt)}
+                corDe="#3730a3"
+                corPara="#4f46e5"
+              />
+            </div>
+            <div className="flex-1 overflow-auto" data-tour="conteudo-modulo">
+              <ErrorBoundary modulo="GT Obras">
+                <Suspense
+                  fallback={<LoadingInline mensagem="Carregando GT Obras..." />}
+                >
+                  <PaginaGtObras
+                    linhas={gtFiltradas}
+                    gtDash={gtDash}
+                    carregando={gtCarregando}
+                    basesCarregando={basesGtCarregando}
+                    abaAtiva={abaGt}
+                    podeVerBusca={!permissoes || permissoes.has('gt.aba_lista')}
+                    podeAtualizar={podeAtualizarGt}
+                    onAtualizado={refetchGt}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+          </div>
+        </div>
+        <ExportModal
+          rowsFisc={[]}
+          rowsGeo={[]}
+          todasFisc={[]}
+          todasGeo={[]}
+          moduloAtivo="gt"
           mostrarFisc={false}
           mostrarGeo={false}
         />

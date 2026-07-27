@@ -38,6 +38,10 @@ export const TODAS_PERMISSOES = [
   'multas.aba_inconsistencias',
   'multas.aba_busca',
   'multas.atualizar',
+  'gt.ver',
+  'gt.aba_analise',
+  'gt.aba_lista',
+  'gt.atualizar',
 ]
 
 // Permissão exigida por cada aba (id usado em paginaAtiva) de cada seção.
@@ -66,6 +70,7 @@ export const PERMISSAO_POR_ABA = {
 const EXCLUIDAS_DEMO = new Set([
   'emerg.upload',
   'multas.atualizar',
+  'gt.atualizar',
   'relatorio.ver',
 ])
 

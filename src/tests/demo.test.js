@@ -11,7 +11,12 @@ describe('modo demo', () => {
     const demo = permissoesDemo()
     // Todo o catálogo, exceto as de escrita/admin e o módulo Apresentação
     // (fora do escopo do portfólio público — decisão de 19/07/2026).
-    const excluidas = new Set(['emerg.upload', 'multas.atualizar', 'relatorio.ver'])
+    const excluidas = new Set([
+      'emerg.upload',
+      'multas.atualizar',
+      'gt.atualizar',
+      'relatorio.ver',
+    ])
     for (const p of TODAS_PERMISSOES) {
       if (excluidas.has(p)) {
         expect(demo.has(p)).toBe(false)
@@ -25,12 +30,13 @@ describe('modo demo', () => {
     const demo = permissoesDemo()
     expect(demo.has('emerg.upload')).toBe(false)
     expect(demo.has('multas.atualizar')).toBe(false)
+    expect(demo.has('gt.atualizar')).toBe(false)
     expect(demo.has('relatorio.ver')).toBe(false)
   })
 
   it('permissoesDemo() devolve um Set (não array) do tamanho esperado', () => {
     const demo = permissoesDemo()
     expect(demo).toBeInstanceOf(Set)
-    expect(demo.size).toBe(TODAS_PERMISSOES.length - 3)
+    expect(demo.size).toBe(TODAS_PERMISSOES.length - 4)
   })
 })
