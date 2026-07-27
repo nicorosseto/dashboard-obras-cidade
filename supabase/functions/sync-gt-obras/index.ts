@@ -423,6 +423,24 @@ function validarCabecalhoCompatib(linhaCabecalho: Linha) {
   }
 }
 
+// Campos "de processo" — no Excel, quando um processo tem mais de uma
+// via/trecho, essas colunas vêm como CÉLULA MESCLADA (o valor só existe na
+// 1ª linha do grupo; as linhas de continuação chegam vazias aqui, mesmo a
+// planilha "mostrando" o mesmo valor visualmente). Achado do usuário em
+// 27/07/2026 (screenshot com um processo em 3 linhas — permissionária/
+// processo/status só na 1ª). "Preenchidos para baixo" a partir da última
+// linha que tinha o dado — nunca as colunas específicas de cada via
+// (nome_via/trechos/área), que continuam genuinamente uma por linha.
+const CAMPOS_PROCESSO = [
+  'permissionaria',
+  'num_processo',
+  'obra_servico',
+  'executora',
+  'subprefeitura',
+  'status',
+  'tecnica_analise',
+] as const
+
 // ── Parsing da aba "COMPATIB. CAMILA" (base granular) ────────────────
 function parseCompatibCamila(linhasXml: Linha[]): Record<string, unknown>[] {
   const linhaCabecalho = linhasXml.find((l) => l.r === LINHA_CABECALHO)
@@ -434,6 +452,7 @@ function parseCompatibCamila(linhasXml: Linha[]): Record<string, unknown>[] {
   validarCabecalhoCompatib(linhaCabecalho)
 
   const linhas: Record<string, unknown>[] = []
+  let ultimoProcesso: Record<string, unknown> | null = null
   for (const linhaXml of linhasXml) {
     if (linhaXml.r < PRIMEIRA_LINHA_DADOS) continue
 
@@ -461,13 +480,33 @@ function parseCompatibCamila(linhasXml: Linha[]): Record<string, unknown>[] {
       }
     }
 
+    const temDadoProcesso = CAMPOS_PROCESSO.some(
+      (k) => mapeada[k] != null && mapeada[k] !== ''
+    )
+    const temDadoVia =
+      (mapeada.trecho_de != null && mapeada.trecho_de !== '') ||
+      (mapeada.trecho_ate != null && mapeada.trecho_ate !== '') ||
+      (mapeada.nome_via != null && mapeada.nome_via !== '') ||
+      (mapeada.area_m2 != null && mapeada.area_m2 !== 0)
+
+    if (temDadoProcesso) {
+      ultimoProcesso = Object.fromEntries(
+        CAMPOS_PROCESSO.map((k) => [k, mapeada[k]])
+      )
+    } else if (temDadoVia && ultimoProcesso) {
+      // Linha de continuação (célula mesclada) — herda os campos do
+      // processo da última linha "âncora", mantendo os dados da via
+      // (trechos/área) só desta linha.
+      for (const k of CAMPOS_PROCESSO) mapeada[k] = ultimoProcesso[k]
+    }
+
     // Linha válida = tem PERMISSIONÁRIA OU PROCESSO (critério da própria
     // planilha — seção 2.1 do plano: "1.856 linhas com permissionária ou
-    // processo, de 3.102 linhas de grade"). Um "algum campo preenchido"
-    // genérico contava também linhas-fantasma da grade (só com uma
-    // observação solta, sem processo nem empresa) — achado em produção
-    // em 27/07/2026 (total_linhas veio 2.238 em vez de ~1.856, quase
-    // todo o excesso caindo em sem_processo).
+    // processo, de 3.102 linhas de grade"), já considerando o preenchimento
+    // acima. Um "algum campo preenchido" genérico contava também
+    // linhas-fantasma da grade (só com uma observação solta, sem processo
+    // nem empresa) — achado em produção em 27/07/2026 (total_linhas veio
+    // 2.238 em vez de ~1.856, quase todo o excesso caindo em sem_processo).
     const temPermissionariaOuProcesso =
       (mapeada.permissionaria != null && mapeada.permissionaria !== '') ||
       (mapeada.num_processo != null && mapeada.num_processo !== '')

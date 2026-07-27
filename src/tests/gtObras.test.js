@@ -4,6 +4,7 @@ import {
   STATUS_GRUPO_LABEL,
   STATUS_GRUPO_COR,
   STATUS_GT,
+  agruparGtPorProcesso,
   kpisGt,
   agregaGtPorStatusGrupo,
   agregaGtPorStatus,
@@ -72,6 +73,103 @@ describe('cruzarGtObras', () => {
   })
 })
 
+// ── agruparGtPorProcesso ────────────────────────────────────────────────
+// Achado do usuário (27/07/2026): um processo pode ter várias vias/trechos
+// (célula mesclada no Excel — a Edge Function já preenche os campos de
+// processo para baixo). Este agrupamento funde as linhas de um mesmo
+// processo em uma só, somando a área de todas as vias.
+describe('agruparGtPorProcesso', () => {
+  const tresVias = [
+    {
+      id: 1,
+      num_processo: '9999.2024/0030566-7',
+      num_processo_normalizado: '9999.2024/30566-7',
+      permissionaria: 'NORCREST/QY',
+      status_grupo: 'compatibilizada',
+      nome_via: null,
+      trecho_de: 'Rua Pde Leão Peruche',
+      trecho_ate: 'Rua Aragão',
+      area_m2: 5091.12,
+      situacao_recape_norm: 'GAP GRADED',
+    },
+    {
+      id: 2,
+      num_processo: '9999.2024/0030566-7',
+      num_processo_normalizado: '9999.2024/30566-7',
+      permissionaria: 'NORCREST/QY',
+      status_grupo: 'compatibilizada',
+      nome_via: null,
+      trecho_de: 'Rua Purus',
+      trecho_ate: 'Rua Aragão',
+      area_m2: 4425.24,
+      situacao_recape_norm: 'GAP GRADED',
+    },
+    {
+      id: 3,
+      num_processo: '9999.2024/0030566-7',
+      num_processo_normalizado: '9999.2024/30566-7',
+      permissionaria: 'NORCREST/QY',
+      status_grupo: 'compatibilizada',
+      nome_via: null,
+      trecho_de: 'Rua Pde Leão Peruche',
+      trecho_ate: 'Rua Purus',
+      area_m2: 8741.74,
+      situacao_recape_norm: 'GAP GRADED',
+    },
+  ]
+
+  it('funde as 3 vias de um mesmo processo em 1 registro', () => {
+    const r = agruparGtPorProcesso(tresVias)
+    expect(r).toHaveLength(1)
+    expect(r[0]).toMatchObject({
+      num_processo: '9999.2024/0030566-7',
+      permissionaria: 'NORCREST/QY',
+      status_grupo: 'compatibilizada',
+      _qtd_vias: 3,
+    })
+  })
+
+  it('soma a área de todas as vias do processo', () => {
+    const r = agruparGtPorProcesso(tresVias)
+    expect(r[0].area_m2).toBeCloseTo(5091.12 + 4425.24 + 8741.74, 2)
+  })
+
+  it('lista as vias em _vias, preservando trecho e situação de recape individuais', () => {
+    const r = agruparGtPorProcesso(tresVias)
+    expect(r[0]._vias).toHaveLength(3)
+    expect(r[0]._vias[1]).toMatchObject({
+      trecho_de: 'Rua Purus',
+      trecho_ate: 'Rua Aragão',
+      area_m2: 4425.24,
+      situacao_recape: 'GAP GRADED',
+    })
+  })
+
+  it('processos diferentes viram registros separados', () => {
+    const linhas = [
+      { num_processo_normalizado: 'A', area_m2: 100 },
+      { num_processo_normalizado: 'B', area_m2: 200 },
+    ]
+    const r = agruparGtPorProcesso(linhas)
+    expect(r).toHaveLength(2)
+  })
+
+  it('linhas sem processo viram cada uma seu próprio grupo (não há como agrupar)', () => {
+    const linhas = [
+      { num_processo_normalizado: null, area_m2: 50 },
+      { num_processo_normalizado: null, area_m2: 70 },
+    ]
+    const r = agruparGtPorProcesso(linhas)
+    expect(r).toHaveLength(2)
+    expect(r.map((x) => x.area_m2).sort()).toEqual([50, 70])
+  })
+
+  it('aceita lista vazia/nula', () => {
+    expect(agruparGtPorProcesso([])).toEqual([])
+    expect(agruparGtPorProcesso(null)).toEqual([])
+  })
+})
+
 // ── STATUS_GRUPO_LABEL / STATUS_GRUPO_COR / STATUS_GT ─────────────────
 describe('constantes de status', () => {
   it('tem os 3 grupos com rótulo e cor', () => {
@@ -120,6 +218,22 @@ describe('kpisGt', () => {
       paralisadas: 0,
       metragem: 0,
       pct: 0,
+    })
+  })
+
+  it('processo com várias vias conta como 1 obra, não 1 por via (achado do usuário, 27/07/2026)', () => {
+    const linhas = [
+      { num_processo_normalizado: 'P1', status_grupo: 'compatibilizada', area_m2: 100 },
+      { num_processo_normalizado: 'P1', status_grupo: 'compatibilizada', area_m2: 50 },
+      { num_processo_normalizado: 'P1', status_grupo: 'compatibilizada', area_m2: 30 },
+      { num_processo_normalizado: 'P2', status_grupo: 'paralisada', area_m2: 10 },
+    ]
+    expect(kpisGt(linhas)).toEqual({
+      total: 2, // P1 (3 vias) + P2 — não 4
+      compatibilizadas: 1,
+      paralisadas: 1,
+      metragem: 180, // soma das 3 vias de P1
+      pct: 50,
     })
   })
 })
@@ -179,6 +293,15 @@ describe('agregaGtPorPermissionaria', () => {
       { consolidar: false }
     )
     expect(r).toEqual([{ nome: 'DORVAL', total: 1 }])
+  })
+
+  it('processo com várias vias conta 1 vez, não 1 por via', () => {
+    const linhas = [
+      { num_processo_normalizado: 'P1', permissionaria: 'HARGROVE' },
+      { num_processo_normalizado: 'P1', permissionaria: 'HARGROVE' },
+      { num_processo_normalizado: 'P1', permissionaria: 'HARGROVE' },
+    ]
+    expect(agregaGtPorPermissionaria(linhas)).toEqual([{ nome: 'HARGROVE', total: 1 }])
   })
 })
 
@@ -447,6 +570,30 @@ describe('inconsistenciasGt', () => {
     expect(r.semProcesso.map((l) => l.id)).toEqual([4])
     expect(r.processoNaoEncontrado.map((l) => l.id)).toEqual([3])
     expect(r.duplicados.map((l) => l.id).sort()).toEqual([1, 2])
+  })
+
+  it('processo com vias DIFERENTES não é duplicado (achado do usuário, 27/07/2026)', () => {
+    const linhas = cruzarGtObras(
+      [
+        { id: 1, num_processo_normalizado: '123', trecho_de: 'Rua A', trecho_ate: 'Rua B' },
+        { id: 2, num_processo_normalizado: '123', trecho_de: 'Rua B', trecho_ate: 'Rua C' },
+      ],
+      [{ processo: '123' }],
+      []
+    )
+    expect(inconsistenciasGt(linhas).duplicados).toEqual([])
+  })
+
+  it('mesmo processo E mesma via repetida continua sendo duplicado', () => {
+    const linhas = cruzarGtObras(
+      [
+        { id: 1, num_processo_normalizado: '123', trecho_de: 'Rua A', trecho_ate: 'Rua B' },
+        { id: 2, num_processo_normalizado: '123', trecho_de: 'Rua A', trecho_ate: 'Rua B' },
+      ],
+      [{ processo: '123' }],
+      []
+    )
+    expect(inconsistenciasGt(linhas).duplicados.map((l) => l.id).sort()).toEqual([1, 2])
   })
 
   it('marca situação de recape ambígua ("... OU ...", "PLANEJADO - ...")', () => {

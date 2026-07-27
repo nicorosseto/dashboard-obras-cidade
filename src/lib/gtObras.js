@@ -71,12 +71,53 @@ export const STATUS_GT = [
   'CANCELADO',
 ]
 
+// ── Agrupamento por processo (achado do usuário, 27/07/2026) ──────────
+// Um processo pode ter mais de uma via/trecho na aba "COMPATIB. CAMILA"
+// (célula mesclada no Excel para permissionária/status/etc. — a Edge
+// Function já "preenche para baixo" esses campos). Sem agrupar, cada
+// trecho vira uma linha própria e todo KPI/gráfico contaria o mesmo
+// processo várias vezes. `agruparGtPorProcesso` funde as linhas de um
+// mesmo processo em UM registro: mantém os campos de processo (iguais em
+// todas as vias), SOMA a área de todas as vias em `area_m2` e lista os
+// trechos em `_vias` (usado pela Lista para exibir sem duplicar a linha).
+// Linhas sem processo não têm como agrupar — cada uma vira seu próprio
+// "processo" (mesmo padrão de `_situacao_vinculo: 'sem_processo'`).
+export function agruparGtPorProcesso(linhas) {
+  const porProcesso = new Map()
+  const semProcesso = []
+  for (const l of linhas || []) {
+    const via = {
+      nome_via: l.nome_via,
+      trecho_de: l.trecho_de,
+      trecho_ate: l.trecho_ate,
+      area_m2: Number(l.area_m2) || 0,
+      situacao_recape: l.situacao_recape_norm,
+      data_conclusao: l.data_conclusao,
+    }
+    const chave = l.num_processo_normalizado
+    if (!chave) {
+      semProcesso.push({ ...l, area_m2: via.area_m2, _vias: [via], _qtd_vias: 1 })
+      continue
+    }
+    if (!porProcesso.has(chave)) {
+      porProcesso.set(chave, { ...l, area_m2: 0, _vias: [], _qtd_vias: 0 })
+    }
+    const grupo = porProcesso.get(chave)
+    grupo.area_m2 += via.area_m2
+    grupo._vias.push(via)
+    grupo._qtd_vias += 1
+  }
+  return [...porProcesso.values(), ...semProcesso]
+}
+
 // ── KPIs (os 5 indicadores pedidos — seção 1.3 do plano) ──────────────
-// `pct` é devolvido como número 0-100 (pronto para exibir "76%") —
-// ⚠️ diferente de `gt_dash.pct_compatibilizada`, que vem da planilha como
-// fração 0-1 (célula formatada como %) e precisa de ×100 na exibição.
+// Conta PROCESSOS (via agruparGtPorProcesso), não linhas — um processo com
+// 3 vias é 1 obra, não 3. `pct` é devolvido como número 0-100 (pronto para
+// exibir "76%") — ⚠️ diferente de `gt_dash.pct_compatibilizada`, que vem da
+// planilha como fração 0-1 (célula formatada como %) e precisa de ×100 na
+// exibição.
 export function kpisGt(linhas) {
-  const arr = linhas || []
+  const arr = agruparGtPorProcesso(linhas)
   const compatibilizadas = arr.filter(
     (l) => l.status_grupo === 'compatibilizada'
   ).length
@@ -90,10 +131,13 @@ export function kpisGt(linhas) {
 }
 
 // ── Agregações para os gráficos (seção 8.1/8.2 do plano) ──────────────
+// Todas contam por PROCESSO (agruparGtPorProcesso), não por via/linha —
+// exceto `agregaGtPorSituacaoRecape`, que é sobre a via (a situação do
+// recape pode ser diferente entre os trechos de um mesmo processo).
 
 export function agregaGtPorStatusGrupo(linhas) {
   const m = new Map()
-  for (const r of linhas || []) {
+  for (const r of agruparGtPorProcesso(linhas)) {
     const grupo = r.status_grupo || 'nao_classificado'
     m.set(grupo, (m.get(grupo) || 0) + 1)
   }
@@ -111,7 +155,7 @@ export function agregaGtPorStatusGrupo(linhas) {
 // dos 10 valores inteiros se nada estiver filtrado).
 export function agregaGtPorStatus(linhas) {
   const m = new Map()
-  for (const r of linhas || []) {
+  for (const r of agruparGtPorProcesso(linhas)) {
     const status = r.status || 'Sem status'
     m.set(status, (m.get(status) || 0) + 1)
   }
@@ -122,7 +166,7 @@ export function agregaGtPorStatus(linhas) {
 
 export function agregaGtPorPermissionaria(linhas, { consolidar = true } = {}) {
   const m = new Map()
-  for (const r of linhas || []) {
+  for (const r of agruparGtPorProcesso(linhas)) {
     const bruta = r._permissionaria_exibir || r.permissionaria
     const key = consolidar
       ? consolidarNorcrest(bruta)
@@ -155,7 +199,7 @@ export function todasGtNorcrest(linhas) {
 // `normUnidadeNorcrest` (relatorio.js).
 export function agregaGtPorUnidadeNorcrest(linhas) {
   const m = new Map()
-  for (const r of linhas || []) {
+  for (const r of agruparGtPorProcesso(linhas)) {
     const unidade = r.unidade_norcrest
       ? normUnidadeNorcrest(r.unidade_norcrest)
       : 'NORCREST'
@@ -168,7 +212,7 @@ export function agregaGtPorUnidadeNorcrest(linhas) {
 
 export function agregaGtPorSubprefeitura(linhas) {
   const m = new Map()
-  for (const r of linhas || []) {
+  for (const r of agruparGtPorProcesso(linhas)) {
     const key = r.subprefeitura
     if (!key) continue
     m.set(key, (m.get(key) || 0) + 1)
@@ -180,7 +224,7 @@ export function agregaGtPorSubprefeitura(linhas) {
 
 export function agregaGtPorAno(linhas) {
   const m = new Map()
-  for (const r of linhas || []) {
+  for (const r of agruparGtPorProcesso(linhas)) {
     const ano = r.ano_processo
     if (!ano) continue
     m.set(ano, (m.get(ano) || 0) + 1)
@@ -194,7 +238,7 @@ export function agregaGtPorAno(linhas) {
 // fluxo corrente, seção 8.2.3 do plano).
 export function agregaGtStatusGrupoPorAno(linhas) {
   const porAno = new Map()
-  for (const r of linhas || []) {
+  for (const r of agruparGtPorProcesso(linhas)) {
     const ano = r.ano_processo
     if (!ano) continue
     if (!porAno.has(ano)) {
@@ -219,7 +263,7 @@ export function agregaGtStatusGrupoPorAno(linhas) {
 // DANIELA") — a exibição usa a própria chave normalizada.
 export function agregaGtPorTecnica(linhas) {
   const m = new Map()
-  for (const r of linhas || []) {
+  for (const r of agruparGtPorProcesso(linhas)) {
     const key = String(r.tecnica_analise || '').trim().toUpperCase()
     if (!key) continue
     if (!m.has(key)) m.set(key, { tecnica: key, total: 0, compatibilizadas: 0 })
@@ -235,6 +279,10 @@ export function agregaGtPorTecnica(linhas) {
     .sort((a, b) => b.total - a.total)
 }
 
+// ⚠️ Fica no nível de VIA (não agrupa por processo, ao contrário das
+// demais agregações acima) — a situação do recape é um atributo do
+// trecho, e um processo com várias vias pode ter recapes em situações
+// diferentes por trecho.
 export function agregaGtPorSituacaoRecape(linhas) {
   const m = new Map()
   for (const r of linhas || []) {
@@ -357,14 +405,19 @@ export function inconsistenciasGt(linhasCruzadas) {
     (l) => l._situacao_vinculo === 'processo_nao_encontrado'
   )
 
-  const porProcesso = new Map()
+  // ⚠️ Chave inclui a via (nome_via + trechos) — mesmo processo com vias
+  // DIFERENTES é normal (processo com várias vias/trechos, achado do
+  // usuário em 27/07/2026, tratado em agruparGtPorProcesso), não uma
+  // duplicata. Só conta como duplicado quando processo E via são iguais.
+  const porProcessoVia = new Map()
   for (const l of arr) {
     const chave = l.num_processo_normalizado
     if (!chave) continue
-    if (!porProcesso.has(chave)) porProcesso.set(chave, [])
-    porProcesso.get(chave).push(l)
+    const chaveVia = `${chave}|${l.nome_via || ''}|${l.trecho_de || ''}|${l.trecho_ate || ''}`
+    if (!porProcessoVia.has(chaveVia)) porProcessoVia.set(chaveVia, [])
+    porProcessoVia.get(chaveVia).push(l)
   }
-  const duplicados = Array.from(porProcesso.values())
+  const duplicados = Array.from(porProcessoVia.values())
     .filter((g) => g.length > 1)
     .flat()
 

@@ -799,6 +799,32 @@
     Integrada, teal da Apresentação, âmbar de Emergências…) — nunca
     `text-red`/`accent-red` (essas são só para as 4 cores do tema);
     sempre `style={{ color: INDIGO }}` ou equivalente.
+  - **Um processo pode ter várias vias/trechos (achado do usuário,
+    27/07/2026) — duas camadas de tratamento:**
+    1. **Parsing (`sync-gt-obras`):** no Excel, quando um processo tem
+       mais de uma via, permissionária/processo/status/etc. ficam em
+       **célula mesclada** — só a 1ª linha do grupo tem o valor de
+       verdade; as linhas de continuação chegam vazias nessas colunas
+       (mesmo a planilha "mostrando" o mesmo valor visualmente). A
+       Edge Function detecta a linha de continuação (sem dado de
+       processo, mas com dado de via — trecho/nome_via/área) e
+       **preenche para baixo** os campos de processo
+       (`CAMPOS_PROCESSO`) a partir da última linha-âncora — nunca os
+       campos específicos da via (trechos, área). Sem isso, a correção
+       do #374 ("linha válida = permissionária OU processo") descartava
+       essas linhas de continuação inteiras, perdendo a área dos
+       trechos extras.
+    2. **Contagem (`gtObras.js`):** `agruparGtPorProcesso` funde as
+       linhas de um mesmo processo (por `num_processo_normalizado`) em
+       UM registro — soma a área de todas as vias em `area_m2` e lista
+       os trechos em `_vias`/`_qtd_vias`. `kpisGt` e todas as
+       agregações por contagem (status, permissionária, subprefeitura,
+       ano, técnica) usam esse agrupamento internamente — um processo
+       de 3 vias é 1 obra, nunca 3. **Exceção:** `agregaGtPorSituacaoRecape`
+       fica no nível de via de propósito (a situação do recape pode
+       diferir entre trechos do mesmo processo). A aba Lista também
+       agrupa antes de listar — 1 linha por processo, com todas as
+       vias empilhadas na mesma célula, nunca 1 linha por trecho.
 
 - **Home — lista de módulos em linha, não grid (16/07/2026):** decisão
   tomada com uma **prévia em HTML (Artifact)** antes de tocar em código —

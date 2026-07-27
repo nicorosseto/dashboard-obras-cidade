@@ -1,6 +1,10 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { fmtData, fmtAreaDecimal } from '../../../lib/aggregations.js'
-import { STATUS_GRUPO_LABEL, STATUS_GRUPO_COR } from '../../../lib/gtObras.js'
+import { fmtAreaDecimal } from '../../../lib/aggregations.js'
+import {
+  STATUS_GRUPO_LABEL,
+  STATUS_GRUPO_COR,
+  agruparGtPorProcesso,
+} from '../../../lib/gtObras.js'
 import { LoadingInline } from '../../Loading.jsx'
 import BotaoExportarGrafico from '../../BotaoExportarGrafico.jsx'
 import { PaginacaoBusca } from '../emerg/shared.jsx'
@@ -29,24 +33,40 @@ function StatusGrupoBadge({ grupo }) {
   )
 }
 
+// Texto de uma via para exibição/exportação — usa o trecho quando existe,
+// senão cai no nome da via.
+function textoVia(v) {
+  if (v.trecho_de || v.trecho_ate) {
+    return `${v.trecho_de || '?'} → ${v.trecho_ate || '?'}`
+  }
+  return v.nome_via || '(via não informada)'
+}
+
 const COLUNAS_EXPORT = [
   { key: 'num_processo', label: 'Nº Processo' },
-  { key: 'permissionaria', label: 'Permissionária' },
+  {
+    key: '_permissionaria_exibir',
+    label: 'Permissionária',
+    transform: (v, r) => v || r?.permissionaria || '—',
+  },
   { key: 'executora', label: 'Executora' },
   { key: 'subprefeitura', label: 'Subprefeitura' },
-  { key: 'nome_via', label: 'Via' },
+  {
+    key: '_vias',
+    label: 'Vias',
+    transform: (v) => (v || []).map(textoVia).join(' | '),
+  },
+  { key: '_qtd_vias', label: 'Qtde de Vias' },
   { key: 'status', label: 'Status' },
   {
     key: 'status_grupo',
     label: 'Situação',
     transform: (v) => STATUS_GRUPO_LABEL[v] || v,
   },
-  { key: 'area_m2', label: 'Metragem (m²)', transform: (v) => fmtAreaDecimal(v) },
-  { key: 'situacao_recape_norm', label: 'Situação Recape' },
   {
-    key: 'data_conclusao',
-    label: 'Data Conclusão (Recape)',
-    transform: (v) => fmtData(v),
+    key: 'area_m2',
+    label: 'Metragem Total (m²)',
+    transform: (v) => fmtAreaDecimal(v),
   },
   { key: '_status_geo', label: 'Status Sistema Geo', transform: (v) => v || '—' },
 ]
@@ -55,7 +75,14 @@ const COLUNAS_EXPORT = [
 // (botão "Filtrar" ou digitar um número de processo). Nesta fase (F3) ainda
 // não tem a seção de inconsistências (vem na F4, junto com a aba "Análise
 // de Status").
+//
+// ⚠️ Agrupa por processo (agruparGtPorProcesso) antes de listar — um
+// processo com várias vias/trechos vira UMA linha na tabela (com todas as
+// vias listadas dentro da mesma célula e a metragem somada), nunca uma
+// linha por trecho (achado do usuário, 27/07/2026: contar/listar por
+// trecho duplicava o processo e inflava a contagem).
 export default function AbaGtLista({ linhas }) {
+  const porProcesso = useMemo(() => agruparGtPorProcesso(linhas), [linhas])
   const [busca, setBusca] = useState('')
   const [buscaAplicada, setBuscaAplicada] = useState('')
   const [listarAtivado, setListarAtivado] = useState(false)
@@ -77,7 +104,7 @@ export default function AbaGtLista({ linhas }) {
   useEffect(() => {
     setListarAtivado(false)
     setPag(0)
-  }, [linhas])
+  }, [porProcesso])
 
   function handleFiltrar() {
     setCarregando(true)
@@ -89,14 +116,14 @@ export default function AbaGtLista({ linhas }) {
   const resultado = useMemo(() => {
     if (!mostrarTabela) return []
     const q = normBusca(buscaAplicada)
-    if (!q) return linhas
+    if (!q) return porProcesso
     const qProc = normProc(buscaAplicada)
-    return linhas.filter(
+    return porProcesso.filter(
       (r) =>
         normBusca(r.num_processo).includes(q) ||
         (qProc && r.num_processo_normalizado === qProc)
     )
-  }, [linhas, buscaAplicada, mostrarTabela])
+  }, [porProcesso, buscaAplicada, mostrarTabela])
 
   useEffect(() => {
     if (!mostrarTabela) {
@@ -225,11 +252,10 @@ export default function AbaGtLista({ linhas }) {
                     <th className="p-2 whitespace-nowrap">Permissionária</th>
                     <th className="p-2 whitespace-nowrap">Executora</th>
                     <th className="p-2 whitespace-nowrap">Subprefeitura</th>
-                    <th className="p-2 whitespace-nowrap">Via</th>
+                    <th className="p-2 whitespace-nowrap">Vias</th>
                     <th className="p-2 whitespace-nowrap">Status</th>
                     <th className="p-2 whitespace-nowrap">Situação</th>
-                    <th className="p-2 whitespace-nowrap">Metragem (m²)</th>
-                    <th className="p-2 whitespace-nowrap">Situação Recape</th>
+                    <th className="p-2 whitespace-nowrap">Metragem Total (m²)</th>
                     <th className="p-2 whitespace-nowrap">Status Sistema Geo</th>
                   </tr>
                 </thead>
@@ -239,39 +265,57 @@ export default function AbaGtLista({ linhas }) {
                       key={l.id || i}
                       className={i % 2 === 0 ? 'bg-white' : 'bg-grey-bg'}
                     >
-                      <td className="p-2 font-mono text-[11px] whitespace-nowrap">
+                      <td className="p-2 font-mono text-[11px] whitespace-nowrap align-top">
                         {l.num_processo || '—'}
                       </td>
-                      <td className="p-2 whitespace-nowrap">
+                      <td className="p-2 whitespace-nowrap align-top">
                         {l._permissionaria_exibir || l.permissionaria || '—'}
                       </td>
-                      <td className="p-2 whitespace-nowrap">
+                      <td className="p-2 whitespace-nowrap align-top">
                         {l.executora || '—'}
                       </td>
-                      <td className="p-2 whitespace-nowrap">
+                      <td className="p-2 whitespace-nowrap align-top">
                         {l.subprefeitura || '—'}
                       </td>
-                      <td className="p-2 whitespace-nowrap max-w-[180px] truncate" title={l.nome_via || ''}>
-                        {l.nome_via || '—'}
+                      <td className="p-2 max-w-[320px] align-top">
+                        {(l._vias || []).map((v, vi) => (
+                          <div
+                            key={vi}
+                            className="truncate text-[11px]"
+                            title={`${textoVia(v)}${v.situacao_recape ? ` — recape: ${v.situacao_recape}` : ''}`}
+                          >
+                            {textoVia(v)}
+                            {v.situacao_recape && (
+                              <span className="text-gray-400">
+                                {' '}
+                                ({v.situacao_recape})
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                        {l._qtd_vias > 1 && (
+                          <span className="text-[10px] text-gray-400">
+                            {l._qtd_vias} vias
+                          </span>
+                        )}
                       </td>
-                      <td className="p-2 whitespace-nowrap">{l.status || '—'}</td>
-                      <td className="p-2 whitespace-nowrap">
+                      <td className="p-2 whitespace-nowrap align-top">
+                        {l.status || '—'}
+                      </td>
+                      <td className="p-2 whitespace-nowrap align-top">
                         <StatusGrupoBadge grupo={l.status_grupo} />
                       </td>
-                      <td className="p-2 whitespace-nowrap tabular-nums">
+                      <td className="p-2 whitespace-nowrap tabular-nums align-top">
                         {fmtAreaDecimal(l.area_m2)}
                       </td>
-                      <td className="p-2 whitespace-nowrap">
-                        {l.situacao_recape_norm || '—'}
-                      </td>
-                      <td className="p-2 whitespace-nowrap">
+                      <td className="p-2 whitespace-nowrap align-top">
                         {l._status_geo || '—'}
                       </td>
                     </tr>
                   ))}
                   {pagina.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="p-4 text-center text-gray-400">
+                      <td colSpan={9} className="p-4 text-center text-gray-400">
                         {buscaAplicada
                           ? `Nenhum resultado para "${buscaAplicada}".`
                           : 'Nenhuma obra carregada.'}
