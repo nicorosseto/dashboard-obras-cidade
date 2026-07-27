@@ -36,13 +36,15 @@ const BLOCOS_ANO = [
 // Extrai a linha "Total Geral" de cada bloco anual do gt_dash — série
 // histórica (seção 8.1 do plano). Não depende dos filtros da sidebar: vem
 // direto da planilha, cobrindo 2023/2024 (que a base granular não cobre bem).
+// ⚠️ Casa só por `tipo_linha === 'total'` (não pelo texto da permissionária)
+// — a Edge Function classifica como 'total' qualquer rótulo que COMECE com
+// "Total Geral" (ex.: "Total Geral 2023"), então exigir o texto exato aqui
+// deixava os 3 gráficos "por ano" sempre zerados (achado de 27/07/2026, dado
+// real da homologação).
 function serieHistoricaDash(gtDash) {
   return BLOCOS_ANO.map(({ bloco, label }) => {
     const linha = (gtDash || []).find(
-      (d) =>
-        d.bloco === bloco &&
-        d.tipo_linha === 'total' &&
-        /^total geral$/i.test(String(d.permissionaria || '').trim())
+      (d) => d.bloco === bloco && d.tipo_linha === 'total'
     )
     const qtde = Number(linha?.qtde_obras) || 0
     const compat = Number(linha?.obras_compatibilizadas) || 0
@@ -61,17 +63,43 @@ export default function AbaGtGeral({ linhas, gtDash }) {
   const kpis = useMemo(() => kpisGt(linhas), [linhas])
   const serieAnual = useMemo(() => serieHistoricaDash(gtDash), [gtDash])
 
-  const norcrestDrill = useMemo(() => todasGtNorcrest(linhas), [linhas])
-  const porPermissionaria = useMemo(
-    () =>
-      norcrestDrill
-        ? agregaGtPorUnidadeNorcrest(linhas)
-        : agregaGtPorPermissionaria(linhas).slice(0, 10),
-    [linhas, norcrestDrill]
+  // Ranking de permissionárias em DOIS gráficos separados — "quem trabalha
+  // mais" (compatibilizadas) e "quem trava mais" (paralisadas) podem ser
+  // empresas diferentes; um ranking combinado escondia essa diferença
+  // (pedido do usuário, 27/07/2026).
+  const linhasCompat = useMemo(
+    () => linhas.filter((l) => l.status_grupo === 'compatibilizada'),
+    [linhas]
   )
-  const pagPerm = usePaginadorGrafico(porPermissionaria, {
+  const linhasParal = useMemo(
+    () => linhas.filter((l) => l.status_grupo === 'paralisada'),
+    [linhas]
+  )
+
+  const norcrestDrillCompat = useMemo(() => todasGtNorcrest(linhasCompat), [linhasCompat])
+  const porPermissionariaCompat = useMemo(
+    () =>
+      norcrestDrillCompat
+        ? agregaGtPorUnidadeNorcrest(linhasCompat)
+        : agregaGtPorPermissionaria(linhasCompat).slice(0, 10),
+    [linhasCompat, norcrestDrillCompat]
+  )
+  const pagPermCompat = usePaginadorGrafico(porPermissionariaCompat, {
     tamanho: 8,
-    ativo: norcrestDrill,
+    ativo: norcrestDrillCompat,
+  })
+
+  const norcrestDrillParal = useMemo(() => todasGtNorcrest(linhasParal), [linhasParal])
+  const porPermissionariaParal = useMemo(
+    () =>
+      norcrestDrillParal
+        ? agregaGtPorUnidadeNorcrest(linhasParal)
+        : agregaGtPorPermissionaria(linhasParal).slice(0, 10),
+    [linhasParal, norcrestDrillParal]
+  )
+  const pagPermParal = usePaginadorGrafico(porPermissionariaParal, {
+    tamanho: 8,
+    ativo: norcrestDrillParal,
   })
 
   const colsAno = [
@@ -81,10 +109,24 @@ export default function AbaGtGeral({ linhas, gtDash }) {
     { key: 'paralisadas', label: 'Paralisadas' },
     { key: 'pct', label: '% Compatibilizada' },
   ]
-  const colsPerm = [
-    { key: 'nome', label: norcrestDrill ? 'Unidade NORCREST' : 'Permissionária' },
-    { key: 'total', label: 'Total de Obras' },
+  const colsPermCompat = [
+    {
+      key: 'nome',
+      label: norcrestDrillCompat ? 'Unidade NORCREST' : 'Permissionária',
+    },
+    { key: 'total', label: 'Obras Compatibilizadas' },
   ]
+  const colsPermParal = [
+    {
+      key: 'nome',
+      label: norcrestDrillParal ? 'Unidade NORCREST' : 'Permissionária',
+    },
+    { key: 'total', label: 'Obras Paralisadas' },
+  ]
+
+  const legendaPct = serieAnual
+    .map((s) => `${s.pct}% (${s.ano})`)
+    .join(' → ')
 
   return (
     <div className="space-y-4" data-tour="gt-kpis">
@@ -200,67 +242,128 @@ export default function AbaGtGeral({ linhas, gtDash }) {
                 />
               </LineChart>
             </ResponsiveContainer>
-            <p className="text-[10px] text-gray-400 text-center -mt-2">
-              Achado da análise: a taxa vem caindo — 84% (2023) → 87% (2024) →
-              76% (2025/2026).
-            </p>
+            {legendaPct && (
+              <p className="text-[10px] text-gray-400 text-center -mt-2">
+                Evolução da taxa: {legendaPct}.
+              </p>
+            )}
           </div>
         </ChartCard>
       </div>
 
-      <ChartCard
-        titulo={
-          norcrestDrill
-            ? 'Obras por Unidade NORCREST'
-            : 'Ranking de Permissionárias (top 10)'
-        }
-      >
-        <div className="relative">
-          <div className="absolute -top-8 right-0 z-10">
-            <BotaoExportarGrafico
-              dados={porPermissionaria}
-              colunas={colsPerm}
-              titulo={
-                norcrestDrill ? 'Obras por Unidade NORCREST' : 'Ranking de Permissionárias'
-              }
-              modulo="gt"
-            />
-          </div>
-          <ResponsiveContainer
-            width="100%"
-            height={Math.max(280, pagPerm.itens.length * 26)}
-          >
-            <BarChart
-              data={pagPerm.itens}
-              layout="vertical"
-              margin={{ top: 4, right: 60, left: 0, bottom: 4 }}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <ChartCard
+          titulo={
+            norcrestDrillCompat
+              ? 'Compatibilizadas por Unidade NORCREST'
+              : 'Top 10 Compatibilizadas por Permissionária'
+          }
+        >
+          <div className="relative">
+            <div className="absolute -top-8 right-0 z-10">
+              <BotaoExportarGrafico
+                dados={porPermissionariaCompat}
+                colunas={colsPermCompat}
+                titulo={
+                  norcrestDrillCompat
+                    ? 'Compatibilizadas por Unidade NORCREST'
+                    : 'Top 10 Compatibilizadas por Permissionária'
+                }
+                modulo="gt"
+              />
+            </div>
+            <ResponsiveContainer
+              width="100%"
+              height={Math.max(280, pagPermCompat.itens.length * 26)}
             >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                horizontal={false}
-                stroke="#E0E0E0"
-              />
-              <XAxis type="number" tick={{ fontSize: 10 }} hide />
-              <YAxis
-                type="category"
-                dataKey="nome"
-                tick={{ fontSize: 10 }}
-                width={130}
-              />
-              <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
-              <Bar dataKey="total" fill={INDIGO} radius={[0, 3, 3, 0]}>
-                <LabelList
-                  dataKey="total"
-                  position="right"
-                  style={{ fontSize: 10, fill: INDIGO, fontWeight: 'bold' }}
-                  formatter={fmtNumero}
+              <BarChart
+                data={pagPermCompat.itens}
+                layout="vertical"
+                margin={{ top: 4, right: 60, left: 0, bottom: 4 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                  stroke="#E0E0E0"
                 />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          {pagPerm.ligado && <ControlePaginacao {...pagPerm} />}
-        </div>
-      </ChartCard>
+                <XAxis type="number" tick={{ fontSize: 10 }} hide />
+                <YAxis
+                  type="category"
+                  dataKey="nome"
+                  tick={{ fontSize: 10 }}
+                  width={130}
+                />
+                <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
+                <Bar dataKey="total" fill="#1F7A4D" radius={[0, 3, 3, 0]}>
+                  <LabelList
+                    dataKey="total"
+                    position="right"
+                    style={{ fontSize: 10, fill: '#1F7A4D', fontWeight: 'bold' }}
+                    formatter={fmtNumero}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            {pagPermCompat.ligado && <ControlePaginacao {...pagPermCompat} />}
+          </div>
+        </ChartCard>
+
+        <ChartCard
+          titulo={
+            norcrestDrillParal
+              ? 'Paralisadas por Unidade NORCREST'
+              : 'Top 10 Paralisadas por Permissionária'
+          }
+        >
+          <div className="relative">
+            <div className="absolute -top-8 right-0 z-10">
+              <BotaoExportarGrafico
+                dados={porPermissionariaParal}
+                colunas={colsPermParal}
+                titulo={
+                  norcrestDrillParal
+                    ? 'Paralisadas por Unidade NORCREST'
+                    : 'Top 10 Paralisadas por Permissionária'
+                }
+                modulo="gt"
+              />
+            </div>
+            <ResponsiveContainer
+              width="100%"
+              height={Math.max(280, pagPermParal.itens.length * 26)}
+            >
+              <BarChart
+                data={pagPermParal.itens}
+                layout="vertical"
+                margin={{ top: 4, right: 60, left: 0, bottom: 4 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                  stroke="#E0E0E0"
+                />
+                <XAxis type="number" tick={{ fontSize: 10 }} hide />
+                <YAxis
+                  type="category"
+                  dataKey="nome"
+                  tick={{ fontSize: 10 }}
+                  width={130}
+                />
+                <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
+                <Bar dataKey="total" fill="#D97706" radius={[0, 3, 3, 0]}>
+                  <LabelList
+                    dataKey="total"
+                    position="right"
+                    style={{ fontSize: 10, fill: '#D97706', fontWeight: 'bold' }}
+                    formatter={fmtNumero}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            {pagPermParal.ligado && <ControlePaginacao {...pagPermParal} />}
+          </div>
+        </ChartCard>
+      </div>
     </div>
   )
 }
