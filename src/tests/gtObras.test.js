@@ -175,6 +175,20 @@ describe('agruparGtPorProcesso', () => {
     expect(agruparGtPorProcesso([])).toEqual([])
     expect(agruparGtPorProcesso(null)).toEqual([])
   })
+
+  it('resume a situação do recape do processo quando todas as vias concordam', () => {
+    const r = agruparGtPorProcesso(tresVias)
+    expect(r[0]._situacao_recape_resumo).toBe('GAP GRADED')
+  })
+
+  it('sinaliza "Diverso entre vias" quando as vias do processo divergem na situação de recape', () => {
+    const duasVias = [
+      { ...tresVias[0], situacao_recape_norm: 'CONCLUIDO' },
+      { ...tresVias[1], situacao_recape_norm: 'GAP GRADED' },
+    ]
+    const r = agruparGtPorProcesso(duasVias)
+    expect(r[0]._situacao_recape_resumo).toBe('Diverso entre vias')
+  })
 })
 
 // ── STATUS_GRUPO_LABEL / STATUS_GRUPO_COR / STATUS_GT ─────────────────

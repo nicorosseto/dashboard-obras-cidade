@@ -51,7 +51,6 @@ const COLUNAS_EXPORT = [
     label: 'Permissionária',
     transform: (v, r) => v || r?.permissionaria || '—',
   },
-  { key: 'executora', label: 'Executora' },
   { key: 'subprefeitura', label: 'Subprefeitura' },
   {
     key: '_vias',
@@ -65,6 +64,7 @@ const COLUNAS_EXPORT = [
     label: 'Situação',
     transform: (v) => STATUS_GRUPO_LABEL[v] || v,
   },
+  { key: '_situacao_recape_resumo', label: 'Status do Recape' },
   {
     key: 'area_m2',
     label: 'Metragem Total (m²)',
@@ -301,11 +301,11 @@ export default function AbaGtLista({ linhas, gtDash }) {
                   <tr className="bg-navy text-white text-left">
                     <th className="p-2 whitespace-nowrap">Nº Processo</th>
                     <th className="p-2 whitespace-nowrap">Permissionária</th>
-                    <th className="p-2 whitespace-nowrap">Executora</th>
                     <th className="p-2 whitespace-nowrap">Subprefeitura</th>
                     <th className="p-2 whitespace-nowrap">Vias</th>
                     <th className="p-2 whitespace-nowrap">Status</th>
                     <th className="p-2 whitespace-nowrap">Situação</th>
+                    <th className="p-2 whitespace-nowrap">Status do Recape</th>
                     <th className="p-2 whitespace-nowrap">Metragem Total (m²)</th>
                     <th className="p-2 whitespace-nowrap">Status Sistema Geo</th>
                   </tr>
@@ -321,9 +321,6 @@ export default function AbaGtLista({ linhas, gtDash }) {
                       </td>
                       <td className="p-2 whitespace-nowrap align-top">
                         {l._permissionaria_exibir || l.permissionaria || '—'}
-                      </td>
-                      <td className="p-2 whitespace-nowrap align-top">
-                        {l.executora || '—'}
                       </td>
                       <td className="p-2 whitespace-nowrap align-top">
                         {l.subprefeitura || '—'}
@@ -355,6 +352,9 @@ export default function AbaGtLista({ linhas, gtDash }) {
                       </td>
                       <td className="p-2 whitespace-nowrap align-top">
                         <StatusGrupoBadge grupo={l.status_grupo} />
+                      </td>
+                      <td className="p-2 whitespace-nowrap align-top">
+                        {l._situacao_recape_resumo || '—'}
                       </td>
                       <td className="p-2 whitespace-nowrap tabular-nums align-top">
                         {fmtAreaDecimal(l.area_m2)}
