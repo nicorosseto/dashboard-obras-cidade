@@ -1019,6 +1019,24 @@
     fictícios do repo público. Não é amostra real (exigiria acesso ao banco);
     trocável no futuro regenerando os mesmos JSONs a partir de uma amostra
     real anonimizada, sem mudar código do app.
+    ⚡ **GT Obras (28/07/2026, Fase 5 do módulo):** mesmo gerador ganhou
+    `gt_obras.json` (~1,9k) e `gt_dash.json` (36 linhas — 4 blocos × 9,
+    sem divergência forçada entre a soma dos anos e o "Total Geral"). O
+    hook `useCargaGtObras.js` já tinha o branch de modo demo desde a Fase
+    2 — só faltavam os JSONs. Exercita as 4 situações de vínculo
+    (Sistema Geo/Fiscalização/sem processo/não encontrado), duplicados e
+    grafias ambíguas de recape. `tecnica_analise` usa rótulos genéricos
+    ("TÉCNICA 1".."TÉCNICA 5"), nunca nomes reais. Introduziu 3 nomes/
+    códigos reais novos que precisaram de regra em
+    `mirror/replacements.txt`: `AXWELL TELECOM` (permissionária
+    real citada em `docs/plano-modulo-gt-obras.md`) e `TG`/`MNED`
+    (códigos reais de unidade da NORCREST, curtos demais para substring
+    solta — mesma técnica "entre aspas" do achado de `TIM`/`CLARO` em
+    19/07/2026, ver bloco abaixo). **Regra geral, reforçada aqui:**
+    sempre que o gerador de demo ganhar um vocabulário novo (nome de
+    permissionária, código de unidade, sigla), checar ANTES se já existe
+    regra de anonimização — senão o dado real vaza pro mirror público no
+    próximo sync.
   - **⚠️ Deploy demo no Vercel — 3 variáveis, não 1:** além de
     `VITE_DEMO_MODE=true`, o deploy da demo PRECISA de
     `VITE_SUPABASE_URL`/`VITE_SUPABASE_PUBLISHABLE_KEY` com **valores dummy**
