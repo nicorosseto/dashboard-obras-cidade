@@ -46,7 +46,7 @@ export const PERM_DESCRICAO = {
   'gt.ver':
     'Acessa o módulo GT Obras (Visão Geral: KPIs e gráficos da compatibilização de obras × recape)',
   'gt.aba_analise':
-    'Aba "Análise de Status" no módulo GT Obras (aprofundamento por status, pendências acionáveis, carga por técnica)',
+    'Aba "Análise de Status" no módulo GT Obras (aprofundamento por status, pendências acionáveis, recape × status)',
   'gt.aba_lista':
     'Aba "Lista" no módulo GT Obras (busca por nº de processo + seção "Verificar inconsistências")',
   'gt.atualizar':

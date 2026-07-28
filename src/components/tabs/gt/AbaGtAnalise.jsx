@@ -21,7 +21,6 @@ import {
   agregaGtPorStatus,
   agregaGtPorStatusEAno,
   pendenciasAcionaveisGt,
-  agregaGtPorTecnica,
   matrizGtRecapeStatus,
   recapeConcluidoParalisadoGt,
   agregaGtMetragemPorStatus,
@@ -39,13 +38,6 @@ const COLS_PENDENCIAS = [
   { key: 'metragem', label: 'Metragem (m²)', transform: (v) => fmtAreaDecimal(v) },
 ]
 
-const COLS_TECNICA = [
-  { key: 'tecnica', label: 'Técnica' },
-  { key: 'total', label: 'Total de análises' },
-  { key: 'compatibilizadas', label: 'Compatibilizadas' },
-  { key: 'pct', label: '% Compatibilização', transform: (v) => `${v.toFixed(0)}%` },
-]
-
 const COLS_RECAPE = [
   { key: 'situacao', label: 'Situação do Recape' },
   { key: 'compatibilizada', label: 'Compatibilizada' },
@@ -61,8 +53,8 @@ const COLS_METRAGEM = [
 
 // Aba "Análise de Status" — aprofundamento da coluna STATUS (seção 8.2 do
 // plano): funil de status com drill-down, painel de pendências acionáveis,
-// status × ano, carga por técnica e o cruzamento recape × status que é a
-// razão de ser do módulo. Recebe `linhas` já cruzadas e filtradas pela
+// status × ano, metragem por status e o cruzamento recape × status que é
+// a razão de ser do módulo. Recebe `linhas` já cruzadas e filtradas pela
 // sidebar (mesma fonte da Visão Geral).
 export default function AbaGtAnalise({ linhas }) {
   const gruposData = useMemo(() => agregaGtPorStatusGrupo(linhas), [linhas])
@@ -87,7 +79,6 @@ export default function AbaGtAnalise({ linhas }) {
 
   const pend = useMemo(() => pendenciasAcionaveisGt(linhas), [linhas])
   const statusAno = useMemo(() => agregaGtPorStatusEAno(linhas), [linhas])
-  const tecnica = useMemo(() => agregaGtPorTecnica(linhas), [linhas])
   const recapeMatriz = useMemo(() => matrizGtRecapeStatus(linhas), [linhas])
   const piorCaso = useMemo(() => recapeConcluidoParalisadoGt(linhas), [linhas])
   const metragemPorStatus = useMemo(() => agregaGtMetragemPorStatus(linhas), [linhas])
@@ -258,103 +249,44 @@ export default function AbaGtAnalise({ linhas }) {
         </div>
       </ChartCard>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard titulo="Metragem por Status (m²)">
-          <div className="relative">
-            <div className="absolute -top-8 right-0 z-10">
-              <BotaoExportarGrafico
-                dados={metragemPorStatus}
-                colunas={COLS_METRAGEM}
-                titulo="Metragem por Status"
-                modulo="gt"
-              />
-            </div>
-            <ResponsiveContainer
-              width="100%"
-              height={Math.max(260, metragemPorStatus.length * 28)}
-            >
-              <BarChart
-                data={metragemPorStatus}
-                layout="vertical"
-                margin={{ top: 4, right: 60, left: 0, bottom: 4 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E0E0E0" />
-                <XAxis type="number" tick={{ fontSize: 10 }} hide />
-                <YAxis type="category" dataKey="status" tick={{ fontSize: 10 }} width={170} />
-                <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
-                <Bar dataKey="metragem" radius={[0, 3, 3, 0]}>
-                  {metragemPorStatus.map((d, i) => (
-                    <Cell key={i} fill={STATUS_GT_COR[d.status] || '#9CA3AF'} />
-                  ))}
-                  <LabelList
-                    dataKey="metragem"
-                    position="right"
-                    style={{ fontSize: 9, fontWeight: 'bold' }}
-                    formatter={fmtAreaDecimal}
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </ChartCard>
-
-        <div
-          className="bg-white rounded-md shadow-card p-4 space-y-3"
-          data-tour="gt-analise-tecnica"
-        >
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
-                Carga por Técnica
-              </h3>
-              <p className="text-[10px] text-gray-400">
-                ⚠️ Medida de produtividade individual — use com cuidado.
-              </p>
-            </div>
+      <ChartCard titulo="Metragem por Status (m²)">
+        <div className="relative">
+          <div className="absolute -top-8 right-0 z-10">
             <BotaoExportarGrafico
-              dados={tecnica}
-              colunas={COLS_TECNICA}
-              titulo="Carga por Técnica"
+              dados={metragemPorStatus}
+              colunas={COLS_METRAGEM}
+              titulo="Metragem por Status"
               modulo="gt"
             />
           </div>
-          <div className="overflow-x-auto rounded-sm border border-grey-line">
-            <table className="w-full text-xs border-collapse">
-              <thead>
-                <tr className="bg-navy text-white text-left">
-                  <th className="p-2 whitespace-nowrap">Técnica</th>
-                  <th className="p-2 whitespace-nowrap text-right">Total</th>
-                  <th className="p-2 whitespace-nowrap text-right">Compatibilizadas</th>
-                  <th className="p-2 whitespace-nowrap text-right">% Compat.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tecnica.map((t, i) => (
-                  <tr key={t.tecnica} className={i % 2 === 0 ? 'bg-white' : 'bg-grey-bg'}>
-                    <td className="p-2 whitespace-nowrap">{t.tecnica}</td>
-                    <td className="p-2 whitespace-nowrap text-right tabular-nums">
-                      {fmtNumero(t.total)}
-                    </td>
-                    <td className="p-2 whitespace-nowrap text-right tabular-nums">
-                      {fmtNumero(t.compatibilizadas)}
-                    </td>
-                    <td className="p-2 whitespace-nowrap text-right tabular-nums">
-                      {t.pct.toFixed(0)}%
-                    </td>
-                  </tr>
+          <ResponsiveContainer
+            width="100%"
+            height={Math.max(260, metragemPorStatus.length * 28)}
+          >
+            <BarChart
+              data={metragemPorStatus}
+              layout="vertical"
+              margin={{ top: 4, right: 60, left: 0, bottom: 4 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E0E0E0" />
+              <XAxis type="number" tick={{ fontSize: 10 }} hide />
+              <YAxis type="category" dataKey="status" tick={{ fontSize: 10 }} width={170} />
+              <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
+              <Bar dataKey="metragem" radius={[0, 3, 3, 0]}>
+                {metragemPorStatus.map((d, i) => (
+                  <Cell key={i} fill={STATUS_GT_COR[d.status] || '#9CA3AF'} />
                 ))}
-                {tecnica.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="p-4 text-center text-gray-400">
-                      Nenhuma análise carregada.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                <LabelList
+                  dataKey="metragem"
+                  position="right"
+                  style={{ fontSize: 9, fontWeight: 'bold' }}
+                  formatter={fmtAreaDecimal}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-      </div>
+      </ChartCard>
 
       <div
         className="bg-white rounded-md shadow-card p-4 space-y-3"

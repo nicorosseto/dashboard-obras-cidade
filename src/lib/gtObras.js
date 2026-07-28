@@ -399,28 +399,6 @@ export function recapeConcluidoParalisadoGt(linhas) {
   ).length
 }
 
-// Carga por técnica (coluna X) + taxa de compatibilização de cada uma
-// (seção 8.2.4). Normaliza só caixa/espaço (não há campo dedicado na
-// Edge Function para isso — ver dominio.md, achado 2.4 "Daniela vs
-// DANIELA") — a exibição usa a própria chave normalizada.
-export function agregaGtPorTecnica(linhas) {
-  const m = new Map()
-  for (const r of agruparGtPorProcesso(linhas)) {
-    const key = String(r.tecnica_analise || '').trim().toUpperCase()
-    if (!key) continue
-    if (!m.has(key)) m.set(key, { tecnica: key, total: 0, compatibilizadas: 0 })
-    const bucket = m.get(key)
-    bucket.total += 1
-    if (r.status_grupo === 'compatibilizada') bucket.compatibilizadas += 1
-  }
-  return Array.from(m.values())
-    .map((b) => ({
-      ...b,
-      pct: b.total > 0 ? (b.compatibilizadas / b.total) * 100 : 0,
-    }))
-    .sort((a, b) => b.total - a.total)
-}
-
 // ⚠️ Fica no nível de VIA (não agrupa por processo, ao contrário das
 // demais agregações acima) — a situação do recape é um atributo do
 // trecho, e um processo com várias vias pode ter recapes em situações
