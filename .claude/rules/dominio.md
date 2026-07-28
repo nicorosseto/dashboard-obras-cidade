@@ -812,11 +812,21 @@
     "Recape × Status") e a seção "Verificar inconsistências" dentro da
     Lista (padrão Multas: toggle, sem permissão própria — bundle em
     `gt.aba_lista`, mesma lógica de `gt.aba_analise` para a aba nova).
-    Falta a Fase 5 (dados demo + promoção).
-    ⚠️ **D6/D7 do plano seguem em aberto:** a "Carga por Técnica" expõe
-    nome de pessoa física — D7 (nomes reais × mirror público) precisa
-    ser resolvido antes de qualquer sync do mirror que inclua este
-    módulo.
+    Promovido para produção em 28/07/2026 (PR #386, 13 PRs — #373 a
+    #385). Falta só a Fase 5 (dados demo sintéticos para o modo
+    `VITE_DEMO_MODE`, sem impacto em produção real).
+    ⚡ **"Carga por Técnica" removida (28/07/2026):** já em produção, o
+    usuário reconsiderou e pediu para tirar essa seção do dashboard —
+    não fazia sentido expor produtividade individual por técnica.
+    Removida a tabela (`AbaGtAnalise.jsx`, grid de 2 colunas virou 1 —
+    "Metragem por Status" ocupa a largura toda), a função
+    `agregaGtPorTecnica` (`gtObras.js`) e o passo do mini-tour. A coluna
+    `tecnica_analise` continua sendo ingerida pela Edge Function (só não
+    aparece mais em nenhuma tela) — o pedido foi sobre exibição, não
+    sobre o dado bruto. **D7 do plano (nomes reais × mirror público)
+    fica resolvido para este módulo** — sem essa seção, nenhuma tela do
+    GT Obras exibe nome de pessoa física; D6 (unidade da metragem) segue
+    em aberto, sem relação com nomes.
   - **Cor índigo em inline style, não classe Tailwind:** `INDIGO`/
     `INDIGO_LIGHT` (`src/lib/cores.js`) seguem o padrão já usado para
     cores institucionais fora das 4 do `@theme` (violeta da Análise

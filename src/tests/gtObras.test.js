@@ -21,7 +21,6 @@ import {
   agregaGtPorSubprefeitura,
   agregaGtPorAno,
   agregaGtStatusGrupoPorAno,
-  agregaGtPorTecnica,
   agregaGtPorSituacaoRecape,
   FILTROS_VAZIOS_GT,
   contarFiltrosAtivosGt,
@@ -437,22 +436,6 @@ describe('agregaGtStatusGrupoPorAno', () => {
       { ano: 2025, compatibilizada: 1, paralisada: 0, nao_classificado: 0 },
       { ano: 2026, compatibilizada: 1, paralisada: 1, nao_classificado: 0 },
     ])
-  })
-})
-
-// ── agregaGtPorTecnica ──────────────────────────────────────────────────
-describe('agregaGtPorTecnica', () => {
-  it('normaliza caixa (Samara/SAMARA no mesmo balde) e calcula taxa de compatibilização', () => {
-    const linhas = [
-      { tecnica_analise: 'Samara', status_grupo: 'compatibilizada' },
-      { tecnica_analise: 'SAMARA', status_grupo: 'paralisada' },
-    ]
-    const r = agregaGtPorTecnica(linhas)
-    expect(r).toEqual([{ tecnica: 'SAMARA', total: 2, compatibilizadas: 1, pct: 50 }])
-  })
-
-  it('ignora linhas sem técnica', () => {
-    expect(agregaGtPorTecnica([{ tecnica_analise: null }])).toEqual([])
   })
 })
 

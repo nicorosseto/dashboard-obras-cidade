@@ -149,13 +149,6 @@ export const TOUR_GT_ANALISE = {
         'no ano mais recente é fila de trabalho, não acúmulo histórico.',
     },
     {
-      alvo: '[data-tour="gt-analise-tecnica"]',
-      titulo: 'Carga por técnica',
-      texto:
-        'Quantas análises cada técnica fez e a taxa de compatibilização ' +
-        'de cada uma — medida de produtividade individual, use com cuidado.',
-    },
-    {
       alvo: '[data-tour="gt-analise-recape"]',
       titulo: 'Recape × status da obra',
       texto:
