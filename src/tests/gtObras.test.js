@@ -785,6 +785,15 @@ describe('inconsistenciasGt', () => {
     expect(r.situacaoRecapeAmbigua).toHaveLength(2)
   })
 
+  it('NÃO marca "PLANEJADO" sozinho como ambíguo (bug de 28/07/2026: é status válido — recape agendado)', () => {
+    const linhas = [
+      { situacao_recape_norm: 'PLANEJADO' },
+      { situacao_recape_norm: 'CONCLUIDO' },
+      { situacao_recape_norm: 'GAP GRADED' },
+    ]
+    expect(inconsistenciasGt(linhas).situacaoRecapeAmbigua).toEqual([])
+  })
+
   it('lida com lista vazia', () => {
     const r = inconsistenciasGt([])
     expect(r.semProcesso).toEqual([])

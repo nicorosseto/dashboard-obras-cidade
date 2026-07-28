@@ -874,6 +874,21 @@
     "[GT - Obras]"). Como essas tabelas mostram a linha **crua, uma via
     por linha** (não agrupada por processo como a Lista), a coluna "Vias"
     aqui não tem o "N vias" nem soma metragem — é só aquela via.
+  - **"Grafias ambíguas na situação do recape" — bug do "PLANEJADO"
+    (28/07/2026):** `inconsistenciasGt` (`gtObras.js`) marcava qualquer
+    `situacao_recape_norm` contendo `"PLANEJADO"` como ambígua — mas
+    `PLANEJADO` sozinho é um status **válido** (recape agendado, ainda
+    não iniciado), só apareceu na tabela por causa da própria checagem
+    ampla demais (achado real de julho, ver seção 2.4 do plano:
+    `"CONCLUÍDO ou EM EXEC."` e `"PLANEJADO - CONCLUIDO"` são os únicos
+    casos genuinamente ambíguos, ambos misturando **dois termos** no
+    mesmo texto). Corrigido para exigir a **coocorrência** de
+    `"PLANEJADO"` e `"CONCLU"` no mesmo texto (a detecção de `" OU "`
+    não mudou). **Regra geral:** ao escrever uma checagem de
+    "inconsistência"/anomalia por substring, testar contra o valor
+    isolado mais comum do domínio antes de assumir que ele nunca
+    aparece sozinho — `includes('X')` sem uma 2ª condição vira
+    falso-positivo em massa se `X` também for um valor legítimo.
 
 - **Home — lista de módulos em linha, não grid (16/07/2026):** decisão
   tomada com uma **prévia em HTML (Artifact)** antes de tocar em código —

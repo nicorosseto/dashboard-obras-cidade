@@ -572,9 +572,16 @@ export function inconsistenciasGt(linhasCruzadas) {
   // que misturam duas situações no mesmo texto, não dá para resolver por
   // normalização de acento/caixa (essas já foram unificadas por
   // situacao_recape_norm). Fica como conferência manual.
+  // ⚠️ Bug corrigido (28/07/2026): `PLANEJADO` sozinho é um status VÁLIDO
+  // (recape agendado, ainda não iniciado) — não é ambíguo. O caso real é
+  // "PLANEJADO - CONCLUIDO" (mistura os dois), por isso a condição exige
+  // os DOIS termos no mesmo texto, não só "PLANEJADO" isolado.
   const situacaoRecapeAmbigua = arr.filter((l) => {
     const norm = l.situacao_recape_norm || ''
-    return norm.includes(' OU ') || norm.includes('PLANEJADO')
+    return (
+      norm.includes(' OU ') ||
+      (norm.includes('PLANEJADO') && norm.includes('CONCLU'))
+    )
   })
 
   return { semProcesso, processoNaoEncontrado, duplicados, situacaoRecapeAmbigua }
