@@ -672,6 +672,16 @@ describe('conferirDashVsBase', () => {
     expect(conferirDashVsBase([])).toEqual([])
     expect(conferirDashVsBase(null)).toEqual([])
   })
+
+  it('acha a linha de totalização mesmo quando o texto da permissionária traz algo além de "Total Geral" (achado de 28/07/2026: match exato zerava a soma dos anos)', () => {
+    const gtDash = [
+      { bloco: '2023', permissionaria: 'Total Geral 2023', tipo_linha: 'total', qtde_obras: 528, obras_compatibilizadas: 446, obras_paralisadas: 82 },
+      { bloco: '2024', permissionaria: 'TOTAL GERAL  ', tipo_linha: 'total', qtde_obras: 754, obras_compatibilizadas: 655, obras_paralisadas: 99 },
+      { bloco: '2025_2026', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 1853, obras_compatibilizadas: 1408, obras_paralisadas: 445 },
+      { bloco: 'total_geral', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 3135, obras_compatibilizadas: 2509, obras_paralisadas: 626 },
+    ]
+    expect(conferirDashVsBase(gtDash)).toEqual([])
+  })
 })
 
 // ── inconsistenciasGt ───────────────────────────────────────────────────

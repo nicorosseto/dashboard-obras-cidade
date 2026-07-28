@@ -784,6 +784,22 @@
     soma dos 3 blocos anuais e o bloco "Total Geral" (confirmada: 3.135
     somado vs. 3.134 declarado) é checada à parte, no front-end
     (`conferirDashVsBase`, Fase 2), não linha a linha na Edge Function.
+    ⚠️ **Bug corrigido (28/07/2026):** `conferirDashVsBase` exigia match
+    **exato** de "Total Geral" no texto da permissionária para achar a
+    linha de totalização de cada bloco — mais rígido que a classificação
+    `tipo_linha: 'total'` que a Edge Function já calcula via
+    `startsWith('TOTAL GERAL')`. Quando o texto real de um bloco anual
+    trazia algo além de "Total Geral", o match exato falhava, a soma dos
+    3 blocos anuais zerava e o painel "Divergência DASH × Base
+    Recalculada" mostrava uma divergência de -100% **falsa** (bem
+    diferente do erro real de 1 obra que o painel existe para pegar).
+    Corrigido para confiar só em `tipo_linha === 'total'` — mesma fonte
+    de verdade da Edge Function, sem duplicar o critério com regra
+    diferente no front. **Regra geral:** quando o front precisa achar uma
+    linha já classificada por um campo calculado no sync (`tipo_linha`,
+    `status_grupo`…), usar esse campo diretamente — reimplementar o
+    critério de classificação com um regex próprio no front arrisca ficar
+    mais rígido (ou mais frouxo) que a fonte original e divergir dela.
   - **Sem cron (D4, decisão do usuário):** diferente do `sync-multas`
     (que tem cron + botão manual), aqui a sincronização **só roda pelo
     botão "Atualizar agora"** — `gt_sync_config` não tem

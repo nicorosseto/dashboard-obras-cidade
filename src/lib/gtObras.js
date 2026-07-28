@@ -476,11 +476,16 @@ export function aplicarFiltrosGt(linhas, filtros) {
 export function conferirDashVsBase(gtDash) {
   const divergencias = []
   const totalGeralPorBloco = new Map()
+  // ⚠️ Confia só em `tipo_linha === 'total'` (já calculado pela Edge
+  // Function via `startsWith('TOTAL GERAL')` — acha 27/07/2026: exigir
+  // aqui também um match EXATO de "Total Geral" era mais rígido que a
+  // classificação de origem e não achava a linha de totalização dos
+  // blocos anuais quando o texto trazia algo além de "Total Geral" — a
+  // soma dos anos saía zerada e virava uma "divergência" de -100% falsa,
+  // completamente diferente do erro de 1 obra que este painel existe
+  // para pegar).
   for (const d of gtDash || []) {
-    if (
-      d.tipo_linha === 'total' &&
-      /^total geral$/i.test(String(d.permissionaria || '').trim())
-    ) {
+    if (d.tipo_linha === 'total') {
       totalGeralPorBloco.set(d.bloco, d)
     }
   }
