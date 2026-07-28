@@ -158,3 +158,89 @@ normalmente, mas a tela abre com a tabela vazia (sem dados sincronizados).
 - Normalização de texto livre (`TIPO DE PROCESSO`/`STATUS SEI`) não foi
   implementada — decisão do usuário, adiada para uma etapa futura se
   necessário.
+
+## `sync-gt-obras` (módulo GT Obras — compatibilização × recape)
+
+Baixa a planilha "[GT - Obras]" (`PROCESSOS_SISTEMA GEO - 2026.xlsx`, Google
+Drive), faz o parsing SELETIVO de duas abas (`COMPATIB. CAMILA` — base
+granular; `DASH (GT)` — painel consolidado) e grava (upsert) em
+`public.gt_obras` e `public.gt_dash`. Dashboard é READ-ONLY. Contrato
+completo em `docs/plano-modulo-gt-obras.md`.
+
+⚠️ **Diferente do sync-multas: SEM CRON** (D4, decisão do usuário em
+27/07/2026) — só roda quando o admin clica "Atualizar agora" no módulo.
+
+### 1. Rodar o SQL antes (nos dois bancos, NESTA ORDEM)
+
+1. `supabase/schema/24-gt-obras.sql` — cria as tabelas `gt_obras`,
+   `gt_dash` e `gt_sync_config`.
+2. `supabase/schema/25-gt-obras-ui.sql` — permissões do catálogo
+   (`gt.ver`, `gt.aba_analise`, `gt.aba_lista`, `gt.atualizar`) + concede
+   as de visualização ao perfil "Visualização completa".
+
+**Status:** os 2 itens já rodaram no **obras-dev** e em **produção**
+(27/07/2026).
+
+### 2. Secret — reaproveitado, nada a cadastrar
+
+Usa o **mesmo** secret `GOOGLE_SERVICE_ACCOUNT_JSON` já cadastrado para o
+`sync-multas` (conta de serviço `obras-multas-leitor`, D5) — não
+precisa cadastrar nada novo nos dois projetos Supabase.
+
+⚠️ O usuário **precisa ter compartilhado** a planilha `[GT - Obras]` com o
+e-mail dessa conta de serviço (permissão *Leitor*) — senão o download
+retorna 404. **Status:** confirmado feito em 27/07/2026.
+
+### 3. Implantar a função
+
+Painel do Supabase → **Edge Functions** → **Deploy a new function** →
+nome `sync-gt-obras` → colar o conteúdo de
+`supabase/functions/sync-gt-obras/index.ts` → **Deploy**.
+
+⚠️ **Regra geral: sempre que o código de uma função mudar, ela precisa
+ser REIMPLANTADA** nos DOIS projetos — subir o código no repositório
+(merge do PR) não atualiza sozinha a função rodando no Supabase.
+
+### 4. Testar manualmente
+
+Painel do Supabase → **Edge Functions** → `sync-gt-obras` → botão
+**Invoke** (ou abrir a URL da função com o header `Authorization: Bearer
+<service_role key>`). Conferir a resposta JSON (`executado: true`,
+`total_linhas`, `com_processo`/`sem_processo`, `linhas_dash`,
+`linhas_dash_com_erro`) e depois olhar as tabelas `gt_obras`/`gt_dash` no
+**Table Editor**.
+
+Ou, mais simples (quando a UI do módulo existir — Fase 3): botão
+"Atualizar agora" do módulo GT Obras (exige a permissão `gt.atualizar`,
+concedida só pelo admin).
+
+### 5. Cron — não se aplica (D4)
+
+Diferente do `sync-multas`, este módulo **não tem cron**. A
+sincronização só acontece por clique manual — não é preciso criar
+nenhum cron job no painel do Supabase.
+
+## Checklist de promoção do módulo GT Obras para produção
+
+- [ ] Rodar os 2 SQLs da seção 1, na ordem, no banco de **produção** (já
+      feito em 27/07/2026 — conferir se segue válido na hora da promoção).
+- [ ] Implantar `sync-gt-obras` no projeto de **produção** (o secret já
+      existe, reaproveitado do Multas).
+- [ ] Testar manualmente (Invoke ou botão "Atualizar agora" em produção,
+      já logado como admin) e conferir as tabelas `gt_obras`/`gt_dash` no
+      Table Editor.
+
+### Limitações conhecidas (aceitas, não bloqueiam a promoção)
+
+- Sem retry/backoff no download do Drive, igual ao sync-multas.
+- `tem_erro_formula` (gt_dash) cobre valor negativo ou
+  `compatibilizadas + paralisadas ≠ qtde_obras` como rede de segurança
+  geral — nenhum caso real está confirmado até 27/07/2026 (o primeiro
+  teste real veio com `linhas_dash_com_erro: 0`). A divergência de soma
+  entre os 3 blocos anuais e o "Total Geral" é checada à parte, no
+  front-end (Fase 2). Os `#REF!`/negativos do bloco-resumo lateral da
+  aba `COMPATIB. CAMILA` (colunas AB:AE) seguem sem confirmação e **fora
+  do parser**.
+- `status_grupo` pode vir `'nao_classificado'` se a planilha (viva)
+  trouxer um status novo, fora dos 10 mapeados na regra do D1 — a linha
+  não é descartada, só marcada (regra de ouro).

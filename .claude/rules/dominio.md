@@ -745,6 +745,151 @@
   não tratada) para linhas sem vínculo; como processos sem número não são
   analisados, esses nomes só poluíam as opções. Não afeta os dados exibidos
   sem filtro ativo, só o que aparece como opção selecionável.
+
+- **Módulo "GT Obras" (em construção, Fase 4 de 5 — 27/07/2026):**
+  compatibilização de obras de permissionárias × programação de recape,
+  alimentado pela planilha "[GT - Obras]" (Google Drive, mesma conta de
+  serviço `obras-multas-leitor` do Multas — D5). Plano completo em
+  `docs/plano-modulo-gt-obras.md`. Particularidades já decididas:
+  - **Mapear colunas por POSIÇÃO, não por nome:** a aba `COMPATIB. CAMILA`
+    tem cabeçalhos repetidos (`TRECHO` 4×, `ÁREA TOTAL DA VIA (m²)` 2×) —
+    diferente do `sync-multas` (que mapeia por nome de cabeçalho). A
+    Edge Function `sync-gt-obras` valida a sanidade do cabeçalho (posições
+    esperadas na linha 2) e **aborta** a sincronização se não bater, em
+    vez de gravar dado deslocado.
+  - **Regra de "obra compatibilizada" (D1, decisão do usuário em
+    27/07/2026):** status `AEO EMITIDO` ou `LIBERAR` = compatibilizada;
+    os outros 8 status (`AGUARDANDO DELIBERAÇÃO`, `CANCELADO`, `DOCS
+    ASSINADOS`, `AGUARDANDO COMUNIQUE-SE`, `CAMILA VERIFICAR`, `SEGURAR`,
+    `NÃO EMITIR`, `AGUARDANDO ASSINATURA`) = paralisada (dicotomia
+    binária). Um status novo/desconhecido (planilha viva) cai em
+    `status_grupo = 'nao_classificado'` — nunca quebra a sincronização
+    nem é classificado por adivinhação.
+  - **`num_processo` não é chave única** (48 processos aparecem em mais
+    de uma linha, um por trecho) — upsert por **chave sintética** (hash
+    de processo + via + trechos + linha da planilha), sem o caminho dual
+    "com/sem chave natural" que o `sync-multas` usa para `auto_multa`.
+  - **`tem_erro_formula` (gt_dash) tem escopo deliberadamente limitado:**
+    cobre valor negativo ou `compatibilizadas + paralisadas ≠ qtde_obras`
+    como **rede de segurança geral** — nenhum caso real desse tipo está
+    confirmado até agora (a linha `AXWELL TELECOM` do bloco
+    2025/2026, citada inicialmente como exemplo, era erro de leitura do
+    screenshot pelo executor; a sincronização real mostrou a linha
+    zerada, sem anomalia — corrigido em 27/07/2026). Os `#REF!`/valores
+    negativos citados na análise inicial do plano (bloco-resumo lateral
+    da aba `COMPATIB. CAMILA`, colunas AB:AE) **não foram confirmados**
+    nos screenshots enviados e ficam
+    **fora do parser** até nova verificação — não hard-codar esses
+    números específicos em testes/Edge Function. A divergência entre a
+    soma dos 3 blocos anuais e o bloco "Total Geral" (confirmada: 3.135
+    somado vs. 3.134 declarado) é checada à parte, no front-end
+    (`conferirDashVsBase`, Fase 2), não linha a linha na Edge Function.
+    ⚠️ **Bug corrigido (28/07/2026):** `conferirDashVsBase` exigia match
+    **exato** de "Total Geral" no texto da permissionária para achar a
+    linha de totalização de cada bloco — mais rígido que a classificação
+    `tipo_linha: 'total'` que a Edge Function já calcula via
+    `startsWith('TOTAL GERAL')`. Quando o texto real de um bloco anual
+    trazia algo além de "Total Geral", o match exato falhava, a soma dos
+    3 blocos anuais zerava e o painel "Divergência DASH × Base
+    Recalculada" mostrava uma divergência de -100% **falsa** (bem
+    diferente do erro real de 1 obra que o painel existe para pegar).
+    Corrigido para confiar só em `tipo_linha === 'total'` — mesma fonte
+    de verdade da Edge Function, sem duplicar o critério com regra
+    diferente no front. **Regra geral:** quando o front precisa achar uma
+    linha já classificada por um campo calculado no sync (`tipo_linha`,
+    `status_grupo`…), usar esse campo diretamente — reimplementar o
+    critério de classificação com um regex próprio no front arrisca ficar
+    mais rígido (ou mais frouxo) que a fonte original e divergir dela.
+  - **Sem cron (D4, decisão do usuário):** diferente do `sync-multas`
+    (que tem cron + botão manual), aqui a sincronização **só roda pelo
+    botão "Atualizar agora"** — `gt_sync_config` não tem
+    `intervalo_minutos`/agendador, só o status da última execução.
+  - **UI por fases (27/07/2026, decisão do usuário):** produção só
+    quando o módulo estiver 100% pronto — sem promover fase a fase.
+    Fase 3 entregou Visão Geral + Lista; a **Fase 4** entregou a aba
+    "Análise de Status" (funil com drill-down, "Pendências Acionáveis",
+    "Status × Ano", "Metragem por Status", "Carga por Técnica", matriz
+    "Recape × Status") e a seção "Verificar inconsistências" dentro da
+    Lista (padrão Multas: toggle, sem permissão própria — bundle em
+    `gt.aba_lista`, mesma lógica de `gt.aba_analise` para a aba nova).
+    Falta a Fase 5 (dados demo + promoção).
+    ⚠️ **D6/D7 do plano seguem em aberto:** a "Carga por Técnica" expõe
+    nome de pessoa física — D7 (nomes reais × mirror público) precisa
+    ser resolvido antes de qualquer sync do mirror que inclua este
+    módulo.
+  - **Cor índigo em inline style, não classe Tailwind:** `INDIGO`/
+    `INDIGO_LIGHT` (`src/lib/cores.js`) seguem o padrão já usado para
+    cores institucionais fora das 4 do `@theme` (violeta da Análise
+    Integrada, teal da Apresentação, âmbar de Emergências…) — nunca
+    `text-red`/`accent-red` (essas são só para as 4 cores do tema);
+    sempre `style={{ color: INDIGO }}` ou equivalente.
+  - **Um processo pode ter várias vias/trechos (achado do usuário,
+    27/07/2026) — duas camadas de tratamento:**
+    1. **Parsing (`sync-gt-obras`):** no Excel, quando um processo tem
+       mais de uma via, permissionária/processo/status/etc. ficam em
+       **célula mesclada** — só a 1ª linha do grupo tem o valor de
+       verdade; as linhas de continuação chegam vazias nessas colunas
+       (mesmo a planilha "mostrando" o mesmo valor visualmente). A
+       Edge Function detecta a linha de continuação (sem dado de
+       processo, mas com dado de via — trecho/nome_via/área) e
+       **preenche para baixo** os campos de processo
+       (`CAMPOS_PROCESSO`) a partir da última linha-âncora — nunca os
+       campos específicos da via (trechos, área). Sem isso, a correção
+       do #374 ("linha válida = permissionária OU processo") descartava
+       essas linhas de continuação inteiras, perdendo a área dos
+       trechos extras.
+    2. **Contagem (`gtObras.js`):** `agruparGtPorProcesso` funde as
+       linhas de um mesmo processo (por `num_processo_normalizado`) em
+       UM registro — soma a área de todas as vias em `area_m2` e lista
+       os trechos em `_vias`/`_qtd_vias`. `kpisGt` e todas as
+       agregações por contagem (status, permissionária, subprefeitura,
+       ano, técnica) usam esse agrupamento internamente — um processo
+       de 3 vias é 1 obra, nunca 3. **Exceção:** `agregaGtPorSituacaoRecape`
+       fica no nível de via de propósito (a situação do recape pode
+       diferir entre trechos do mesmo processo). A aba Lista também
+       agrupa antes de listar — 1 linha por processo, com todas as
+       vias empilhadas na mesma célula, nunca 1 linha por trecho.
+  - **Coluna "Vias" combina 3 colunas da planilha (Nome — coluna F, Trecho
+    De/Até — colunas G/H) + status do recape, sem "Executora" (27/07/2026,
+    ajuste pós-Fase 4):** a pedido do usuário, a coluna **Executora** saiu
+    da tabela/exportação da aba Lista. Uma 1ª tentativa criou uma coluna
+    própria "Status do Recape" resumindo por processo — **revertida** no
+    mesmo dia: como o recape é um atributo por VIA (pode divergir entre
+    trechos do mesmo processo), o usuário preferiu manter a informação
+    individualizada dentro da própria coluna "Vias" em vez de um resumo
+    por processo. Formato final de cada linha de via (`AbaGtLista.jsx`):
+    **Nome da via em negrito** — Trecho De → Até — (status do recape entre
+    parênteses, cinza), com fallback gracioso quando falta nome ou trecho
+    (`textoTrecho`/`textoVia`). Cabeçalho: "Vias (nome — trecho — recape)".
+    ⚡ **Reaproveitado nas tabelas de Inconsistências (28/07/2026):** as
+    funções viraram `textoTrechoGt`/`textoViaGt`, exportadas de
+    `gtObras.js` (fonte única — antes viviam só dentro de
+    `AbaGtLista.jsx`), e o `StatusGrupoBadge` virou um componente
+    compartilhado em `src/components/tabs/gt/shared.jsx` (evita import
+    circular entre `AbaGtLista.jsx` ↔ `AbaGtInconsistencias.jsx`, que se
+    importam mutuamente). As tabelas "Processo não encontrado" e
+    "Processos duplicados" (dentro da seção "Verificar inconsistências")
+    passaram a usar o mesmo padrão de colunas da Lista + a linha da
+    planilha (útil ali: a correção é sempre feita direto na planilha
+    "[GT - Obras]"). Como essas tabelas mostram a linha **crua, uma via
+    por linha** (não agrupada por processo como a Lista), a coluna "Vias"
+    aqui não tem o "N vias" nem soma metragem — é só aquela via.
+  - **"Grafias ambíguas na situação do recape" — bug do "PLANEJADO"
+    (28/07/2026):** `inconsistenciasGt` (`gtObras.js`) marcava qualquer
+    `situacao_recape_norm` contendo `"PLANEJADO"` como ambígua — mas
+    `PLANEJADO` sozinho é um status **válido** (recape agendado, ainda
+    não iniciado), só apareceu na tabela por causa da própria checagem
+    ampla demais (achado real de julho, ver seção 2.4 do plano:
+    `"CONCLUÍDO ou EM EXEC."` e `"PLANEJADO - CONCLUIDO"` são os únicos
+    casos genuinamente ambíguos, ambos misturando **dois termos** no
+    mesmo texto). Corrigido para exigir a **coocorrência** de
+    `"PLANEJADO"` e `"CONCLU"` no mesmo texto (a detecção de `" OU "`
+    não mudou). **Regra geral:** ao escrever uma checagem de
+    "inconsistência"/anomalia por substring, testar contra o valor
+    isolado mais comum do domínio antes de assumir que ele nunca
+    aparece sozinho — `includes('X')` sem uma 2ª condição vira
+    falso-positivo em massa se `X` também for um valor legítimo.
+
 - **Home — lista de módulos em linha, não grid (16/07/2026):** decisão
   tomada com uma **prévia em HTML (Artifact)** antes de tocar em código —
   comparou lado a lado o grid antigo × a proposta em lista, com o conteúdo
@@ -802,6 +947,23 @@
   checklist de PR de `github.md`. Tours dos módulos: PRs 2–4 do plano (tour de
   entrada no 1º acesso ao módulo + mini-tours por aba no 1º clique, ids
   `<modulo>` / `<modulo>.<aba>`).
+  ⚡ **Sub-toggle dentro de uma aba também precisa de tour próprio
+  (achado de 28/07/2026, GT Obras):** a seção "Verificar inconsistências"
+  (dentro da aba Lista do GT Obras, mesmo padrão do Multas) tinha um
+  passo no mini-tour da aba só EXPLICANDO o botão, mas nada cobrindo o
+  que aparece depois de clicar nele — porque `passosDisponiveis` filtra
+  os alvos ausentes do DOM **uma vez, no início do tour** (não
+  re-consulta a cada passo), e os elementos de dentro da seção só
+  existem no DOM depois do clique. Corrigido levantando o toggle local
+  (`useState` em `AbaGtLista.jsx`) para o `App.jsx`
+  (`gtInconsistenciasAbertas`), que passa a computar `tourAbaId =
+  'gt.busca.inconsistencias'` quando a seção está aberta — reaproveitando
+  o MESMO efeito que já dispara os mini-tours de aba (sem duplicar
+  lógica). **Regra geral:** qualquer seção que só monta seu conteúdo
+  depois de um clique (toggle, modal, aba secundária sem id próprio no
+  Header) precisa de um id de tour e um sub-estado espelhado no
+  `App.jsx` para o tour poder disparar no 1º acesso — não basta um passo
+  no tour "de fora" explicando o botão.
 
 - **Modo demo (portfólio público, decisão de 19/07/2026 — Opção B):** flag
   `VITE_DEMO_MODE=true` faz o app rodar 100% estático, sem NENHUMA chamada ao
