@@ -99,6 +99,22 @@ export const STATUS_PENDENCIA_ESPERA = {
   'AGUARDANDO ASSINATURA': 'Assinatura',
 }
 
+// ── Texto de uma via (nome + trecho) — usado pela Lista e pela seção de
+// Inconsistências, fonte única para não duplicar a lógica em 2 telas ──
+// Trecho (De → Até) de uma via, ou string vazia se a planilha não trouxe
+// nenhum dos dois (colunas G/H — distintas do nome da via, coluna F).
+export function textoTrechoGt(via) {
+  if (!via.trecho_de && !via.trecho_ate) return ''
+  return `${via.trecho_de || '?'} → ${via.trecho_ate || '?'}`
+}
+
+// Texto plano (nome + trecho) de uma via, para tooltip/exportação — a
+// versão em tela (JSX) destaca o nome em negrito à parte.
+export function textoViaGt(via) {
+  const partes = [via.nome_via, textoTrechoGt(via)].filter(Boolean)
+  return partes.length ? partes.join(' — ') : '(via não informada)'
+}
+
 // ── Agrupamento por processo (achado do usuário, 27/07/2026) ──────────
 // Um processo pode ter mais de uma via/trecho na aba "COMPATIB. CAMILA"
 // (célula mesclada no Excel para permissionária/status/etc. — a Edge

@@ -351,6 +351,10 @@ export default function App() {
   const [abaEmergencias, setAbaEmergencias] = useState('geral')
   const [abaMultas, setAbaMultas] = useState('geral')
   const [abaGt, setAbaGt] = useState('geral')
+  // Seção "Verificar inconsistências" da Lista do GT Obras (levantada do
+  // AbaGtLista.jsx para o tour do 1º clique poder disparar — mesmo padrão
+  // de abaGt, só que é um sub-toggle da aba "busca", não uma aba própria).
+  const [gtInconsistenciasAbertas, setGtInconsistenciasAbertas] = useState(false)
   // Filtros da sidebar de Multas (item 1 da melhoria de 16/07/2026) — mesmo
   // padrão de FILTROS_VAZIOS_EMERG: estado aqui no App.jsx, aplicado sobre
   // `multasCruzadas` (o cruzamento em memória com Sistema Geo/Fiscalização).
@@ -455,7 +459,12 @@ export default function App() {
       return { tourModuloId: 'multas', tourAbaId: aba }
     }
     if (mostrarGt) {
-      const aba = abaGt !== 'geral' ? `gt.${abaGt}` : null
+      const aba =
+        abaGt === 'busca' && gtInconsistenciasAbertas
+          ? 'gt.busca.inconsistencias'
+          : abaGt !== 'geral'
+            ? `gt.${abaGt}`
+            : null
       return { tourModuloId: 'gt', tourAbaId: aba }
     }
     if (mostrarEmergencias) {
@@ -1571,6 +1580,8 @@ export default function App() {
                     podeVerBusca={!permissoes || permissoes.has('gt.aba_lista')}
                     podeAtualizar={podeAtualizarGt}
                     onAtualizado={refetchGt}
+                    mostrarInconsistencias={gtInconsistenciasAbertas}
+                    onToggleInconsistencias={setGtInconsistenciasAbertas}
                   />
                 </Suspense>
               </ErrorBoundary>

@@ -1,8 +1,13 @@
 import { useMemo, useState } from 'react'
 import { fmtNumero, fmtAreaDecimal } from '../../../lib/aggregations.js'
-import { inconsistenciasGt, conferirDashVsBase } from '../../../lib/gtObras.js'
+import {
+  inconsistenciasGt,
+  conferirDashVsBase,
+  textoTrechoGt,
+} from '../../../lib/gtObras.js'
 import BotaoExportarGrafico from '../../BotaoExportarGrafico.jsx'
 import { KpiCard, PaginacaoBusca } from '../emerg/shared.jsx'
+import { StatusGrupoBadge } from './shared.jsx'
 import { NAVY, RED } from '../../../lib/cores.js'
 
 const PAGE_SIZE = 30
@@ -15,6 +20,52 @@ const COLUNAS = [
   { key: 'nome_via', label: 'Via' },
   { key: 'status', label: 'Status' },
   { key: 'area_m2', label: 'Área (m²)', transform: (v) => fmtAreaDecimal(v) },
+]
+
+// Mesmo padrão de colunas da aba Lista (AbaGtLista.jsx), com a "Linha da
+// Planilha" a mais (útil aqui: as tabelas de inconsistência existem para
+// achar e corrigir a linha errada direto na planilha [GT - Obras]).
+// ⚠️ Cada linha destas tabelas é uma VIA crua (não agrupada por processo,
+// ao contrário da Lista) — por isso "Vias" mostra uma via só, sem o "N
+// vias" da Lista, e a metragem é a da própria via, não um total somado.
+const COLUNAS_ESTILO_LISTA = [
+  { key: 'linha_planilha', label: 'Linha da Planilha' },
+  { key: 'num_processo', label: 'Nº Processo' },
+  {
+    key: '_permissionaria_exibir',
+    label: 'Permissionária',
+    transform: (v, r) => v || r?.permissionaria || '—',
+  },
+  { key: 'subprefeitura', label: 'Subprefeitura' },
+  {
+    key: 'nome_via',
+    label: 'Vias (nome — trecho — recape)',
+    transform: (_, r) => {
+      const trecho = textoTrechoGt(r)
+      return (
+        <>
+          {r.nome_via ? (
+            <strong>{r.nome_via}</strong>
+          ) : (
+            !trecho && <span className="text-gray-400">(via não informada)</span>
+          )}
+          {r.nome_via && trecho && ' — '}
+          {trecho}
+          {r.situacao_recape_norm && (
+            <span className="text-gray-400"> ({r.situacao_recape_norm})</span>
+          )}
+        </>
+      )
+    },
+  },
+  { key: 'status', label: 'Status' },
+  {
+    key: 'status_grupo',
+    label: 'Situação',
+    transform: (v) => <StatusGrupoBadge grupo={v} />,
+  },
+  { key: 'area_m2', label: 'Metragem (m²)', transform: (v) => fmtAreaDecimal(v) },
+  { key: '_status_geo', label: 'Status Sistema Geo', transform: (v) => v || '—' },
 ]
 
 function TabelaGrupo({ titulo, linhas, cor, modulo, colunasExtra }) {
@@ -99,7 +150,10 @@ export default function AbaGtInconsistencias({ linhasCruzadas, gtDash }) {
         </span>
       </div>
 
-      <div className="bg-white rounded-md shadow-card p-4 space-y-3">
+      <div
+        className="bg-white rounded-md shadow-card p-4 space-y-3"
+        data-tour="gt-inconsistencias-dash"
+      >
         <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: RED }}>
           Divergência DASH × Base Recalculada ({fmtNumero(divergenciasDash.length)})
         </h3>
@@ -145,7 +199,10 @@ export default function AbaGtInconsistencias({ linhasCruzadas, gtDash }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div
+        className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+        data-tour="gt-inconsistencias-kpis"
+      >
         <KpiCard label="Sem Nº de Processo" valor={grupos.semProcesso.length} cor={NAVY} />
         <KpiCard
           label="Processo Não Encontrado"
@@ -171,12 +228,14 @@ export default function AbaGtInconsistencias({ linhasCruzadas, gtDash }) {
         linhas={grupos.processoNaoEncontrado}
         cor={RED}
         modulo="gt-processo-nao-encontrado"
+        colunasExtra={COLUNAS_ESTILO_LISTA}
       />
       <TabelaGrupo
         titulo="Processos duplicados (mesmo processo e via repetidos)"
         linhas={grupos.duplicados}
         cor="#D97706"
         modulo="gt-duplicados"
+        colunasExtra={COLUNAS_ESTILO_LISTA}
       />
       <TabelaGrupo
         titulo="Grafias ambíguas na situação do recape"

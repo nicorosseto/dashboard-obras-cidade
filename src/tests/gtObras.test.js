@@ -28,6 +28,8 @@ import {
   aplicarFiltrosGt,
   conferirDashVsBase,
   inconsistenciasGt,
+  textoTrechoGt,
+  textoViaGt,
 } from '../lib/gtObras.js'
 
 // ── cruzarGtObras ──────────────────────────────────────────────────────
@@ -77,6 +79,52 @@ describe('cruzarGtObras', () => {
   it('aceita listas vazias/nulas', () => {
     expect(cruzarGtObras([], [], [])).toEqual([])
     expect(cruzarGtObras(null, null, null)).toEqual([])
+  })
+})
+
+// ── textoTrechoGt / textoViaGt ──────────────────────────────────────────
+// Fonte única para a Lista (AbaGtLista.jsx) e a seção de Inconsistências
+// (AbaGtInconsistencias.jsx) montarem a coluna "Vias" no mesmo padrão.
+describe('textoTrechoGt', () => {
+  it('monta o trecho De → Até quando os dois existem', () => {
+    expect(textoTrechoGt({ trecho_de: 'Rua A', trecho_ate: 'Rua B' })).toBe(
+      'Rua A → Rua B'
+    )
+  })
+
+  it('usa "?" no lado que faltar', () => {
+    expect(textoTrechoGt({ trecho_de: 'Rua A', trecho_ate: null })).toBe(
+      'Rua A → ?'
+    )
+    expect(textoTrechoGt({ trecho_de: null, trecho_ate: 'Rua B' })).toBe(
+      '? → Rua B'
+    )
+  })
+
+  it('string vazia quando não há trecho_de nem trecho_ate', () => {
+    expect(textoTrechoGt({})).toBe('')
+  })
+})
+
+describe('textoViaGt', () => {
+  it('combina nome da via e trecho', () => {
+    expect(
+      textoViaGt({ nome_via: 'Rua X', trecho_de: 'Rua A', trecho_ate: 'Rua B' })
+    ).toBe('Rua X — Rua A → Rua B')
+  })
+
+  it('só o nome quando não há trecho', () => {
+    expect(textoViaGt({ nome_via: 'Rua X' })).toBe('Rua X')
+  })
+
+  it('só o trecho quando não há nome da via', () => {
+    expect(textoViaGt({ trecho_de: 'Rua A', trecho_ate: 'Rua B' })).toBe(
+      'Rua A → Rua B'
+    )
+  })
+
+  it('fallback quando não há nome nem trecho', () => {
+    expect(textoViaGt({})).toBe('(via não informada)')
   })
 })
 

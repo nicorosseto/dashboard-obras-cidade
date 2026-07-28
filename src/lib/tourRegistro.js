@@ -52,6 +52,7 @@ import {
   TOUR_GT,
   TOUR_GT_ANALISE,
   TOUR_GT_BUSCA,
+  TOUR_GT_INCONSISTENCIAS,
 } from './toursConteudo/tourGt.js'
 
 export const TOURS = {
@@ -86,6 +87,7 @@ export const TOURS = {
   gt: TOUR_GT,
   'gt.analise': TOUR_GT_ANALISE,
   'gt.busca': TOUR_GT_BUSCA,
+  'gt.busca.inconsistencias': TOUR_GT_INCONSISTENCIAS,
   configuracoes: TOUR_CONFIGURACOES,
   'configuracoes.1': TOUR_CONFIGURACOES_PERFIS,
   'configuracoes.2': TOUR_CONFIGURACOES_ATUALIZAR,

@@ -105,6 +105,8 @@ export default function PaginaGtObras({
   podeVerBusca,
   podeAtualizar,
   onAtualizado,
+  mostrarInconsistencias,
+  onToggleInconsistencias,
 }) {
   const [sincronizando, setSincronizando] = useState(false)
   const [resultado, setResultado] = useState(null)
@@ -241,7 +243,12 @@ export default function PaginaGtObras({
             <AbaGtAnalise linhas={linhas} />
           )}
           {abaAtiva === 'busca' && podeVerBusca && (
-            <AbaGtLista linhas={linhas} gtDash={gtDash} />
+            <AbaGtLista
+              linhas={linhas}
+              gtDash={gtDash}
+              mostrarInconsistencias={mostrarInconsistencias}
+              onToggleInconsistencias={onToggleInconsistencias}
+            />
           )}
         </>
       )}

@@ -87,6 +87,41 @@ export const TOUR_GT_BUSCA = {
   ],
 }
 
+// Dispara no 1º clique em "Verificar inconsistências" (App.jsx trata o
+// toggle como um sub-estado da aba "busca", `gt.busca.inconsistencias`,
+// mesmo padrão do mini-tour por aba — só que aqui é um sub-toggle, não uma
+// aba própria do Header).
+export const TOUR_GT_INCONSISTENCIAS = {
+  id: 'gt.busca.inconsistencias',
+  versao: 1,
+  titulo: 'GT Obras — Verificar inconsistências',
+  passos: [
+    {
+      alvo: '[data-tour="gt-inconsistencias-dash"]',
+      titulo: 'Divergência DASH × Base Recalculada',
+      texto:
+        'Compara a soma dos 3 blocos anuais do painel DASH da planilha ' +
+        'contra o bloco "Total Geral" da mesma planilha — quando divergem, ' +
+        'é erro de fórmula da própria planilha, não do dashboard.',
+    },
+    {
+      alvo: '[data-tour="gt-inconsistencias-kpis"]',
+      titulo: 'Contadores de inconsistência',
+      texto:
+        'Sem número de processo, processo que não bate com Sistema Geo/' +
+        'Fiscalização, processo e via duplicados, e grafias ambíguas na ' +
+        'situação do recape.',
+    },
+    {
+      alvo: '[data-tour="gt-inconsistencias-tabela"]',
+      titulo: 'As linhas, uma a uma',
+      texto:
+        'Cada grupo lista as linhas correspondentes, com o número da linha ' +
+        'na planilha — use-o para achar e corrigir na planilha [GT - Obras].',
+    },
+  ],
+}
+
 export const TOUR_GT_ANALISE = {
   id: 'gt.analise',
   versao: 1,

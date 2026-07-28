@@ -2,15 +2,17 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { fmtAreaDecimal } from '../../../lib/aggregations.js'
 import {
   STATUS_GRUPO_LABEL,
-  STATUS_GRUPO_COR,
   agruparGtPorProcesso,
+  textoTrechoGt as textoTrecho,
+  textoViaGt as textoVia,
+  inconsistenciasGt,
 } from '../../../lib/gtObras.js'
 import { LoadingInline } from '../../Loading.jsx'
 import BotaoExportarGrafico from '../../BotaoExportarGrafico.jsx'
 import { PaginacaoBusca } from '../emerg/shared.jsx'
 import { normProc } from '../../../lib/emergencias.js'
 import AbaGtInconsistencias from './AbaGtInconsistencias.jsx'
-import { inconsistenciasGt } from '../../../lib/gtObras.js'
+import { StatusGrupoBadge } from './shared.jsx'
 
 const PAGE_SIZE = 50
 const DEBOUNCE_MS = 250
@@ -20,33 +22,6 @@ function normBusca(s) {
     .trim()
     .toLowerCase()
     .replace(/\s+/g, '')
-}
-
-function StatusGrupoBadge({ grupo }) {
-  const label = STATUS_GRUPO_LABEL[grupo] || grupo
-  const cor = STATUS_GRUPO_COR[grupo] || '#9CA3AF'
-  return (
-    <span
-      className="px-1.5 py-0.5 rounded-sm text-[10px] font-semibold"
-      style={{ background: `${cor}1a`, color: cor }}
-    >
-      {label}
-    </span>
-  )
-}
-
-// Trecho (De → Até) de uma via, ou string vazia se a planilha não trouxe
-// nenhum dos dois (colunas G/H — distintas do nome da via, coluna F).
-function textoTrecho(v) {
-  if (!v.trecho_de && !v.trecho_ate) return ''
-  return `${v.trecho_de || '?'} → ${v.trecho_ate || '?'}`
-}
-
-// Texto plano (nome + trecho) de uma via, para tooltip/exportação — a
-// versão em tela (JSX) destaca o nome em negrito à parte.
-function textoVia(v) {
-  const partes = [v.nome_via, textoTrecho(v)].filter(Boolean)
-  return partes.length ? partes.join(' — ') : '(via não informada)'
 }
 
 const COLUNAS_EXPORT = [
@@ -96,8 +71,12 @@ const COLUNAS_EXPORT = [
 // vias listadas dentro da mesma célula e a metragem somada), nunca uma
 // linha por trecho (achado do usuário, 27/07/2026: contar/listar por
 // trecho duplicava o processo e inflava a contagem).
-export default function AbaGtLista({ linhas, gtDash }) {
-  const [mostrarInconsistencias, setMostrarInconsistencias] = useState(false)
+export default function AbaGtLista({
+  linhas,
+  gtDash,
+  mostrarInconsistencias,
+  onToggleInconsistencias,
+}) {
   const porProcesso = useMemo(() => agruparGtPorProcesso(linhas), [linhas])
   const [busca, setBusca] = useState('')
   const [buscaAplicada, setBuscaAplicada] = useState('')
@@ -176,7 +155,7 @@ export default function AbaGtLista({ linhas, gtDash }) {
     return (
       <div className="space-y-3">
         <button
-          onClick={() => setMostrarInconsistencias(false)}
+          onClick={() => onToggleInconsistencias(false)}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-navy hover:text-red transition-colors"
         >
           <svg
@@ -201,7 +180,7 @@ export default function AbaGtLista({ linhas, gtDash }) {
     <div className="space-y-3">
       <div className="flex justify-end">
         <button
-          onClick={() => setMostrarInconsistencias(true)}
+          onClick={() => onToggleInconsistencias(true)}
           data-tour="gt-toggle-inconsistencias"
           className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-sm border border-grey-line text-gray-600 hover:border-red hover:text-red transition-colors"
         >

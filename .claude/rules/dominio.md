@@ -861,6 +861,19 @@
     **Nome da via em negrito** — Trecho De → Até — (status do recape entre
     parênteses, cinza), com fallback gracioso quando falta nome ou trecho
     (`textoTrecho`/`textoVia`). Cabeçalho: "Vias (nome — trecho — recape)".
+    ⚡ **Reaproveitado nas tabelas de Inconsistências (28/07/2026):** as
+    funções viraram `textoTrechoGt`/`textoViaGt`, exportadas de
+    `gtObras.js` (fonte única — antes viviam só dentro de
+    `AbaGtLista.jsx`), e o `StatusGrupoBadge` virou um componente
+    compartilhado em `src/components/tabs/gt/shared.jsx` (evita import
+    circular entre `AbaGtLista.jsx` ↔ `AbaGtInconsistencias.jsx`, que se
+    importam mutuamente). As tabelas "Processo não encontrado" e
+    "Processos duplicados" (dentro da seção "Verificar inconsistências")
+    passaram a usar o mesmo padrão de colunas da Lista + a linha da
+    planilha (útil ali: a correção é sempre feita direto na planilha
+    "[GT - Obras]"). Como essas tabelas mostram a linha **crua, uma via
+    por linha** (não agrupada por processo como a Lista), a coluna "Vias"
+    aqui não tem o "N vias" nem soma metragem — é só aquela via.
 
 - **Home — lista de módulos em linha, não grid (16/07/2026):** decisão
   tomada com uma **prévia em HTML (Artifact)** antes de tocar em código —
@@ -919,6 +932,23 @@
   checklist de PR de `github.md`. Tours dos módulos: PRs 2–4 do plano (tour de
   entrada no 1º acesso ao módulo + mini-tours por aba no 1º clique, ids
   `<modulo>` / `<modulo>.<aba>`).
+  ⚡ **Sub-toggle dentro de uma aba também precisa de tour próprio
+  (achado de 28/07/2026, GT Obras):** a seção "Verificar inconsistências"
+  (dentro da aba Lista do GT Obras, mesmo padrão do Multas) tinha um
+  passo no mini-tour da aba só EXPLICANDO o botão, mas nada cobrindo o
+  que aparece depois de clicar nele — porque `passosDisponiveis` filtra
+  os alvos ausentes do DOM **uma vez, no início do tour** (não
+  re-consulta a cada passo), e os elementos de dentro da seção só
+  existem no DOM depois do clique. Corrigido levantando o toggle local
+  (`useState` em `AbaGtLista.jsx`) para o `App.jsx`
+  (`gtInconsistenciasAbertas`), que passa a computar `tourAbaId =
+  'gt.busca.inconsistencias'` quando a seção está aberta — reaproveitando
+  o MESMO efeito que já dispara os mini-tours de aba (sem duplicar
+  lógica). **Regra geral:** qualquer seção que só monta seu conteúdo
+  depois de um clique (toggle, modal, aba secundária sem id próprio no
+  Header) precisa de um id de tour e um sub-estado espelhado no
+  `App.jsx` para o tour poder disparar no 1º acesso — não basta um passo
+  no tour "de fora" explicando o botão.
 
 - **Modo demo (portfólio público, decisão de 19/07/2026 — Opção B):** flag
   `VITE_DEMO_MODE=true` faz o app rodar 100% estático, sem NENHUMA chamada ao
