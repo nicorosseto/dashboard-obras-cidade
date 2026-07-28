@@ -833,15 +833,18 @@
        diferir entre trechos do mesmo processo). A aba Lista também
        agrupa antes de listar — 1 linha por processo, com todas as
        vias empilhadas na mesma célula, nunca 1 linha por trecho.
-  - **Coluna "Status do Recape" na Lista, sem "Executora" (27/07/2026,
-    ajuste pós-Fase 4):** a pedido do usuário, a coluna **Executora**
-    saiu da tabela/exportação da aba Lista; entrou uma coluna própria
-    **"Status do Recape"**, ao lado de "Situação". Como um processo pode
-    ter vias com situação de recape diferente entre si,
-    `agruparGtPorProcesso` computa `_situacao_recape_resumo` por
-    processo: valor único quando todas as vias concordam, ou
-    `"Diverso entre vias"` quando divergem (o detalhe por via continua
-    no tooltip da coluna "Vias", inalterado).
+  - **Coluna "Vias" combina 3 colunas da planilha (Nome — coluna F, Trecho
+    De/Até — colunas G/H) + status do recape, sem "Executora" (27/07/2026,
+    ajuste pós-Fase 4):** a pedido do usuário, a coluna **Executora** saiu
+    da tabela/exportação da aba Lista. Uma 1ª tentativa criou uma coluna
+    própria "Status do Recape" resumindo por processo — **revertida** no
+    mesmo dia: como o recape é um atributo por VIA (pode divergir entre
+    trechos do mesmo processo), o usuário preferiu manter a informação
+    individualizada dentro da própria coluna "Vias" em vez de um resumo
+    por processo. Formato final de cada linha de via (`AbaGtLista.jsx`):
+    **Nome da via em negrito** — Trecho De → Até — (status do recape entre
+    parênteses, cinza), com fallback gracioso quando falta nome ou trecho
+    (`textoTrecho`/`textoVia`). Cabeçalho: "Vias (nome — trecho — recape)".
 
 - **Home — lista de módulos em linha, não grid (16/07/2026):** decisão
   tomada com uma **prévia em HTML (Artifact)** antes de tocar em código —

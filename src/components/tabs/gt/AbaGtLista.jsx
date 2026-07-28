@@ -35,13 +35,18 @@ function StatusGrupoBadge({ grupo }) {
   )
 }
 
-// Texto de uma via para exibição/exportação — usa o trecho quando existe,
-// senão cai no nome da via.
+// Trecho (De → Até) de uma via, ou string vazia se a planilha não trouxe
+// nenhum dos dois (colunas G/H — distintas do nome da via, coluna F).
+function textoTrecho(v) {
+  if (!v.trecho_de && !v.trecho_ate) return ''
+  return `${v.trecho_de || '?'} → ${v.trecho_ate || '?'}`
+}
+
+// Texto plano (nome + trecho) de uma via, para tooltip/exportação — a
+// versão em tela (JSX) destaca o nome em negrito à parte.
 function textoVia(v) {
-  if (v.trecho_de || v.trecho_ate) {
-    return `${v.trecho_de || '?'} → ${v.trecho_ate || '?'}`
-  }
-  return v.nome_via || '(via não informada)'
+  const partes = [v.nome_via, textoTrecho(v)].filter(Boolean)
+  return partes.length ? partes.join(' — ') : '(via não informada)'
 }
 
 const COLUNAS_EXPORT = [
@@ -54,8 +59,14 @@ const COLUNAS_EXPORT = [
   { key: 'subprefeitura', label: 'Subprefeitura' },
   {
     key: '_vias',
-    label: 'Vias',
-    transform: (v) => (v || []).map(textoVia).join(' | '),
+    label: 'Vias (nome, trecho e status do recape)',
+    transform: (v) =>
+      (v || [])
+        .map(
+          (via) =>
+            `${textoVia(via)}${via.situacao_recape ? ` (${via.situacao_recape})` : ''}`
+        )
+        .join(' | '),
   },
   { key: '_qtd_vias', label: 'Qtde de Vias' },
   { key: 'status', label: 'Status' },
@@ -64,7 +75,6 @@ const COLUNAS_EXPORT = [
     label: 'Situação',
     transform: (v) => STATUS_GRUPO_LABEL[v] || v,
   },
-  { key: '_situacao_recape_resumo', label: 'Status do Recape' },
   {
     key: 'area_m2',
     label: 'Metragem Total (m²)',
@@ -302,10 +312,11 @@ export default function AbaGtLista({ linhas, gtDash }) {
                     <th className="p-2 whitespace-nowrap">Nº Processo</th>
                     <th className="p-2 whitespace-nowrap">Permissionária</th>
                     <th className="p-2 whitespace-nowrap">Subprefeitura</th>
-                    <th className="p-2 whitespace-nowrap">Vias</th>
+                    <th className="p-2 whitespace-nowrap">
+                      Vias (nome — trecho — recape)
+                    </th>
                     <th className="p-2 whitespace-nowrap">Status</th>
                     <th className="p-2 whitespace-nowrap">Situação</th>
-                    <th className="p-2 whitespace-nowrap">Status do Recape</th>
                     <th className="p-2 whitespace-nowrap">Metragem Total (m²)</th>
                     <th className="p-2 whitespace-nowrap">Status Sistema Geo</th>
                   </tr>
@@ -326,21 +337,34 @@ export default function AbaGtLista({ linhas, gtDash }) {
                         {l.subprefeitura || '—'}
                       </td>
                       <td className="p-2 max-w-[320px] align-top">
-                        {(l._vias || []).map((v, vi) => (
-                          <div
-                            key={vi}
-                            className="truncate text-[11px]"
-                            title={`${textoVia(v)}${v.situacao_recape ? ` — recape: ${v.situacao_recape}` : ''}`}
-                          >
-                            {textoVia(v)}
-                            {v.situacao_recape && (
-                              <span className="text-gray-400">
-                                {' '}
-                                ({v.situacao_recape})
-                              </span>
-                            )}
-                          </div>
-                        ))}
+                        {(l._vias || []).map((v, vi) => {
+                          const trecho = textoTrecho(v)
+                          return (
+                            <div
+                              key={vi}
+                              className="truncate text-[11px]"
+                              title={`${textoVia(v)}${v.situacao_recape ? ` — recape: ${v.situacao_recape}` : ''}`}
+                            >
+                              {v.nome_via ? (
+                                <strong>{v.nome_via}</strong>
+                              ) : (
+                                !trecho && (
+                                  <span className="text-gray-400">
+                                    (via não informada)
+                                  </span>
+                                )
+                              )}
+                              {v.nome_via && trecho && ' — '}
+                              {trecho}
+                              {v.situacao_recape && (
+                                <span className="text-gray-400">
+                                  {' '}
+                                  ({v.situacao_recape})
+                                </span>
+                              )}
+                            </div>
+                          )
+                        })}
                         {l._qtd_vias > 1 && (
                           <span className="text-[10px] text-gray-400">
                             {l._qtd_vias} vias
@@ -353,9 +377,6 @@ export default function AbaGtLista({ linhas, gtDash }) {
                       <td className="p-2 whitespace-nowrap align-top">
                         <StatusGrupoBadge grupo={l.status_grupo} />
                       </td>
-                      <td className="p-2 whitespace-nowrap align-top">
-                        {l._situacao_recape_resumo || '—'}
-                      </td>
                       <td className="p-2 whitespace-nowrap tabular-nums align-top">
                         {fmtAreaDecimal(l.area_m2)}
                       </td>
@@ -366,7 +387,7 @@ export default function AbaGtLista({ linhas, gtDash }) {
                   ))}
                   {pagina.length === 0 && (
                     <tr>
-                      <td colSpan={9} className="p-4 text-center text-gray-400">
+                      <td colSpan={8} className="p-4 text-center text-gray-400">
                         {buscaAplicada
                           ? `Nenhum resultado para "${buscaAplicada}".`
                           : 'Nenhuma obra carregada.'}

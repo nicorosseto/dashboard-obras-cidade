@@ -135,19 +135,7 @@ export function agruparGtPorProcesso(linhas) {
     grupo._vias.push(via)
     grupo._qtd_vias += 1
   }
-  const resultado = [...porProcesso.values(), ...semProcesso]
-  // Resumo da situação do recape do processo (usado pela coluna própria da
-  // Lista): quando as vias concordam, mostra o valor único; quando
-  // divergem entre trechos do mesmo processo, sinaliza — o detalhe por via
-  // continua disponível em `_vias`.
-  for (const r of resultado) {
-    const situacoes = new Set(
-      r._vias.map((v) => v.situacao_recape || 'SEM INFORMAÇÃO')
-    )
-    r._situacao_recape_resumo =
-      situacoes.size === 1 ? [...situacoes][0] : 'Diverso entre vias'
-  }
-  return resultado
+  return [...porProcesso.values(), ...semProcesso]
 }
 
 // ── KPIs (os 5 indicadores pedidos — seção 1.3 do plano) ──────────────
