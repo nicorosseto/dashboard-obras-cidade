@@ -222,13 +222,17 @@ nenhum cron job no painel do Supabase.
 
 ## Checklist de promoção do módulo GT Obras para produção
 
-- [ ] Rodar os 2 SQLs da seção 1, na ordem, no banco de **produção** (já
-      feito em 27/07/2026 — conferir se segue válido na hora da promoção).
-- [ ] Implantar `sync-gt-obras` no projeto de **produção** (o secret já
-      existe, reaproveitado do Multas).
-- [ ] Testar manualmente (Invoke ou botão "Atualizar agora" em produção,
+- [x] Rodar os 2 SQLs da seção 1, na ordem, no banco de **produção**
+      (27/07/2026).
+- [x] Implantar `sync-gt-obras` no projeto de **produção** (o secret já
+      existe, reaproveitado do Multas) — confirmado pelo usuário em
+      28/07/2026, junto com o merge da PR #386 (promoção `homologacao` →
+      `main`).
+- [x] Testar manualmente (Invoke ou botão "Atualizar agora" em produção,
       já logado como admin) e conferir as tabelas `gt_obras`/`gt_dash` no
-      Table Editor.
+      Table Editor — confirmado pelo usuário em 28/07/2026.
+
+**Status: módulo GT Obras 100% em produção desde 28/07/2026** (PR #386).
 
 ### Limitações conhecidas (aceitas, não bloqueiam a promoção)
 
