@@ -22,6 +22,7 @@ import {
   agregaMultasPorPermissionaria,
   agregaMultasPorStatus,
   agregaMultasPorMes,
+  agregaMultasPorAno,
   agregaMultasPorSubprefeitura,
   excluirSemProcesso,
   todasNorcrest,
@@ -87,6 +88,10 @@ export default function AbaMultasGeral({ linhas }) {
     () => agregaMultasPorMes(linhasValidas).slice(-18),
     [linhasValidas]
   )
+  const porAno = useMemo(
+    () => agregaMultasPorAno(linhasValidas),
+    [linhasValidas]
+  )
   const porSubprefeitura = useMemo(
     () => agregaMultasPorSubprefeitura(linhasValidas).slice(0, 15),
     [linhasValidas]
@@ -106,6 +111,10 @@ export default function AbaMultasGeral({ linhas }) {
   ]
   const colsMes = [
     { key: 'mes', label: 'Mês' },
+    { key: 'qtd', label: 'Quantidade' },
+  ]
+  const colsAno = [
+    { key: 'ano', label: 'Ano' },
     { key: 'qtd', label: 'Quantidade' },
   ]
   const colsSub = [
@@ -367,6 +376,50 @@ export default function AbaMultasGeral({ linhas }) {
           </ChartCard>
         )}
       </div>
+
+      {porAno.length > 0 && (
+        <div className="grid grid-cols-1 gap-4">
+          <ChartCard titulo="Multas por Ano (infração)">
+            <div className="relative">
+              <div className="absolute -top-8 right-0 z-10">
+                <BotaoExportarGrafico
+                  dados={porAno}
+                  colunas={colsAno}
+                  titulo="Multas por Ano"
+                  modulo="multas"
+                />
+              </div>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart
+                  data={porAno}
+                  margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                  <XAxis dataKey="ano" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtNumero} />
+                  <Tooltip
+                    content={<ChartTooltip />}
+                    wrapperStyle={{ zIndex: 50 }}
+                  />
+                  <Bar
+                    dataKey="qtd"
+                    name="Multas"
+                    fill={RED}
+                    radius={[3, 3, 0, 0]}
+                  >
+                    <LabelList
+                      dataKey="qtd"
+                      position="top"
+                      style={{ fontSize: 10, fill: RED, fontWeight: 'bold' }}
+                      formatter={fmtNumero}
+                    />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartCard>
+        </div>
+      )}
     </div>
   )
 }

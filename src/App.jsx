@@ -57,6 +57,7 @@ import {
   FILTROS_VAZIOS_MULTAS,
   aplicarFiltrosMultas,
   contarFiltrosAtivosMultas,
+  anoInfracaoDe,
 } from './lib/multas.js'
 import {
   cruzarGtObras,
@@ -354,7 +355,8 @@ export default function App() {
   // Seção "Verificar inconsistências" da Lista do GT Obras (levantada do
   // AbaGtLista.jsx para o tour do 1º clique poder disparar — mesmo padrão
   // de abaGt, só que é um sub-toggle da aba "busca", não uma aba própria).
-  const [gtInconsistenciasAbertas, setGtInconsistenciasAbertas] = useState(false)
+  const [gtInconsistenciasAbertas, setGtInconsistenciasAbertas] =
+    useState(false)
   // Filtros da sidebar de Multas (item 1 da melhoria de 16/07/2026) — mesmo
   // padrão de FILTROS_VAZIOS_EMERG: estado aqui no App.jsx, aplicado sobre
   // `multasCruzadas` (o cruzamento em memória com Sistema Geo/Fiscalização).
@@ -796,6 +798,14 @@ export default function App() {
     }
     return { min: mn, max: mx }
   }, [multasCruzadas])
+  const multasAnosDisponiveis = useMemo(() => {
+    const s = new Set()
+    for (const r of multasCruzadas) {
+      const ano = anoInfracaoDe(r)
+      if (ano) s.add(ano)
+    }
+    return Array.from(s).sort()
+  }, [multasCruzadas])
   const multasFiltrosAtivos = contarFiltrosAtivosMultas(multasFiltros) > 0
 
   // ── GT Obras: cruzamento em memória com Sistema Geo/Fiscalização ───────
@@ -1055,15 +1065,7 @@ export default function App() {
       list.push({ id: 'multas', label: 'Multas', icon: <IconTicket /> })
     if (temGt) list.push({ id: 'gt', label: 'GT Obras', icon: <IconGt /> })
     return list
-  }, [
-    temGeo,
-    temFisc,
-    temCruzamento,
-    temEmerg,
-    temRelatorio,
-    temMultas,
-    temGt,
-  ])
+  }, [temGeo, temFisc, temCruzamento, temEmerg, temRelatorio, temMultas, temGt])
 
   // Última atualização = max(data_inicio fisc, data_cadastro geo)
   const ultimaAtualizacao = useMemo(() => {
@@ -1431,6 +1433,7 @@ export default function App() {
               permissionarias={multasPermissionariasDisponiveis}
               statusDisponiveis={multasStatusDisponiveis}
               subprefeiturasDisponiveis={multasSubprefeiturasDisponiveis}
+              anosDisponiveis={multasAnosDisponiveis}
               dataLimites={multasDataLimites}
               totalFiltrado={multasFiltradas.length}
               totalGeral={multasCruzadas.length}

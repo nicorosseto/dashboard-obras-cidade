@@ -37,15 +37,15 @@ export const TOUR_MULTAS = {
       texto:
         'Barra lateral de filtros (clique para abrir, quando estiver ' +
         'recolhida): permissionária (NORCREST consolidada), status da multa, ' +
-        'situação do vínculo, subprefeitura e período da infração — tudo ' +
-        'que marcar filtra as duas abas de uma vez.',
+        'situação do vínculo, subprefeitura, período e ano da infração — ' +
+        'tudo que marcar filtra as duas abas de uma vez.',
     },
     {
       alvo: '[data-tour="multas-kpis"]',
       titulo: 'KPIs e gráficos',
       texto:
         'Total de multas, valor total, quantas estão vinculadas a um processo real ' +
-        'e a distribuição por permissionária, status e mês da infração.',
+        'e a distribuição por permissionária, status, mês e ano da infração.',
     },
     {
       alvo: '[data-tour="header-modulos"]',
