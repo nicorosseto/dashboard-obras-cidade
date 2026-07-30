@@ -820,25 +820,38 @@
     `status_grupo`…), usar esse campo diretamente — reimplementar o
     critério de classificação com um regex próprio no front arrisca ficar
     mais rígido (ou mais frouxo) que a fonte original e divergir dela.
-    ⚠️ **`blocoAtual` pode "vazar" entre blocos (achado de 30/07/2026,
-    trava adicionada, causa raiz ainda não 100% confirmada):** `parseDash`
-    só avança `blocoAtual` quando reconhece a linha de cabeçalho do bloco
-    seguinte (coluna B === "QTDE DE OBRAS"); se ISSO falhar para um bloco
-    (texto do cabeçalho variou na planilha), as linhas dele — inclusive a
-    própria "Total Geral" — ficam marcadas com o bloco ANTERIOR e
-    sobrescrevem a linha certa no dedup `bloco|permissionaria` (upsert).
-    Sintoma real: o gráfico "Série Histórica por Ano" (`AbaGtGeral.jsx`)
-    mostrou o bloco "2025/2026" com um total ~1.100 obras maior que o
-    esperado — bem próximo da soma dos 3 blocos anuais, indício de que a
-    linha "Total Geral" (geral, todos os anos) vazou para dentro do bloco
-    "2025/2026". Corrigido com `validarBlocosDash` (mesmo arquivo): aborta
-    a sync se algum dos 4 blocos não tiver exatamente 1 linha
-    `tipo_linha === 'total'` — mesma filosofia de `validarCabecalhoCompatib`
-    ("nunca grava dado deslocado"). **Não foi possível confirmar contra o
-    banco real nesta sessão** (MCP Supabase exige OAuth interativo); a
-    próxima sincronização real vai FALHAR se o problema ainda existir,
-    apontando o bloco exato — aí sim dá para corrigir
-    `normalizarRotuloBloco`/o texto da planilha em definitivo.
+    ⚠️ **`blocoAtual` pode "vazar" entre blocos, em teoria (trava
+    preventiva adicionada em 30/07/2026, mas NÃO era a causa do bug real —
+    ver "KPIs de topo × gráfico" logo abaixo):** `parseDash` só avança
+    `blocoAtual` quando reconhece a linha de cabeçalho do bloco seguinte
+    (coluna B === "QTDE DE OBRAS"); se ISSO falhar para um bloco (texto do
+    cabeçalho variou na planilha), as linhas dele — inclusive a própria
+    "Total Geral" — ficam marcadas com o bloco ANTERIOR e sobrescrevem a
+    linha certa no dedup `bloco|permissionaria` (upsert). `validarBlocosDash`
+    (mesmo arquivo) aborta a sync se algum dos 4 blocos não tiver exatamente
+    1 linha `tipo_linha === 'total'` — mesma filosofia de
+    `validarCabecalhoCompatib` ("nunca grava dado deslocado"). Mantida como
+    rede de segurança geral (nenhum custo, cobre um risco real), mas a
+    investigação mostrou que ESTE sintoma específico tinha outra causa.
+    - **KPIs de topo × "Série Histórica por Ano" media coisas diferentes
+      (causa real, achado do usuário em 30/07/2026):** os 5 KPIs da Visão
+      Geral (`kpisGt(linhas)`) sempre contaram só `gt_obras` — que só tem
+      dados GRANULARES de **2025/2026** (aba `COMPATIB. CAMILA` é "o recorte
+      recente", ver `docs/plano-modulo-gt-obras.md` seção 2; 2023/2024 só
+      existem pré-somados na aba `DASH (GT)`, sem nenhuma linha granular em
+      `gt_obras`). O gráfico "Série Histórica por Ano" soma os 3 blocos
+      anuais do DASH — por isso a soma dele nunca batia com um KPI que só
+      cobre 1 dos 3 anos; **não havia corrupção de dado nenhuma**. Corrigido
+      com `kpisGtTotalGeral(gtDash)` (`src/lib/gtObras.js`) — lê o bloco
+      `total_geral` do DASH (já a soma pronta dos 3 anos) para os 5 KPIs de
+      topo. `AbaGtGeral.jsx` trocou `kpisGt(linhas)` → `kpisGtTotalGeral
+      (gtDash)` só ali; `kpisGt` continua servindo os rankings "por
+      permissionária" (2025/2026 de propósito, sem dado granular anterior).
+      **Regra geral:** ao adicionar um card/KPI a uma tela com múltiplas
+      fontes de dado (granular vs. resumo pré-calculado), checar se as
+      DUAS cobrem o mesmo recorte temporal/escopo antes de comparar os
+      números — uma incompatibilidade de escopo parece um bug de cálculo,
+      mas a correção certa é trocar a FONTE, não "consertar" a conta.
   - **Sem cron (D4, decisão do usuário):** diferente do `sync-multas`
     (que tem cron + botão manual), aqui a sincronização **só roda pelo
     botão "Atualizar agora"** — `gt_sync_config` não tem

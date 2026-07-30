@@ -8,6 +8,7 @@ import {
   STATUS_PENDENCIA_ESPERA,
   agruparGtPorProcesso,
   kpisGt,
+  kpisGtTotalGeral,
   agregaGtPorStatusGrupo,
   agregaGtPorStatus,
   agregaGtPorStatusEAno,
@@ -288,6 +289,53 @@ describe('kpisGt', () => {
       paralisadas: 1,
       metragem: 180, // soma das 3 vias de P1
       pct: 50,
+    })
+  })
+})
+
+// ── kpisGtTotalGeral (30/07/2026: achado do usuário — gt_obras só cobre
+// 2025/2026, "COMPATIB. CAMILA" é o recorte recente; 2023/2024 só existem
+// no bloco total_geral do DASH) ──────────────────────────────────────────
+describe('kpisGtTotalGeral', () => {
+  it('lê o bloco total_geral (soma dos 3 anos, já pronta na planilha)', () => {
+    const gtDash = [
+      { bloco: '2023', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 528, obras_compatibilizadas: 446, obras_paralisadas: 82, metragem_compatibilizada: 12000 },
+      { bloco: '2024', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 754, obras_compatibilizadas: 655, obras_paralisadas: 99, metragem_compatibilizada: 18000 },
+      { bloco: '2025_2026', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 1853, obras_compatibilizadas: 1408, obras_paralisadas: 445, metragem_compatibilizada: 40000 },
+      { bloco: 'total_geral', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 3135, obras_compatibilizadas: 2509, obras_paralisadas: 626, metragem_compatibilizada: 70000 },
+    ]
+    expect(kpisGtTotalGeral(gtDash)).toEqual({
+      total: 3135,
+      compatibilizadas: 2509,
+      paralisadas: 626,
+      metragem: 70000,
+      pct: (2509 / 3135) * 100,
+    })
+  })
+
+  it('ignora linhas de outros blocos/tipos (não soma os 3 anos na mão)', () => {
+    const gtDash = [
+      { bloco: '2023', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 528, obras_compatibilizadas: 446, obras_paralisadas: 82 },
+      { bloco: 'total_geral', permissionaria: 'NORCREST', tipo_linha: 'permissionaria', qtde_obras: 1000, obras_compatibilizadas: 800, obras_paralisadas: 200 },
+      { bloco: 'total_geral', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 3135, obras_compatibilizadas: 2509, obras_paralisadas: 626 },
+    ]
+    expect(kpisGtTotalGeral(gtDash).total).toBe(3135)
+  })
+
+  it('sem bloco total_geral, devolve tudo zerado (não quebra)', () => {
+    expect(kpisGtTotalGeral([])).toEqual({
+      total: 0,
+      compatibilizadas: 0,
+      paralisadas: 0,
+      metragem: 0,
+      pct: 0,
+    })
+    expect(kpisGtTotalGeral(null)).toEqual({
+      total: 0,
+      compatibilizadas: 0,
+      paralisadas: 0,
+      metragem: 0,
+      pct: 0,
     })
   })
 })

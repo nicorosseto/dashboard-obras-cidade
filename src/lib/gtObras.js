@@ -174,6 +174,29 @@ export function kpisGt(linhas) {
   return { total, compatibilizadas, paralisadas, metragem, pct }
 }
 
+// KPIs consolidados de TODOS OS ANOS (30/07/2026, achado do usuário) —
+// diferente de kpisGt(linhas) acima, que só cobre `gt_obras`. `gt_obras`
+// vem da aba `COMPATIB. CAMILA`, a base GRANULAR, que só tem dados recentes
+// (2025/2026 — ver docs/plano-modulo-gt-obras.md, seção 2: "88% é
+// 2025/2026, confirma que esta aba é o recorte recente"). 2023 e 2024 só
+// existem na aba `DASH (GT)` (tabela `gt_dash`), já pré-somados por
+// permissionária × ano na própria planilha — não há como "recalcular"
+// esses 2 anos a partir de linhas granulares porque elas não existem no
+// banco. Por isso os KPIs de topo da Visão Geral usam o bloco
+// `total_geral` do DASH (a soma dos 3 blocos anuais, já pronta na
+// planilha), não `kpisGt`.
+export function kpisGtTotalGeral(gtDash) {
+  const linha = (gtDash || []).find(
+    (d) => d.bloco === 'total_geral' && d.tipo_linha === 'total'
+  )
+  const total = Number(linha?.qtde_obras) || 0
+  const compatibilizadas = Number(linha?.obras_compatibilizadas) || 0
+  const paralisadas = Number(linha?.obras_paralisadas) || 0
+  const metragem = Number(linha?.metragem_compatibilizada) || 0
+  const pct = total > 0 ? (compatibilizadas / total) * 100 : 0
+  return { total, compatibilizadas, paralisadas, metragem, pct }
+}
+
 // ── Agregações para os gráficos (seção 8.1/8.2 do plano) ──────────────
 // Todas contam por PROCESSO (agruparGtPorProcesso), não por via/linha —
 // exceto `agregaGtPorSituacaoRecape`, que é sobre a via (a situação do

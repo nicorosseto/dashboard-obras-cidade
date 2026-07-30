@@ -13,7 +13,7 @@ import {
 } from 'recharts'
 import { fmtNumero, fmtAreaDecimal } from '../../../lib/aggregations.js'
 import {
-  kpisGt,
+  kpisGtTotalGeral,
   agregaGtPorPermissionaria,
   todasGtNorcrest,
   agregaGtPorUnidadeNorcrest,
@@ -60,7 +60,8 @@ function serieHistoricaDash(gtDash) {
 }
 
 export default function AbaGtGeral({ linhas, gtDash }) {
-  const kpis = useMemo(() => kpisGt(linhas), [linhas])
+  // Soma de TODOS OS ANOS (não só o que gt_obras cobre — ver kpisGtTotalGeral).
+  const kpis = useMemo(() => kpisGtTotalGeral(gtDash), [gtDash])
   const serieAnual = useMemo(() => serieHistoricaDash(gtDash), [gtDash])
 
   // Ranking de permissionárias em DOIS gráficos separados — "quem trabalha
