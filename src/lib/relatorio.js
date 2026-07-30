@@ -106,6 +106,36 @@ function ehNorcrest(r) {
     .toUpperCase()
     .startsWith('NORCREST')
 }
+// Multas já cruzadas trazem `_permissionaria_exibir` (nome no padrão do
+// Sistema Geo, quando vinculadas — ver cruzarMultas em multas.js); sem vínculo,
+// cai no texto cru da própria planilha.
+function ehNorcrestMulta(r) {
+  return String(r._permissionaria_exibir || r.permissionaria || '')
+    .toUpperCase()
+    .startsWith('NORCREST')
+}
+// Mesma lógica de excluirSemProcesso/valorTotalMultas/areaTotalMultas de
+// multas.js, reescrita aqui (não importada) de propósito: multas.js já
+// importa `normUnidadeNorcrest` DESTE arquivo — importar dele de volta criaria
+// um ciclo, e um ciclo entre dois arquivos de lib/ força o bundler a colocar
+// os dois no MESMO chunk. Como multas.js é carregado sempre (App.jsx usa
+// cruzarMultas/FILTROS_VAZIOS_MULTAS fora do módulo Multas), isso puxaria o
+// MODELO_INSTITUCIONAL inteiro — hoje só carregado sob demanda — para o
+// bundle principal (~38 kB a mais, medido ao testar o import direto).
+function excluirMultasSemProcesso(linhas) {
+  return (linhas || []).filter((r) => r._situacao_vinculo !== 'sem_processo')
+}
+function somaCampoMultas(linhas, campo) {
+  return (linhas || []).reduce((acc, r) => acc + (Number(r[campo]) || 0), 0)
+}
+// Mesmo formato de fmtValorBRL (multas.js) — reescrito aqui pelo mesmo
+// motivo (evitar o ciclo de import, ver acima). "R$ 1.234.567,89".
+function fmtValorBRLMultas(n) {
+  return (Number(n) || 0).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  })
+}
 
 // Filtro global do seletor de permissionária (nome já consolidado).
 function filtrarPerm(rows, permissionaria) {
@@ -413,26 +443,12 @@ export const MODELO_INSTITUCIONAL = {
     { n: 39, titulo: 'Laudos em andamento por Região', categoria: 'dados', tipo: 'regioes',
       tituloInterno: 'LAUDOS TÉCNICOS POR REGIÃO',
       fonte: 'fisc', agregacao: 'fisc_andamento_por_regiao' },
-    { n: 40, titulo: 'Multas Aplicadas', categoria: 'futuro', tipo: 'quadros',
+    { n: 40, titulo: 'Multas Aplicadas', categoria: 'dados', tipo: 'kpis',
       tituloInterno: 'MULTAS APLICADAS',
-      texto: 'Total de multas lavradas pelo controle tecnológico (CORBETT): 7.911 · Área total 168 mil m² · Valor aplicado: R$ 511,7 milhões. Dado ainda não existe no sistema.',
-      blocos: [
-        { estilo: 'navy', full: true, titulo: 'TOTAL DE MULTAS LAVRADAS DE ACORDO COM AS INFRAÇÕES IDENTIFICADAS PELO CONTROLE TECNOLÓGICO', linhas: [
-          { rotulo: 'CORBETT', valor: '7.911' },
-          { rotulo: 'Área Total (m²)', valor: '168 mil' },
-        ] },
-        { estilo: 'navy', full: true, titulo: 'VALOR APLICADO COM AS RESPECTIVAS MULTAS', texto: 'R$ 511,7 MILHÕES' },
-      ] },
-    { n: 41, titulo: 'Multas Aplicadas — NORCREST', categoria: 'futuro', tipo: 'quadros',
+      fonte: 'multas', agregacao: 'multas_geral' },
+    { n: 41, titulo: 'Multas Aplicadas — NORCREST', categoria: 'dados', tipo: 'kpis',
       tituloInterno: 'MULTAS APLICADAS | NORCREST',
-      texto: 'Total de multas da NORCREST lavradas pelo controle tecnológico (CORBETT): 7.718 · Área total 165,3 mil m² · Valor aplicado: R$ 499 milhões. Dado ainda não existe no sistema.',
-      blocos: [
-        { estilo: 'navy', full: true, titulo: 'TOTAL DE MULTAS DA NORCREST LAVRADAS DE ACORDO COM AS INFRAÇÕES IDENTIFICADAS PELO CONTROLE TECNOLÓGICO', linhas: [
-          { rotulo: 'CORBETT', valor: '7.718' },
-          { rotulo: 'Área Total (m²)', valor: '165,3 mil' },
-        ] },
-        { estilo: 'navy', full: true, titulo: 'VALOR APLICADO COM AS RESPECTIVAS MULTAS', texto: 'R$ 499 MILHÕES' },
-      ] },
+      fonte: 'multas', agregacao: 'multas_norcrest' },
 
     // — Compatibilização de obras —
     { n: 42, titulo: 'Divisória — Compatibilização de Obras', categoria: 'texto', tipo: 'capa',
@@ -585,6 +601,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
   const geoAll = bases.geo || []
   const fiscAll = bases.fisc || []
   const emerg = bases.emerg || []
+  const multas = bases.multas || []
   // Bases filtradas pelo seletor (slides "gerais"); rankings usam a completa.
   const geo = filtrarPerm(geoAll, permSel)
   const fisc = filtrarPerm(fiscAll, permSel)
@@ -1081,7 +1098,71 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
       return { ...base, dados, aviso, contexto, colunas: [{ key: 'nome', label: 'Unidade NORCREST' }, { key: 'encerradas', label: 'Encerradas' }, { key: 'informadas', label: 'Informadas' }] }
     }
 
+    // ── Multas ────────────────────────────────────────────────────────────
+    // Slides 40/41: até 29/07/2026 eram placeholders com números estáticos
+    // do PDF original (CORBETT) — o módulo Multas (Trilha A) agora tem dados
+    // reais, então passam a ler daqui. Mesmos cálculos de AbaMultasGeral.jsx
+    // (exclui multas sem número de processo — não representam obra real).
+    case 'multas_geral':
+    case 'multas_norcrest': {
+      const soNorcrest = slide.agregacao === 'multas_norcrest'
+      const rows = soNorcrest ? multas.filter(ehNorcrestMulta) : multas
+      const validas = excluirMultasSemProcesso(rows)
+      const kpis = [
+        {
+          rotulo: soNorcrest
+            ? 'Total de Multas Lavradas (NORCREST)'
+            : 'Total de Multas Lavradas',
+          valor: validas.length,
+          icone: 'obra',
+        },
+        {
+          rotulo: 'Valor Total Aplicado (R$)',
+          valor: somaCampoMultas(validas, 'valor'),
+          icone: 'predio',
+          formatador: fmtValorBRLMultas,
+        },
+        {
+          rotulo: 'Área Total (m²)',
+          valor: somaCampoMultas(validas, 'area_m2'),
+          icone: 'geometria',
+          formatador: fmtAreaDecimal,
+        },
+      ]
+      const aviso = multas.length === 0
+        ? 'Sem dados do módulo Multas carregados nesta sessão — confira se você tem acesso a ele (permissão "Multas").'
+        : null
+      return { ...base, kpis, aviso }
+    }
+
     default:
       return { ...base, aviso: `Agregação "${slide.agregacao}" ainda não implementada.` }
   }
+}
+
+// Alguns slides mostram MAIS de uma tabela/série (ex.: slide 18 — "Total de
+// Processos por Região" traz a tabela por região em `dados`, mas o gráfico de
+// barras é por SUBPREFEITURA, vindo de `detalhe`; o slide "Tipo de Processo"
+// detalha o grupo "Expansão/Implantação" em `composicao`). Até 29/07/2026 a
+// exportação (botão do slide + "Baixar todos") usava só `dados`/`colunas`,
+// então esse segundo nível — o que o gráfico de fato mostra — nunca saía no
+// arquivo. `enriquecerExport` junta tudo num único par dados/colunas de
+// exportação (`dadosExport`/`colunasExport`), com uma coluna extra "Nível"
+// para distinguir a linha-resumo da linha de detalhe; `dados`/`colunas`
+// continuam intocados (controlam só o que aparece na tela). Sem detalhe/
+// composição, `dadosExport`/`colunasExport` nem são criados — quem consome
+// sempre cai no fallback `slide.dadosExport || slide.dados`.
+export function enriquecerExport(slide) {
+  if (!slide.dados || !slide.colunas) return slide
+  const blocos = [{ nivel: 'Total', linhas: slide.dados }]
+  if (slide.detalhe && slide.detalhe.length)
+    blocos.push({ nivel: 'Detalhamento', linhas: slide.detalhe })
+  if (slide.composicao && slide.composicao.length)
+    blocos.push({ nivel: 'Composição', linhas: slide.composicao })
+  if (blocos.length === 1) return slide
+  const colunasExport = [{ key: '_nivel', label: 'Nível' }, ...slide.colunas]
+  const dadosExport = blocos.flatMap((b) =>
+    b.linhas.map((linha) => ({ _nivel: b.nivel, ...linha }))
+  )
+  return { ...slide, dadosExport, colunasExport }
 }

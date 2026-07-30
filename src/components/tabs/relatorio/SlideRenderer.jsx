@@ -72,7 +72,7 @@ const COR_SERIE = {
   corretiva: AZUL_CLARO,
   laudos: NAVY,
   nao_conformidades: VERMELHO,
-  em_andamento: VERMELHO,
+  em_andamento: AZUL_MEDIO,
   encerradas: NAVY,
   informadas: AZUL_CLARO,
   pct_leg: AZUL_MEDIO,
@@ -540,7 +540,7 @@ function CartoesKpi({ kpis }) {
             </div>
           ) : (
             <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 px-4 py-1 text-base font-extrabold tabular-nums ${k.manual ? 'bg-slate-200 text-gray-400' : 'bg-navy text-white'}`}>
-              {k.manual ? '—' : fmtNumero(k.valor)}
+              {k.manual ? '—' : (k.formatador || fmtNumero)(k.valor)}
             </div>
           )}
         </div>
@@ -940,8 +940,8 @@ export default function SlideRenderer({ slide, campos, onCampo }) {
         <div className="flex items-center gap-1 shrink-0">
           {slide.categoria === 'dados' && slide.dados && slide.colunas && (
             <BotaoExportarGrafico
-              dados={slide.dados}
-              colunas={slide.colunas}
+              dados={slide.dadosExport || slide.dados}
+              colunas={slide.colunasExport || slide.colunas}
               titulo={`Slide ${slide.n} — ${slide.titulo}`}
               modulo="relatorio"
             />

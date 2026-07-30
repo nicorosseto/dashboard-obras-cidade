@@ -632,11 +632,31 @@
   emerg=`emergLinhas`, **cruas**, sem filtros de sidebar). Cérebro em
   `src/lib/relatorio.js` (`MODELO_INSTITUCIONAL` + `resolverDadosSlide`); UI em
   `src/components/tabs/relatorio/` (`PaginaRelatorio` + `SlideRenderer`). **3
-  categorias de slide** com contorno próprio: 🟢 `dados` (teal, 27 slides com dado
-  real), ⚪ `texto` (cinza, 19 institucionais), 🟡 `futuro` (âmbar tracejado, 3 —
-  metragem/multa da fiscalização e as 2 telas de "Multas Aplicadas" via CORBETT, que
-  não existe no sistema). Cada slide exibe "Slide {n} — {título}" (mapeia para o PPT
-  do usuário).
+  categorias de slide** com contorno próprio: 🟢 `dados` (teal, 29 slides com dado
+  real), ⚪ `texto` (cinza, 19 institucionais), 🟡 `futuro` (âmbar tracejado, 1 —
+  slide 43 "Compatibilização de Obras de Recape", que ainda não existe no sistema).
+  Cada slide exibe "Slide {n} — {título}" (mapeia para o PPT do usuário).
+  ⚡ **Slides 40/41 ("Multas Aplicadas"/"— NORCREST") deixaram de ser `futuro`
+  (30/07/2026):** eram placeholders com números estáticos do PDF original
+  (CORBETT, "dado ainda não existe no sistema") — desde que o módulo Multas
+  (Trilha A) tem dados reais, viraram slides `tipo: 'kpis'` (mesmo padrão do
+  slide 7) lendo de `bases.multas` (nova 4ª base, além de geo/fisc/emerg — no
+  `App.jsx` é `multasCruzadas`, já cruzada com Sistema Geo/Fiscalização). KPIs:
+  Total de Multas Lavradas, Valor Total Aplicado (R$), Área Total (m²) —
+  mesma exclusão de "sem processo" de `AbaMultasGeral.jsx`. **Sem export**
+  (tipo `kpis` não tem `dados`/`colunas`, mesmo padrão do slide 7 — não é
+  regressão). ⚠️ **Cuidado com ciclo de import:** as 3 funções (excluir sem
+  processo + somar valor/área) foram **reescritas em `relatorio.js`**, não
+  importadas de `multas.js` — `multas.js` já importa `normUnidadeNorcrest`
+  DESTE arquivo; importar na volta criaria um ciclo entre os dois módulos de
+  `lib/`, e um ciclo força o bundler (Rolldown) a fundir os dois no MESMO
+  chunk. Como `multas.js` é carregado sempre (`App.jsx` usa
+  `cruzarMultas`/`FILTROS_VAZIOS_MULTAS` fora do módulo Multas), isso puxaria
+  o `MODELO_INSTITUCIONAL` inteiro — hoje só carregado sob demanda — para o
+  bundle principal (medido: +38 kB no chunk `index`). **Regra geral:** antes
+  de importar de `multas.js`/`gtObras.js` dentro de `relatorio.js` (ou
+  vice-versa), checar o sentido das dependências já existentes — hoje
+  `multas.js` e `gtObras.js` importam de `relatorio.js` (nunca o contrário).
   - **Seletor de permissionária** (barra do módulo): filtra os slides "gerais" para
     ela; nos rankings multi-permissionária (barras), todas continuam no gráfico, a
     dela fica destacada em **teal** e a "janela" de exibição (top N) desloca até a
