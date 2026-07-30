@@ -852,6 +852,20 @@
       DUAS cobrem o mesmo recorte temporal/escopo antes de comparar os
       números — uma incompatibilidade de escopo parece um bug de cálculo,
       mas a correção certa é trocar a FONTE, não "consertar" a conta.
+      ⚠️ **Efeito colateral (mesmo dia):** `gtDash` é a tabela CRUA, sem os
+      filtros da sidebar aplicados (`gt_dash` não tem `status_grupo`/
+      `subprefeitura`/`ano` para filtrar — só `bloco`/`permissionária`) —
+      então, ao trocar a fonte dos KPIs de topo para `gtDash`, os filtros
+      pararam de refletir neles. Corrigido com uma troca condicional em
+      `AbaGtGeral.jsx`: **sem filtro ativo** usa `kpisGtTotalGeral(gtDash)`
+      (todos os anos); **com QUALQUER filtro ativo** volta para
+      `kpisGt(linhas)` (só 2025/2026 — único período com granularidade pra
+      filtrar), com aviso âmbar explicando a troca de escopo. Novo prop
+      `filtrosAtivos` encadeado `App.jsx` (`gtFiltrosAtivos`, já existia) →
+      `PaginaGtObras.jsx` → `AbaGtGeral.jsx`. **Regra geral:** ao trocar a
+      fonte de um KPI de "dado já filtrado" para "tabela agregada à parte",
+      conferir se essa nova fonte também respeita os filtros ativos da
+      tela — se não respeitar, a UI "esquece" os filtros silenciosamente.
   - **Sem cron (D4, decisão do usuário):** diferente do `sync-multas`
     (que tem cron + botão manual), aqui a sincronização **só roda pelo
     botão "Atualizar agora"** — `gt_sync_config` não tem

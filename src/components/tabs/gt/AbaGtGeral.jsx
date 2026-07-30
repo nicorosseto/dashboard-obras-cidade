@@ -13,6 +13,7 @@ import {
 } from 'recharts'
 import { fmtNumero, fmtAreaDecimal } from '../../../lib/aggregations.js'
 import {
+  kpisGt,
   kpisGtTotalGeral,
   agregaGtPorPermissionaria,
   todasGtNorcrest,
@@ -59,9 +60,18 @@ function serieHistoricaDash(gtDash) {
   })
 }
 
-export default function AbaGtGeral({ linhas, gtDash }) {
-  // Soma de TODOS OS ANOS (não só o que gt_obras cobre — ver kpisGtTotalGeral).
-  const kpis = useMemo(() => kpisGtTotalGeral(gtDash), [gtDash])
+export default function AbaGtGeral({ linhas, gtDash, filtrosAtivos }) {
+  // Sem filtro: soma de TODOS OS ANOS (gtDash não é filtrável pela sidebar
+  // — não tem status_grupo/subprefeitura, só bloco/permissionária — ver
+  // kpisGtTotalGeral). Com QUALQUER filtro ativo: volta a refletir só
+  // `gt_obras` filtrado (kpisGt(linhas), 2025/2026 — único período com dado
+  // granular pra filtrar) — achado do usuário em 30/07/2026: os filtros da
+  // sidebar tinham parado de refletir nos KPIs de topo porque eles passaram
+  // a ler direto do gtDash cru, sem filtro nenhum.
+  const kpis = useMemo(
+    () => (filtrosAtivos ? kpisGt(linhas) : kpisGtTotalGeral(gtDash)),
+    [filtrosAtivos, linhas, gtDash]
+  )
   const serieAnual = useMemo(() => serieHistoricaDash(gtDash), [gtDash])
 
   // Ranking de permissionárias em DOIS gráficos separados — "quem trabalha
@@ -174,6 +184,20 @@ export default function AbaGtGeral({ linhas, gtDash }) {
           </div>
         </div>
       </div>
+
+      {filtrosAtivos && (
+        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <span aria-hidden className="text-sm leading-none">
+            ℹ️
+          </span>
+          <span>
+            Com filtro ativo, os KPIs acima refletem só 2025/2026 — é o
+            único período com dado detalhado o bastante para aplicar
+            permissionária/status/subprefeitura/ano. Sem nenhum filtro, eles
+            somam todos os anos (2023 a 2026).
+          </span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ChartCard titulo="Série Histórica por Ano (planilha DASH)">

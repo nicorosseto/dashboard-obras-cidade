@@ -1577,6 +1577,7 @@ export default function App() {
                   <PaginaGtObras
                     linhas={gtFiltradas}
                     gtDash={gtDash}
+                    filtrosAtivos={gtFiltrosAtivos}
                     carregando={gtCarregando}
                     basesCarregando={basesGtCarregando}
                     abaAtiva={abaGt}
