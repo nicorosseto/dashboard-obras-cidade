@@ -128,6 +128,14 @@ function excluirMultasSemProcesso(linhas) {
 function somaCampoMultas(linhas, campo) {
   return (linhas || []).reduce((acc, r) => acc + (Number(r[campo]) || 0), 0)
 }
+// Mesmo formato de fmtValorBRL (multas.js) — reescrito aqui pelo mesmo
+// motivo (evitar o ciclo de import, ver acima). "R$ 1.234.567,89".
+function fmtValorBRLMultas(n) {
+  return (Number(n) || 0).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  })
+}
 
 // Filtro global do seletor de permissionária (nome já consolidado).
 function filtrarPerm(rows, permissionaria) {
@@ -1108,8 +1116,18 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           valor: validas.length,
           icone: 'obra',
         },
-        { rotulo: 'Valor Total Aplicado (R$)', valor: somaCampoMultas(validas, 'valor'), icone: 'predio' },
-        { rotulo: 'Área Total (m²)', valor: Math.round(somaCampoMultas(validas, 'area_m2')), icone: 'geometria' },
+        {
+          rotulo: 'Valor Total Aplicado (R$)',
+          valor: somaCampoMultas(validas, 'valor'),
+          icone: 'predio',
+          formatador: fmtValorBRLMultas,
+        },
+        {
+          rotulo: 'Área Total (m²)',
+          valor: somaCampoMultas(validas, 'area_m2'),
+          icone: 'geometria',
+          formatador: fmtAreaDecimal,
+        },
       ]
       const aviso = multas.length === 0
         ? 'Sem dados do módulo Multas carregados nesta sessão — confira se você tem acesso a ele (permissão "Multas").'

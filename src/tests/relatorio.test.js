@@ -322,8 +322,12 @@ describe('multas_geral / multas_norcrest (slides 40/41)', () => {
   it('multas_geral: KPIs excluem "sem processo" (3 das 4 multas)', () => {
     const r = resolverDadosSlide(slidePorAgregacao('multas_geral'), bases)
     expect(r.kpis.find((k) => k.rotulo === 'Total de Multas Lavradas').valor).toBe(3)
-    expect(r.kpis.find((k) => k.rotulo === 'Valor Total Aplicado (R$)').valor).toBe(6000) // 1000+2000+3000
-    expect(r.kpis.find((k) => k.rotulo === 'Área Total (m²)').valor).toBe(60)
+    const kValor = r.kpis.find((k) => k.rotulo === 'Valor Total Aplicado (R$)')
+    expect(kValor.valor).toBe(6000) // 1000+2000+3000
+    expect(kValor.formatador(kValor.valor)).toBe('R$ 6.000,00') // com centavos
+    const kArea = r.kpis.find((k) => k.rotulo === 'Área Total (m²)')
+    expect(kArea.valor).toBe(60)
+    expect(kArea.formatador(kArea.valor)).toBe('60,00') // 2 casas decimais
     expect(r.aviso).toBeNull()
   })
 

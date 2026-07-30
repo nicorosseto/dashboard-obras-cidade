@@ -540,7 +540,7 @@ function CartoesKpi({ kpis }) {
             </div>
           ) : (
             <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 px-4 py-1 text-base font-extrabold tabular-nums ${k.manual ? 'bg-slate-200 text-gray-400' : 'bg-navy text-white'}`}>
-              {k.manual ? '—' : fmtNumero(k.valor)}
+              {k.manual ? '—' : (k.formatador || fmtNumero)(k.valor)}
             </div>
           )}
         </div>
