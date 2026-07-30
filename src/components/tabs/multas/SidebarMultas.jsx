@@ -41,6 +41,7 @@ const SidebarMultas = memo(function SidebarMultas({
   permissionarias,
   statusDisponiveis,
   subprefeiturasDisponiveis,
+  anosDisponiveis,
   dataLimites,
   totalFiltrado,
   totalGeral,
@@ -56,6 +57,7 @@ const SidebarMultas = memo(function SidebarMultas({
     filtros.situacaoVinculo instanceof Set ? filtros.situacaoVinculo : new Set()
   const subSet =
     filtros.subprefeituras instanceof Set ? filtros.subprefeituras : new Set()
+  const anoSet = filtros.anos instanceof Set ? filtros.anos : new Set()
 
   const { norcrestUnits, demais } = useMemo(() => {
     const sa = [],
@@ -109,6 +111,13 @@ const SidebarMultas = memo(function SidebarMultas({
     if (next.has(s)) next.delete(s)
     else next.add(s)
     setFiltros({ ...filtros, subprefeituras: next })
+  }
+
+  function toggleAno(a) {
+    const next = new Set(anoSet)
+    if (next.has(a)) next.delete(a)
+    else next.add(a)
+    setFiltros({ ...filtros, anos: next })
   }
 
   const isTodasPerm = permSet.size === 0
@@ -227,6 +236,34 @@ const SidebarMultas = memo(function SidebarMultas({
               {fmtData(dataLimites.max)}
             </p>
           )}
+        </div>
+      </BlocoFiltro>
+
+      <BlocoFiltro titulo="Ano da Infração">
+        <div className="space-y-0.5">
+          <label className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm">
+            <input
+              type="checkbox"
+              checked={anoSet.size === 0}
+              onChange={() => setFiltros({ ...filtros, anos: new Set() })}
+              className="accent-red"
+            />
+            <span className="font-semibold">TODOS</span>
+          </label>
+          {anosDisponiveis.map((a) => (
+            <label
+              key={a}
+              className="flex items-center gap-2 text-xs cursor-pointer hover:bg-grey-bg px-1 py-0.5 rounded-sm"
+            >
+              <input
+                type="checkbox"
+                checked={anoSet.has(a)}
+                onChange={() => toggleAno(a)}
+                className="accent-red"
+              />
+              <span className="truncate">{a}</span>
+            </label>
+          ))}
         </div>
       </BlocoFiltro>
 

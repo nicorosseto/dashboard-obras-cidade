@@ -284,6 +284,27 @@ export function agregaMultasPorMes(linhas) {
     .sort((a, b) => a.mes.localeCompare(b.mes))
 }
 
+// Ano da infração (AAAA), derivado de `data_infracao` — mesmo campo que
+// `agregaMultasPorMes`, só que truncado em 4 dígitos. Não existe coluna de
+// ano própria no banco (diferente do `ano_processo` do GT Obras); série
+// completa (sem corte de últimos N), pois o histórico costuma ter poucos anos.
+export function anoInfracaoDe(linha) {
+  const d = linha?.data_infracao
+  return d ? String(d).slice(0, 4) : null
+}
+
+export function agregaMultasPorAno(linhas) {
+  const m = new Map()
+  for (const r of linhas || []) {
+    const ano = anoInfracaoDe(r)
+    if (!ano) continue
+    m.set(ano, (m.get(ano) || 0) + 1)
+  }
+  return Array.from(m.entries())
+    .map(([ano, qtd]) => ({ ano, qtd }))
+    .sort((a, b) => a.ano.localeCompare(b.ano))
+}
+
 // ── Filtros da sidebar (item 1 da melhoria de 16/07/2026) ────────────────
 // Mesmo padrão de `FILTROS_VAZIOS_EMERG`/`aplicarFiltrosEmerg` de
 // emergencias.js: Sets para multi-seleção, permissionária casa pelo valor
@@ -296,6 +317,7 @@ export const FILTROS_VAZIOS_MULTAS = {
   status: new Set(),
   situacaoVinculo: new Set(),
   subprefeituras: new Set(),
+  anos: new Set(),
 }
 
 export function contarFiltrosAtivosMultas(filtros) {
@@ -306,7 +328,8 @@ export function contarFiltrosAtivosMultas(filtros) {
     c(filtros.permissionarias) +
     c(filtros.status) +
     c(filtros.situacaoVinculo) +
-    c(filtros.subprefeituras)
+    c(filtros.subprefeituras) +
+    c(filtros.anos)
   )
 }
 
@@ -318,12 +341,14 @@ export function aplicarFiltrosMultas(linhas, filtros) {
     status,
     situacaoVinculo,
     subprefeituras,
+    anos,
   } = filtros || {}
   const permSet = permissionarias instanceof Set ? permissionarias : new Set()
   const statusSet = status instanceof Set ? status : new Set()
   const vinculoSet =
     situacaoVinculo instanceof Set ? situacaoVinculo : new Set()
   const subSet = subprefeituras instanceof Set ? subprefeituras : new Set()
+  const anoSet = anos instanceof Set ? anos : new Set()
   const usaNorcrestCons = permSet.has('NORCREST')
 
   return (linhas || []).filter((r) => {
@@ -342,6 +367,7 @@ export function aplicarFiltrosMultas(linhas, filtros) {
     if (vinculoSet.size > 0 && !vinculoSet.has(r._situacao_vinculo))
       return false
     if (subSet.size > 0 && !subSet.has(r.subprefeitura)) return false
+    if (anoSet.size > 0 && !anoSet.has(anoInfracaoDe(r))) return false
     return true
   })
 }

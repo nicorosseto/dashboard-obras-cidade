@@ -12,6 +12,8 @@ import {
   agregaMultasPorPermissionaria,
   agregaMultasPorStatus,
   agregaMultasPorMes,
+  agregaMultasPorAno,
+  anoInfracaoDe,
   todasNorcrest,
   agregaMultasPorUnidadeNorcrest,
   FILTROS_VAZIOS_MULTAS,
@@ -439,6 +441,36 @@ describe('agregaMultasPorMes', () => {
   })
 })
 
+// ── anoInfracaoDe / agregaMultasPorAno ─────────────────────────────────────
+describe('anoInfracaoDe', () => {
+  it('extrai os 4 primeiros dígitos de data_infracao', () => {
+    expect(anoInfracaoDe({ data_infracao: '2024-03-15' })).toBe('2024')
+  })
+
+  it('devolve null sem data', () => {
+    expect(anoInfracaoDe({})).toBeNull()
+    expect(anoInfracaoDe(null)).toBeNull()
+  })
+})
+
+describe('agregaMultasPorAno', () => {
+  it('agrupa por ano e ordena cronologicamente', () => {
+    const linhas = [
+      { data_infracao: '2024-03-15' },
+      { data_infracao: '2023-11-02' },
+      { data_infracao: '2024-01-20' },
+    ]
+    expect(agregaMultasPorAno(linhas)).toEqual([
+      { ano: '2023', qtd: 1 },
+      { ano: '2024', qtd: 2 },
+    ])
+  })
+
+  it('ignora linhas sem data', () => {
+    expect(agregaMultasPorAno([{ data_infracao: null }, {}])).toEqual([])
+  })
+})
+
 // ── FILTROS_VAZIOS_MULTAS / aplicarFiltrosMultas / contarFiltrosAtivosMultas ──
 describe('aplicarFiltrosMultas', () => {
   const linhas = [
@@ -469,10 +501,19 @@ describe('aplicarFiltrosMultas', () => {
       subprefeitura: 'AD',
       data_infracao: '2024-06-20',
     },
+    {
+      id: 4,
+      permissionaria: 'HARGROVE',
+      _permissionaria_exibir: 'HARGROVE',
+      status: 'PENDENTE',
+      _situacao_vinculo: 'sem_processo',
+      subprefeitura: 'SM',
+      data_infracao: '2023-09-12',
+    },
   ]
 
   it('sem filtros, devolve tudo', () => {
-    expect(aplicarFiltrosMultas(linhas, FILTROS_VAZIOS_MULTAS)).toHaveLength(3)
+    expect(aplicarFiltrosMultas(linhas, FILTROS_VAZIOS_MULTAS)).toHaveLength(4)
   })
 
   it('filtra por permissionária consolidada (NORCREST pega as duas unidades)', () => {
@@ -488,7 +529,7 @@ describe('aplicarFiltrosMultas', () => {
       ...FILTROS_VAZIOS_MULTAS,
       permissionarias: new Set(['HARGROVE']),
     })
-    expect(r.map((x) => x.id)).toEqual([2])
+    expect(r.map((x) => x.id)).toEqual([2, 4])
   })
 
   it('filtra por status', () => {
@@ -504,7 +545,7 @@ describe('aplicarFiltrosMultas', () => {
       ...FILTROS_VAZIOS_MULTAS,
       situacaoVinculo: new Set(['sem_processo']),
     })
-    expect(r.map((x) => x.id)).toEqual([2])
+    expect(r.map((x) => x.id)).toEqual([2, 4])
   })
 
   it('filtra por subprefeitura', () => {
@@ -522,6 +563,14 @@ describe('aplicarFiltrosMultas', () => {
       dataFim: '2024-12-31',
     })
     expect(r.map((x) => x.id)).toEqual([2, 3])
+  })
+
+  it('filtra por ano da infração', () => {
+    const r = aplicarFiltrosMultas(linhas, {
+      ...FILTROS_VAZIOS_MULTAS,
+      anos: new Set(['2023']),
+    })
+    expect(r.map((x) => x.id)).toEqual([4])
   })
 
   it('combina filtros (E lógico)', () => {
@@ -551,5 +600,10 @@ describe('contarFiltrosAtivosMultas', () => {
       permissionarias: new Set(['NORCREST', 'HARGROVE']),
     }
     expect(contarFiltrosAtivosMultas(f)).toBe(3)
+  })
+
+  it('conta o filtro de ano', () => {
+    const f = { ...FILTROS_VAZIOS_MULTAS, anos: new Set(['2023', '2024']) }
+    expect(contarFiltrosAtivosMultas(f)).toBe(2)
   })
 })
