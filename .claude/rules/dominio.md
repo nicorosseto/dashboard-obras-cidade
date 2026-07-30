@@ -866,6 +866,32 @@
       fonte de um KPI de "dado já filtrado" para "tabela agregada à parte",
       conferir se essa nova fonte também respeita os filtros ativos da
       tela — se não respeitar, a UI "esquece" os filtros silenciosamente.
+    - **Mesclagem DASH × granular: só por permissionária, NUNCA por ano
+      (30/07/2026).** O usuário pediu para somar as duas fontes ao filtrar.
+      Só vale para permissionária: os 3 blocos anuais do DASH são disjuntos
+      entre si e o bloco `total_geral` já tem **uma linha por
+      permissionária** com os 3 anos somados pela planilha
+      (`kpisGtPermissionariasDash`) — soma só `tipo_linha ===
+      'permissionaria'`, porque as linhas de agrupamento ("Total
+      Norcrest+Winslow", "OUTROS") repetem valores das individuais e
+      duplicariam. **Por ano é matematicamente errado:** o bloco do DASH é o
+      ano em que o GT ANALISOU a obra; `ano_processo` é o ano de ABERTURA do
+      processo SEI (`6012.AAAA/`). A aba COMPATIB. CAMILA (1.856 linhas) ≡ o
+      bloco "2025/2026" do DASH (1.853), mas contém 26 processos de 2023 e
+      198 de 2024 — que já estão dentro daquele bloco. Somar
+      `gt_obras(ano=2023)` + `DASH(bloco 2023)` contaria essas 26 duas vezes
+      e misturaria duas grandezas diferentes. Status/subprefeitura/recape
+      nem existem no DASH. **Regra geral:** antes de somar duas fontes que
+      "falam do mesmo ano", confirmar que o campo de ano das duas mede o
+      mesmo evento — nomes iguais escondem eixos diferentes, e a soma vira
+      dupla contagem silenciosa.
+    - **Permissionária sem linha própria no DASH cai no granular, não em
+      zero:** a planilha joga permissionárias pequenas no balde "OUTROS",
+      sem linha individual. `kpisGtPermissionariasDash` devolve `null` nesse
+      caso e `AbaGtGeral.jsx` monta os KPIs dela a partir de `gt_obras`
+      (2025/2026, com aviso âmbar) — decisão do usuário: mostrar o que
+      existe dela é melhor que zerar. A parte dela de 2023/2024 é
+      irrecuperável (está fundida dentro de "OUTROS").
   - **Sem cron (D4, decisão do usuário):** diferente do `sync-multas`
     (que tem cron + botão manual), aqui a sincronização **só roda pelo
     botão "Atualizar agora"** — `gt_sync_config` não tem

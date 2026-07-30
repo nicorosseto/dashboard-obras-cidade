@@ -98,6 +98,7 @@ function ModalResultado({ titulo, mensagem, erro, onClose }) {
 export default function PaginaGtObras({
   linhas,
   gtDash,
+  filtros,
   filtrosAtivos,
   carregando,
   basesCarregando,
@@ -241,6 +242,7 @@ export default function PaginaGtObras({
             <AbaGtGeral
               linhas={linhas}
               gtDash={gtDash}
+              filtros={filtros}
               filtrosAtivos={filtrosAtivos}
             />
           )}

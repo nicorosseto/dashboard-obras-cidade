@@ -15,6 +15,8 @@ import { fmtNumero, fmtAreaDecimal } from '../../../lib/aggregations.js'
 import {
   kpisGt,
   kpisGtTotalGeral,
+  kpisGtPermissionariasDash,
+  soFiltroPermissionariaGt,
   agregaGtPorPermissionaria,
   todasGtNorcrest,
   agregaGtPorUnidadeNorcrest,
@@ -60,18 +62,32 @@ function serieHistoricaDash(gtDash) {
   })
 }
 
-export default function AbaGtGeral({ linhas, gtDash, filtrosAtivos }) {
-  // Sem filtro: soma de TODOS OS ANOS (gtDash não é filtrável pela sidebar
-  // — não tem status_grupo/subprefeitura, só bloco/permissionária — ver
-  // kpisGtTotalGeral). Com QUALQUER filtro ativo: volta a refletir só
-  // `gt_obras` filtrado (kpisGt(linhas), 2025/2026 — único período com dado
-  // granular pra filtrar) — achado do usuário em 30/07/2026: os filtros da
-  // sidebar tinham parado de refletir nos KPIs de topo porque eles passaram
-  // a ler direto do gtDash cru, sem filtro nenhum.
-  const kpis = useMemo(
-    () => (filtrosAtivos ? kpisGt(linhas) : kpisGtTotalGeral(gtDash)),
-    [filtrosAtivos, linhas, gtDash]
-  )
+export default function AbaGtGeral({ linhas, gtDash, filtros, filtrosAtivos }) {
+  // Escopo dos KPIs de topo — 3 casos (decisão do usuário, 30/07/2026):
+  //  1. Sem filtro → bloco `total_geral` do DASH (todos os anos).
+  //  2. Só permissionária marcada → soma as linhas dela no `total_geral`
+  //     (também todos os anos: o DASH tem breakdown por permissionária).
+  //     Se ela não tiver linha própria lá (a planilha joga permissionária
+  //     pequena no balde "OUTROS"), `kpisGtPermissionariasDash` devolve
+  //     null e caímos no granular — melhor mostrar o que existe dela do que
+  //     zerar (pedido explícito do usuário).
+  //  3. Qualquer outro filtro (status/subprefeitura/ano, ou combinação) →
+  //     base granular filtrada, 2025/2026.
+  // ⚠️ Ano NÃO é mesclável: o bloco do DASH é o ano em que o GT ANALISOU a
+  // obra, `ano_processo` é o ano de abertura do processo SEI — eixos
+  // diferentes. Somar os dois duplicaria as obras antigas que estão na
+  // COMPATIB. CAMILA (26 de 2023, 198 de 2024) e já entram no bloco
+  // "2025/2026" do DASH. Ver docs/progresso.md (30/07/2026).
+  const { kpis, escopoTodosAnos } = useMemo(() => {
+    if (!filtrosAtivos) {
+      return { kpis: kpisGtTotalGeral(gtDash), escopoTodosAnos: true }
+    }
+    if (soFiltroPermissionariaGt(filtros)) {
+      const doDash = kpisGtPermissionariasDash(gtDash, filtros?.permissionarias)
+      if (doDash) return { kpis: doDash, escopoTodosAnos: true }
+    }
+    return { kpis: kpisGt(linhas), escopoTodosAnos: false }
+  }, [filtros, filtrosAtivos, linhas, gtDash])
   const serieAnual = useMemo(() => serieHistoricaDash(gtDash), [gtDash])
 
   // Ranking de permissionárias em DOIS gráficos separados — "quem trabalha
@@ -185,16 +201,28 @@ export default function AbaGtGeral({ linhas, gtDash, filtrosAtivos }) {
         </div>
       </div>
 
-      {filtrosAtivos && (
+      {filtrosAtivos && !escopoTodosAnos && (
         <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
           <span aria-hidden className="text-sm leading-none">
             ℹ️
           </span>
           <span>
-            Com filtro ativo, os KPIs acima refletem só 2025/2026 — é o
-            único período com dado detalhado o bastante para aplicar
-            permissionária/status/subprefeitura/ano. Sem nenhum filtro, eles
-            somam todos os anos (2023 a 2026).
+            Os KPIs acima refletem só <strong>2025/2026</strong> — é o único
+            período com dado detalhado o bastante para filtrar por status,
+            subprefeitura ou ano do processo. Filtrando <strong>apenas por
+            permissionária</strong>, eles voltam a somar todos os anos.
+          </span>
+        </div>
+      )}
+      {filtrosAtivos && escopoTodosAnos && (
+        <div className="flex items-start gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+          <span aria-hidden className="text-sm leading-none">
+            ✓
+          </span>
+          <span>
+            KPIs somando <strong>todos os anos</strong> (2023 a 2026) para a
+            permissionária selecionada, com os totais consolidados da
+            planilha. Os gráficos abaixo continuam mostrando 2025/2026.
           </span>
         </div>
       )}
