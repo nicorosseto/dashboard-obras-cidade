@@ -37,7 +37,17 @@ const EMERG = [
   { permissionaria: 'WINSLOW LTDA', status: 'Encerrada' }, // não-NORCREST: fora do slide 17
 ]
 
-const bases = { geo: GEO, fisc: FISC, emerg: EMERG }
+// Multas já cruzadas (padrão de cruzarMultas em multas.js): `_situacao_vinculo`
+// determina se entram no cálculo (excluirSemProcesso) e `_permissionaria_exibir`
+// determina a checagem de NORCREST.
+const MULTAS = [
+  { valor: 1000, area_m2: 10, _situacao_vinculo: 'vinculado_sistemaGeo', _permissionaria_exibir: 'NORCREST - NCR' },
+  { valor: 2000, area_m2: 20, _situacao_vinculo: 'vinculado_sistemaGeo', _permissionaria_exibir: 'NORCREST - NCJ' },
+  { valor: 3000, area_m2: 30, _situacao_vinculo: 'vinculado_sistemaGeo', _permissionaria_exibir: 'WINSLOW' },
+  { valor: 4000, area_m2: 40, _situacao_vinculo: 'sem_processo', permissionaria: 'HARGROVE' }, // fora dos KPIs
+]
+
+const bases = { geo: GEO, fisc: FISC, emerg: EMERG, multas: MULTAS }
 
 function slidePorAgregacao(agregacao) {
   return MODELO_INSTITUCIONAL.slides.find((s) => s.agregacao === agregacao)
@@ -62,10 +72,10 @@ describe('MODELO_INSTITUCIONAL (seed)', () => {
     }
   })
 
-  it('distribuição das categorias: 27 dados · 19 texto · 3 futuro (49 slides)', () => {
+  it('distribuição das categorias: 29 dados · 19 texto · 1 futuro (49 slides)', () => {
     const conta = { dados: 0, texto: 0, futuro: 0 }
     for (const s of MODELO_INSTITUCIONAL.slides) conta[s.categoria]++
-    expect(conta).toEqual({ dados: 27, texto: 19, futuro: 3 })
+    expect(conta).toEqual({ dados: 29, texto: 19, futuro: 1 })
     expect(MODELO_INSTITUCIONAL.slides).toHaveLength(49)
   })
 
@@ -81,7 +91,9 @@ describe('MODELO_INSTITUCIONAL (seed)', () => {
   it('slides de dados têm fonte e agregação; os demais têm texto', () => {
     for (const s of MODELO_INSTITUCIONAL.slides) {
       if (s.categoria === 'dados') {
-        expect(['geo', 'fisc', 'emerg'], `slide ${s.n}`).toContain(s.fonte)
+        expect(['geo', 'fisc', 'emerg', 'multas'], `slide ${s.n}`).toContain(
+          s.fonte
+        )
         expect(s.agregacao, `slide ${s.n}`).toBeTruthy()
       } else {
         expect(s.texto, `slide ${s.n}`).toBeTruthy()
@@ -300,5 +312,33 @@ describe('enriquecerExport', () => {
     const nomes = e.dadosExport.map((d) => d.nome)
     expect(nomes).toContain('Solucionados')
     expect(nomes).toContain('Em andamento')
+  })
+})
+
+// ── Slides 40/41 — Multas Aplicadas (30/07/2026: deixaram de ser
+// placeholders com números estáticos do CORBETT — agora leem o módulo Multas
+// real) ─────────────────────────────────────────────────────────────────
+describe('multas_geral / multas_norcrest (slides 40/41)', () => {
+  it('multas_geral: KPIs excluem "sem processo" (3 das 4 multas)', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('multas_geral'), bases)
+    expect(r.kpis.find((k) => k.rotulo === 'Total de Multas Lavradas').valor).toBe(3)
+    expect(r.kpis.find((k) => k.rotulo === 'Valor Total Aplicado (R$)').valor).toBe(6000) // 1000+2000+3000
+    expect(r.kpis.find((k) => k.rotulo === 'Área Total (m²)').valor).toBe(60)
+    expect(r.aviso).toBeNull()
+  })
+
+  it('multas_norcrest: só as 2 multas NORCREST (com processo)', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('multas_norcrest'), bases)
+    expect(r.kpis.find((k) => k.rotulo.includes('NORCREST')).valor).toBe(2)
+    expect(r.kpis.find((k) => k.rotulo === 'Valor Total Aplicado (R$)').valor).toBe(3000) // 1000+2000
+  })
+
+  it('sem multas carregadas, mostra aviso e zera os KPIs', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('multas_geral'), {
+      ...bases,
+      multas: [],
+    })
+    expect(r.aviso).toBeTruthy()
+    expect(r.kpis.find((k) => k.rotulo === 'Total de Multas Lavradas').valor).toBe(0)
   })
 })

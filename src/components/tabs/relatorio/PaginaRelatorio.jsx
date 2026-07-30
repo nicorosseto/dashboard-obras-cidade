@@ -28,7 +28,13 @@ function lerCamposSalvos() {
   }
 }
 
-export default function PaginaRelatorio({ geo, fisc, emerg, carregandoGeo }) {
+export default function PaginaRelatorio({
+  geo,
+  fisc,
+  emerg,
+  multas,
+  carregandoGeo,
+}) {
   const [indiceAberto, setIndiceAberto] = useState(false)
   const [permissionaria, setPermissionaria] = useState('')
   // Campos digitados (multaM2 / custoM2) — persistem por navegador.
@@ -54,7 +60,7 @@ export default function PaginaRelatorio({ geo, fisc, emerg, carregandoGeo }) {
         enriquecerExport(
           resolverDadosSlide(
             s,
-            { geo, fisc, emerg },
+            { geo, fisc, emerg, multas },
             {
               permissionaria: permissionaria || null,
               multaM2: campos.multaM2,
@@ -63,7 +69,7 @@ export default function PaginaRelatorio({ geo, fisc, emerg, carregandoGeo }) {
           )
         )
       ),
-    [geo, fisc, emerg, permissionaria, campos]
+    [geo, fisc, emerg, multas, permissionaria, campos]
   )
 
   function baixarTodos() {

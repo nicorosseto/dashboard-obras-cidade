@@ -1348,6 +1348,7 @@ export default function App() {
                 geo={sistemaGeoLinhas}
                 fisc={todasLinhas}
                 emerg={emergLinhas}
+                multas={multasCruzadas}
                 carregandoGeo={sistemaGeoCarregando}
               />
             </Suspense>
