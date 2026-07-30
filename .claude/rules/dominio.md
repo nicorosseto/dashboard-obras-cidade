@@ -820,6 +820,25 @@
     `status_grupo`…), usar esse campo diretamente — reimplementar o
     critério de classificação com um regex próprio no front arrisca ficar
     mais rígido (ou mais frouxo) que a fonte original e divergir dela.
+    ⚠️ **`blocoAtual` pode "vazar" entre blocos (achado de 30/07/2026,
+    trava adicionada, causa raiz ainda não 100% confirmada):** `parseDash`
+    só avança `blocoAtual` quando reconhece a linha de cabeçalho do bloco
+    seguinte (coluna B === "QTDE DE OBRAS"); se ISSO falhar para um bloco
+    (texto do cabeçalho variou na planilha), as linhas dele — inclusive a
+    própria "Total Geral" — ficam marcadas com o bloco ANTERIOR e
+    sobrescrevem a linha certa no dedup `bloco|permissionaria` (upsert).
+    Sintoma real: o gráfico "Série Histórica por Ano" (`AbaGtGeral.jsx`)
+    mostrou o bloco "2025/2026" com um total ~1.100 obras maior que o
+    esperado — bem próximo da soma dos 3 blocos anuais, indício de que a
+    linha "Total Geral" (geral, todos os anos) vazou para dentro do bloco
+    "2025/2026". Corrigido com `validarBlocosDash` (mesmo arquivo): aborta
+    a sync se algum dos 4 blocos não tiver exatamente 1 linha
+    `tipo_linha === 'total'` — mesma filosofia de `validarCabecalhoCompatib`
+    ("nunca grava dado deslocado"). **Não foi possível confirmar contra o
+    banco real nesta sessão** (MCP Supabase exige OAuth interativo); a
+    próxima sincronização real vai FALHAR se o problema ainda existir,
+    apontando o bloco exato — aí sim dá para corrigir
+    `normalizarRotuloBloco`/o texto da planilha em definitivo.
   - **Sem cron (D4, decisão do usuário):** diferente do `sync-multas`
     (que tem cron + botão manual), aqui a sincronização **só roda pelo
     botão "Atualizar agora"** — `gt_sync_config` não tem
