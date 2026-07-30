@@ -12,6 +12,7 @@ import {
   MODELO_INSTITUCIONAL,
   listaPermissionariasRelatorio,
   resolverDadosSlide,
+  enriquecerExport,
 } from '../../../lib/relatorio.js'
 import { exportarXLSXMultiAba } from '../../../lib/exportarXLSX.js'
 import SlideRenderer from './SlideRenderer.jsx'
@@ -50,14 +51,16 @@ export default function PaginaRelatorio({ geo, fisc, emerg, carregandoGeo }) {
   const slides = useMemo(
     () =>
       MODELO_INSTITUCIONAL.slides.map((s) =>
-        resolverDadosSlide(
-          s,
-          { geo, fisc, emerg },
-          {
-            permissionaria: permissionaria || null,
-            multaM2: campos.multaM2,
-            custoM2: campos.custoM2,
-          }
+        enriquecerExport(
+          resolverDadosSlide(
+            s,
+            { geo, fisc, emerg },
+            {
+              permissionaria: permissionaria || null,
+              multaM2: campos.multaM2,
+              custoM2: campos.custoM2,
+            }
+          )
         )
       ),
     [geo, fisc, emerg, permissionaria, campos]
@@ -68,8 +71,8 @@ export default function PaginaRelatorio({ geo, fisc, emerg, carregandoGeo }) {
       .filter((s) => s.categoria === 'dados' && s.dados && s.colunas)
       .map((s) => ({
         nome: `${String(s.n).padStart(2, '0')} ${s.titulo}`,
-        rows: s.dados,
-        colunas: s.colunas,
+        rows: s.dadosExport || s.dados,
+        colunas: s.colunasExport || s.colunas,
       }))
     const sufixo = permissionaria
       ? `-${permissionaria.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`

@@ -1085,3 +1085,30 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
       return { ...base, aviso: `Agregação "${slide.agregacao}" ainda não implementada.` }
   }
 }
+
+// Alguns slides mostram MAIS de uma tabela/série (ex.: slide 18 — "Total de
+// Processos por Região" traz a tabela por região em `dados`, mas o gráfico de
+// barras é por SUBPREFEITURA, vindo de `detalhe`; o slide "Tipo de Processo"
+// detalha o grupo "Expansão/Implantação" em `composicao`). Até 29/07/2026 a
+// exportação (botão do slide + "Baixar todos") usava só `dados`/`colunas`,
+// então esse segundo nível — o que o gráfico de fato mostra — nunca saía no
+// arquivo. `enriquecerExport` junta tudo num único par dados/colunas de
+// exportação (`dadosExport`/`colunasExport`), com uma coluna extra "Nível"
+// para distinguir a linha-resumo da linha de detalhe; `dados`/`colunas`
+// continuam intocados (controlam só o que aparece na tela). Sem detalhe/
+// composição, `dadosExport`/`colunasExport` nem são criados — quem consome
+// sempre cai no fallback `slide.dadosExport || slide.dados`.
+export function enriquecerExport(slide) {
+  if (!slide.dados || !slide.colunas) return slide
+  const blocos = [{ nivel: 'Total', linhas: slide.dados }]
+  if (slide.detalhe && slide.detalhe.length)
+    blocos.push({ nivel: 'Detalhamento', linhas: slide.detalhe })
+  if (slide.composicao && slide.composicao.length)
+    blocos.push({ nivel: 'Composição', linhas: slide.composicao })
+  if (blocos.length === 1) return slide
+  const colunasExport = [{ key: '_nivel', label: 'Nível' }, ...slide.colunas]
+  const dadosExport = blocos.flatMap((b) =>
+    b.linhas.map((linha) => ({ _nivel: b.nivel, ...linha }))
+  )
+  return { ...slide, dadosExport, colunasExport }
+}

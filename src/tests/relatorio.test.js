@@ -7,6 +7,7 @@ import {
   listaPermissionariasRelatorio,
   normUnidadeNorcrest,
   resolverDadosSlide,
+  enriquecerExport,
 } from '../lib/relatorio.js'
 
 // ── Fixtures mínimas ──────────────────────────────────────────────────
@@ -254,5 +255,50 @@ describe('resolverDadosSlide — agregações', () => {
     const r = resolverDadosSlide(slidePorAgregacao('geo_por_permissionaria'), bases)
     // max data_cadastro = 2025-04 → 5 anos e 4 meses desde 2019-12
     expect(r.painelTexto).toBe('5 anos e 4 meses de Sistema Geo')
+  })
+})
+
+// ── enriquecerExport (achado de 30/07/2026: exportação só trazia a tabela
+// resumo, nunca o detalhamento por trás do gráfico — ex.: slide 18 exportava
+// só a tabela por região, sem a barra por subprefeitura) ──────────────────
+describe('enriquecerExport', () => {
+  it('sem detalhe/composição, devolve o slide inalterado (sem dadosExport)', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('fisc_soluc_trimestral'), bases)
+    const e = enriquecerExport(r)
+    expect(e).toBe(r)
+    expect(e.dadosExport).toBeUndefined()
+  })
+
+  it('slide sem dados/colunas (categoria texto) passa direto', () => {
+    const s = MODELO_INSTITUCIONAL.slides.find((s) => s.categoria === 'texto')
+    const r = resolverDadosSlide(s, bases)
+    expect(enriquecerExport(r)).toBe(r)
+  })
+
+  it('geo_por_regiao (slide 18): junta a tabela por região com o detalhe por subprefeitura', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('geo_por_regiao'), bases)
+    const e = enriquecerExport(r)
+    expect(e.colunasExport.map((c) => c.key)).toEqual(['_nivel', 'nome', 'valor', 'pct'])
+    // linhas de "Total" (por região) seguidas das de "Detalhamento" (por subprefeitura)
+    expect(e.dadosExport.filter((d) => d._nivel === 'Total')).toHaveLength(r.dados.length)
+    expect(e.dadosExport.filter((d) => d._nivel === 'Detalhamento')).toHaveLength(r.detalhe.length)
+    // dados/colunas originais (usados na tela) continuam intactos
+    expect(e.dados).toBe(r.dados)
+    expect(e.colunas).toBe(r.colunas)
+  })
+
+  it('geo_por_tipo_processo: junta a tabela por tipo com a composição da Expansão/Implantação', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('geo_por_tipo_processo'), bases)
+    const e = enriquecerExport(r)
+    expect(e.dadosExport.some((d) => d._nivel === 'Composição' && d.nome === 'Radar')).toBe(true)
+    expect(e.dadosExport.filter((d) => d._nivel === 'Total')).toHaveLength(r.dados.length)
+  })
+
+  it('fisc_leg_vs_nc: junta a distribuição Leg./NC com o detalhe Solucionados × Em andamento', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('fisc_leg_vs_nc'), bases)
+    const e = enriquecerExport(r)
+    const nomes = e.dadosExport.map((d) => d.nome)
+    expect(nomes).toContain('Solucionados')
+    expect(nomes).toContain('Em andamento')
   })
 })
