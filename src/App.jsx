@@ -45,7 +45,11 @@ import SidebarMultas from './components/tabs/multas/SidebarMultas.jsx'
 import SidebarGt from './components/tabs/gt/SidebarGt.jsx'
 import { FILTROS_GEO_VAZIOS } from './lib/filtrosGeo.js'
 import { FILTROS_CRUZAMENTO_VAZIOS } from './lib/filtrosCruzamento.js'
-import { carregarPermissoes, abasPermitidas } from './lib/permissoes.js'
+import {
+  carregarPermissoes,
+  carregarSlidesOcultosRelatorio,
+  abasPermitidas,
+} from './lib/permissoes.js'
 import { ehModoDemo, DEMO_SESSION } from './lib/demo.js'
 import {
   agruparMotivos,
@@ -282,6 +286,9 @@ export default function App() {
   const [profile, setProfile] = useState(null)
   // null = permissões ainda carregando; Set = pronto (admin recebe todas)
   const [permissoes, setPermissoes] = useState(null)
+  // Slides do módulo Apresentação ocultos para o perfil do usuário (admin
+  // sempre vazio — enxerga tudo). Ver 26-relatorio-slides-perfil.sql.
+  const [slidesOcultosRelatorio, setSlidesOcultosRelatorio] = useState(new Set())
 
   // ── Carga de dados dos módulos (Frente 3, Etapa 5 — hooks em src/hooks/) ──
   // Precisa vir logo após `session`/`permissoes` (acima): código mais abaixo
@@ -408,13 +415,20 @@ export default function App() {
         // usuário ainda não concluiu o primeiro acesso, não que está bloqueado.
         const admin = p?.role === 'admin'
         return carregarPermissoes(admin).then((perms) => {
-          if (!cancelado) setPermissoes(perms)
+          if (cancelado) return
+          setPermissoes(perms)
+          if (perms.has('relatorio.ver')) {
+            return carregarSlidesOcultosRelatorio(admin).then((oc) => {
+              if (!cancelado) setSlidesOcultosRelatorio(oc)
+            })
+          }
         })
       })
       .catch(() => {
         if (!cancelado) {
           setProfile(null)
           setPermissoes(new Set())
+          setSlidesOcultosRelatorio(new Set())
         }
       })
     return () => {
@@ -898,6 +912,7 @@ export default function App() {
       setSession(null)
       setProfile(null)
       setPermissoes(null)
+      setSlidesOcultosRelatorio(new Set())
       resetFiscalizacao()
       resetSistemaGeo()
       resetMultas()
@@ -1350,6 +1365,7 @@ export default function App() {
                 emerg={emergLinhas}
                 multas={multasCruzadas}
                 carregandoGeo={sistemaGeoCarregando}
+                slidesOcultos={isAdmin ? new Set() : slidesOcultosRelatorio}
               />
             </Suspense>
           </ErrorBoundary>

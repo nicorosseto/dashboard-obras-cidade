@@ -357,6 +357,9 @@ export const MODELO_INSTITUCIONAL = {
       tituloInterno: 'OBRAS/SERVIÇOS DE EMERGÊNCIA',
       subtitulo: 'COMPARATIVO ANUAL DE EMERGÊNCIAS',
       fonte: 'geo', agregacao: 'geo_emerg_barra_anual' },
+    { n: 16.1, titulo: 'Protocolos da NORCREST por unidade (Sistema Geo)', categoria: 'dados', tipo: 'barra_horizontal',
+      tituloInterno: 'PROTOCOLOS DA NORCREST',
+      fonte: 'geo', agregacao: 'geo_norcrest_por_unidade' },
     { n: 17, titulo: 'Protocolos Emergência NORCREST por unidade', categoria: 'dados', tipo: 'barra_dupla',
       tituloInterno: 'PROTOCOLOS DE EMERGÊNCIA – NORCREST',
       fonte: 'emerg', agregacao: 'emerg_norcrest_por_unidade' },
@@ -787,6 +790,28 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
         valor: d.value,
       }))
       return { ...base, dados, colunas: [{ key: 'nome', label: 'Ano' }, { key: 'valor', label: 'Emergências' }] }
+    }
+    case 'geo_norcrest_por_unidade': {
+      // NORCREST-específico (como 17/23/28/31): ignora o seletor de
+      // permissionária, sempre a base completa.
+      const rows = geoAll.filter(ehNorcrest)
+      const map = new Map()
+      for (const r of rows) {
+        const u = unidadeNorcrest(r.permissionaria) || 'NORCREST (s/ unidade)'
+        map.set(u, (map.get(u) || 0) + 1)
+      }
+      const dados = Array.from(map.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([nome, valor]) => ({ nome, valor }))
+      return {
+        ...base,
+        dados,
+        colunas: [{ key: 'nome', label: 'Unidade NORCREST' }, { key: 'valor', label: 'Protocolos' }],
+        contexto: [
+          { rotulo: 'Total de protocolos no Sistema Geo', valor: fmtNumero(geoAll.length) },
+          { rotulo: 'Total de protocolos da NORCREST no Sistema Geo', valor: fmtNumero(rows.length) },
+        ],
+      }
     }
     case 'geo_por_regiao': {
       const dados = processosPorRegiao(geo).map((d) => ({

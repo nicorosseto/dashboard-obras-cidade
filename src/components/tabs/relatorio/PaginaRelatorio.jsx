@@ -34,6 +34,7 @@ export default function PaginaRelatorio({
   emerg,
   multas,
   carregandoGeo,
+  slidesOcultos,
 }) {
   const [indiceAberto, setIndiceAberto] = useState(false)
   const [permissionaria, setPermissionaria] = useState('')
@@ -56,20 +57,22 @@ export default function PaginaRelatorio({
 
   const slides = useMemo(
     () =>
-      MODELO_INSTITUCIONAL.slides.map((s) =>
-        enriquecerExport(
-          resolverDadosSlide(
-            s,
-            { geo, fisc, emerg, multas },
-            {
-              permissionaria: permissionaria || null,
-              multaM2: campos.multaM2,
-              custoM2: campos.custoM2,
-            }
+      MODELO_INSTITUCIONAL.slides
+        .filter((s) => !slidesOcultos?.has(s.n))
+        .map((s) =>
+          enriquecerExport(
+            resolverDadosSlide(
+              s,
+              { geo, fisc, emerg, multas },
+              {
+                permissionaria: permissionaria || null,
+                multaM2: campos.multaM2,
+                custoM2: campos.custoM2,
+              }
+            )
           )
-        )
-      ),
-    [geo, fisc, emerg, multas, permissionaria, campos]
+        ),
+    [geo, fisc, emerg, multas, permissionaria, campos, slidesOcultos]
   )
 
   function baixarTodos() {
