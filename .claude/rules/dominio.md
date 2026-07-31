@@ -686,6 +686,50 @@
     `docs/plano-melhoria-2-apresentacao.md` alinhados. v2 no radar: export .pptx
     (PptxGenJS, gráficos nativos editáveis) e PDF, ambos com seleção de slides; Fase
     C: editor de modelos persistindo em `relatorio_modelos` (tabela já criada).
+  - **Slide 16.1 — "Protocolos da NORCREST por unidade (Sistema Geo)" (31/07/2026):**
+    inserido entre os slides 16 e 17 (mesmo padrão de lacuna decimal do 20.1),
+    espelhando o slide de Emergências (17) mas para o **Sistema Geo**: barra
+    horizontal (`tipo: 'barra_horizontal'`) com a contagem de protocolos por
+    **unidade da NORCREST** (`geo_norcrest_por_unidade`, agrupada por
+    `normUnidadeNorcrest`/`unidadeNorcrest` — mesma função já usada no slide 31)
+    + 2 caixas de contexto (total no Sistema Geo / total da NORCREST no Sistema Geo).
+    NORCREST-específico como os demais (17/23/28/31): ignora o seletor de
+    permissionária, sempre a base completa (`geoAll`).
+  - **Slides do módulo liberáveis por perfil (31/07/2026):** além da
+    permissão `relatorio.ver` (liga/desliga o módulo inteiro), o admin pode
+    restringir QUAIS slides um perfil vê, na própria tela "Perfis de Acesso"
+    (`AbaPerfis.jsx`) — aparece uma lista com checkbox por slide quando
+    `relatorio.ver` está marcado no formulário. Implementação (SQL
+    `26-relatorio-slides-perfil.sql`, rodar nos 2 bancos):
+    - **Tabela `relatorio_perfil_slides_ocultos` (perfil_id, slide_n) —
+      semântica de BLOCKLIST, não allow-list:** guarda os slides ESCONDIDOS
+      daquele perfil. Ausência de linhas = nada oculto = apresentação
+      completa — é o comportamento de sempre, então nenhum perfil existente
+      precisou de migração/backfill. A UI mostra checkboxes "visível" (mais
+      intuitivo que "esconder"), mas ao salvar converte para a lista de
+      ocultos (`todosOsSlides - marcados`) — evita a ambiguidade de "lista
+      vazia" significar coisas diferentes (aqui, lista vazia SEMPRE quer
+      dizer "nada oculto", nunca "ainda não configurado").
+    - **RPC `meus_slides_ocultos_relatorio()`** (SECURITY DEFINER, mesmo
+      padrão de `minhas_permissoes()`): devolve os `slide_n` ocultos do
+      perfil do usuário logado. Admin nunca chama — ignora perfis, enxerga
+      sempre a apresentação completa (`App.jsx` passa `slidesOcultos={new
+      Set()}` quando `isAdmin`).
+    - **RPC `salvar_slides_ocultos_relatorio(p_perfil_id, p_ocultos)`**
+      (admin-only, substituição atômica — mesmo padrão de
+      `salvar_perfil_acesso`): chamada por `AbaPerfis.jsx` logo após
+      `salvar_perfil_acesso` (captura o id retornado, necessário para perfil
+      **novo**).
+    - **Front:** `permissoes.js` ganhou `carregarSlidesOcultosRelatorio`;
+      `App.jsx` busca só quando o usuário tem `relatorio.ver` (evita RPC
+      desnecessária) e guarda em `slidesOcultosRelatorio` (reset no
+      logout); `PaginaRelatorio.jsx` recebe a prop `slidesOcultos` e
+      filtra `MODELO_INSTITUCIONAL.slides` antes de resolver/renderizar —
+      afeta a apresentação inteira (slides, índice "Ir para slide…" e
+      "Baixar todos", que usam a lista já filtrada).
+    - Sem RPC/permissão nova no catálogo `permissoes_catalogo` — é um
+      mecanismo paralelo, ortogonal à matriz de permissões existente (não
+      precisou de entrada em `PERM_DESCRICAO`/`TODAS_PERMISSOES`).
 
 - **Módulo "Multas" (Trilha A, A4 — 16/07/2026):** módulo de topo (padrão
   Emergências/Apresentação: boolean `mostrarMultas` no `App.jsx`), cor

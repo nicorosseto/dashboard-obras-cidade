@@ -3,9 +3,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase.js'
 import { traduzErro } from '../../lib/mensagens.js'
+import { MODELO_INSTITUCIONAL } from '../../lib/relatorio.js'
 import { LoadingInline } from '../Loading.jsx'
 import ThSort from '../ThSort.jsx'
 import { ModalConfirmacao, sortArr } from './shared.jsx'
+
+// Todos os números de slide do modelo institucional, na ordem — usado como
+// "universo completo" para o seletor de slides do módulo Apresentação
+// (perfil sem restrição configurada = todos marcados/visíveis).
+const TODOS_SLIDES_N = MODELO_INSTITUCIONAL.slides.map((s) => s.n)
 
 // Exportado para reuso em AbaPerfisDemo.jsx (modo demo, somente leitura).
 export const MODULO_LABEL = {
@@ -60,6 +66,7 @@ export default function AbaPerfis() {
   const [perfis, setPerfis] = useState([])
   const [catalogo, setCatalogo] = useState([])
   const [permPorPerfil, setPermPorPerfil] = useState({}) // {perfilId: Set}
+  const [slidesOcultosPorPerfil, setSlidesOcultosPorPerfil] = useState({}) // {perfilId: Set<n>}
   const [usuariosPorPerfil, setUsuariosPorPerfil] = useState({}) // {perfilId: n}
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
@@ -69,6 +76,11 @@ export default function AbaPerfis() {
   const [formNome, setFormNome] = useState('')
   const [formDescricao, setFormDescricao] = useState('')
   const [formPerms, setFormPerms] = useState(new Set())
+  // Slides do módulo Apresentação visíveis para este perfil (só relevante
+  // com 'relatorio.ver' marcado) — universo completo por padrão.
+  const [formSlidesVisiveis, setFormSlidesVisiveis] = useState(
+    new Set(TODOS_SLIDES_N)
+  )
   const [salvando, setSalvando] = useState(false)
   const [sortKeyPerfil, setSortKeyPerfil] = useState(null)
   const [sortDirPerfil, setSortDirPerfil] = useState('asc')
@@ -86,7 +98,7 @@ export default function AbaPerfis() {
   async function carregar() {
     setCarregando(true)
     setErro(null)
-    const [rPerfis, rCat, rPP, rUsers] = await Promise.all([
+    const [rPerfis, rCat, rPP, rUsers, rSlides] = await Promise.all([
       supabase.from('perfis_acesso').select('*').order('nome'),
       supabase
         .from('permissoes_catalogo')
@@ -95,8 +107,12 @@ export default function AbaPerfis() {
         .order('ordem'),
       supabase.from('perfil_permissoes').select('perfil_id, permissao'),
       supabase.from('profiles').select('id, perfil_acesso_id'),
+      supabase
+        .from('relatorio_perfil_slides_ocultos')
+        .select('perfil_id, slide_n'),
     ])
-    const falha = rPerfis.error || rCat.error || rPP.error || rUsers.error
+    const falha =
+      rPerfis.error || rCat.error || rPP.error || rUsers.error || rSlides.error
     if (falha) {
       setErro(traduzErro(falha.message))
       setCarregando(false)
@@ -110,6 +126,12 @@ export default function AbaPerfis() {
       pp[perfil_id].add(permissao)
     }
     setPermPorPerfil(pp)
+    const so = {}
+    for (const { perfil_id, slide_n } of rSlides.data || []) {
+      if (!so[perfil_id]) so[perfil_id] = new Set()
+      so[perfil_id].add(slide_n)
+    }
+    setSlidesOcultosPorPerfil(so)
     const up = {}
     for (const { perfil_acesso_id } of rUsers.data || []) {
       if (perfil_acesso_id != null)
@@ -149,6 +171,7 @@ export default function AbaPerfis() {
     setFormNome('')
     setFormDescricao('')
     setFormPerms(new Set())
+    setFormSlidesVisiveis(new Set(TODOS_SLIDES_N))
     setMsg(null)
   }
 
@@ -157,6 +180,10 @@ export default function AbaPerfis() {
     setFormNome(perfil.nome)
     setFormDescricao(perfil.descricao || '')
     setFormPerms(new Set(permPorPerfil[perfil.id] || []))
+    const ocultos = slidesOcultosPorPerfil[perfil.id] || new Set()
+    setFormSlidesVisiveis(
+      new Set(TODOS_SLIDES_N.filter((n) => !ocultos.has(n)))
+    )
     setMsg(null)
   }
 
@@ -165,6 +192,17 @@ export default function AbaPerfis() {
     if (next.has(codigo)) next.delete(codigo)
     else next.add(codigo)
     setFormPerms(next)
+  }
+
+  function toggleSlide(n) {
+    const next = new Set(formSlidesVisiveis)
+    if (next.has(n)) next.delete(n)
+    else next.add(n)
+    setFormSlidesVisiveis(next)
+  }
+
+  function toggleTodosSlides(marcarTodos) {
+    setFormSlidesVisiveis(marcarTodos ? new Set(TODOS_SLIDES_N) : new Set())
   }
 
   // Marcar o módulo marca/desmarca todas as permissões dele de uma vez
@@ -185,13 +223,22 @@ export default function AbaPerfis() {
     setSalvando(true)
     setMsg(null)
     try {
-      const { error } = await supabase.rpc('salvar_perfil_acesso', {
-        p_nome: nome,
-        p_descricao: formDescricao.trim() || null,
-        p_permissoes: [...formPerms],
-        p_id: editando === 'novo' ? null : editando,
-      })
+      const { data: perfilId, error } = await supabase.rpc(
+        'salvar_perfil_acesso',
+        {
+          p_nome: nome,
+          p_descricao: formDescricao.trim() || null,
+          p_permissoes: [...formPerms],
+          p_id: editando === 'novo' ? null : editando,
+        }
+      )
       if (error) throw error
+      const ocultos = TODOS_SLIDES_N.filter((n) => !formSlidesVisiveis.has(n))
+      const { error: errSlides } = await supabase.rpc(
+        'salvar_slides_ocultos_relatorio',
+        { p_perfil_id: perfilId, p_ocultos: ocultos }
+      )
+      if (errSlides) throw errSlides
       setMsg({
         tipo: 'ok',
         texto: `Perfil "${nome}" salvo com ${formPerms.size} permissão(ões). Vale imediatamente para todos os usuários deste perfil.`,
@@ -345,6 +392,60 @@ export default function AbaPerfis() {
               )
             })}
           </div>
+
+          {/* Slides do módulo Apresentação (só com relatorio.ver marcado) */}
+          {formPerms.has('relatorio.ver') && (
+            <div className="bg-white rounded-sm border border-grey-line p-2">
+              <div className="flex items-center justify-between gap-2 pb-1.5 mb-1.5 border-b border-grey-line">
+                <span className="text-xs font-bold text-navy uppercase">
+                  Slides do módulo Apresentação
+                </span>
+                <span className="text-[10px] text-gray-500 shrink-0">
+                  {formSlidesVisiveis.size} de {TODOS_SLIDES_N.length} visíveis
+                </span>
+              </div>
+              <p className="text-[10px] text-gray-500 mb-1.5">
+                Desmarque os slides que este perfil NÃO deve ver na
+                Apresentação. Por padrão, todos ficam visíveis.
+              </p>
+              <div className="flex gap-3 mb-1.5">
+                <button
+                  type="button"
+                  onClick={() => toggleTodosSlides(true)}
+                  className="text-[10px] text-navy font-semibold hover:underline"
+                >
+                  Marcar todos
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleTodosSlides(false)}
+                  className="text-[10px] text-navy font-semibold hover:underline"
+                >
+                  Desmarcar todos
+                </button>
+              </div>
+              <div className="max-h-64 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 pr-1">
+                {MODELO_INSTITUCIONAL.slides.map((s) => (
+                  <label
+                    key={s.n}
+                    className="flex items-start gap-2 cursor-pointer hover:bg-grey-bg rounded-sm px-1 py-0.5"
+                    title={s.titulo}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formSlidesVisiveis.has(s.n)}
+                      onChange={() => toggleSlide(s.n)}
+                      className="accent-navy mt-0.5"
+                    />
+                    <span className="text-[11px] text-gray-700 leading-tight">
+                      <span className="font-mono text-navy/70">{s.n}</span> —{' '}
+                      {s.titulo}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Legenda do que cada permissão libera */}
           {catalogo.length > 0 && (

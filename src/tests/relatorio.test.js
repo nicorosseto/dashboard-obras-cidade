@@ -61,6 +61,7 @@ describe('MODELO_INSTITUCIONAL (seed)', () => {
     expect(new Set(ns).size).toBe(ns.length)
     for (let i = 1; i < ns.length; i++) expect(ns[i]).toBeGreaterThan(ns[i - 1])
     for (const removido of [22, 35, 36, 37]) expect(ns).not.toContain(removido)
+    expect(ns).toContain(16.1)
     expect(ns).toContain(20.1)
     // PDF completo (52 páginas): slides 38–52 presentes
     for (let n = 38; n <= 52; n++) expect(ns).toContain(n)
@@ -73,11 +74,11 @@ describe('MODELO_INSTITUCIONAL (seed)', () => {
     }
   })
 
-  it('distribuição das categorias: 29 dados · 19 texto · 1 futuro (49 slides)', () => {
+  it('distribuição das categorias: 30 dados · 19 texto · 1 futuro (50 slides)', () => {
     const conta = { dados: 0, texto: 0, futuro: 0 }
     for (const s of MODELO_INSTITUCIONAL.slides) conta[s.categoria]++
-    expect(conta).toEqual({ dados: 29, texto: 19, futuro: 1 })
-    expect(MODELO_INSTITUCIONAL.slides).toHaveLength(49)
+    expect(conta).toEqual({ dados: 30, texto: 19, futuro: 1 })
+    expect(MODELO_INSTITUCIONAL.slides).toHaveLength(50)
   })
 
   it('fisc_por_regiao e fisc_andamento_por_regiao agregam por região (slides 38/39)', () => {
@@ -264,6 +265,18 @@ describe('resolverDadosSlide — agregações', () => {
     ])
     expect(r.kpis.find((k) => k.rotulo === 'Geometria').valor).toBe(0) // fixa mesmo zerada
     expect(r.kpis.find((k) => k.resto).valor).toBe(2) // sarjeta + guia
+  })
+
+  it('geo_norcrest_por_unidade: só NORCREST, agrupado por unidade, ignora o filtro de permissionária (slide 16.1)', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('geo_norcrest_por_unidade'), bases, { permissionaria: 'WINSLOW' })
+    // GEO: 'NORCREST - NCR' e 'NORCREST - NCJ', 1 cada; WINSLOW e HARGROVE ficam fora.
+    expect(r.dados).toHaveLength(2)
+    expect(r.dados.every((d) => d.valor === 1)).toBe(true)
+    expect(r.dados.map((d) => d.nome).sort()).toEqual(['NCJ', 'NCR'])
+    expect(r.contexto).toEqual([
+      { rotulo: 'Total de protocolos no Sistema Geo', valor: '4' },
+      { rotulo: 'Total de protocolos da NORCREST no Sistema Geo', valor: '2' },
+    ])
   })
 
   it('emerg_norcrest_por_unidade agrupa NCRV/NCRS→NCR e NCJL→NCJ', () => {

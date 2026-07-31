@@ -92,6 +92,19 @@ export async function carregarPermissoes(isAdmin) {
   return new Set(data || [])
 }
 
+// Slides do módulo Apresentação ocultos para o perfil do usuário logado
+// (supabase/schema/26-relatorio-slides-perfil.sql). Semântica de blocklist:
+// vazio = nada oculto = apresentação completa (mesmo comportamento de antes
+// dessa granularidade existir). Admin/demo nunca consultam o banco — sempre
+// enxergam tudo (mesma regra de carregarPermissoes).
+export async function carregarSlidesOcultosRelatorio(isAdmin) {
+  if (ehModoDemo() || isAdmin) return new Set()
+  const { supabase } = await import('./supabase.js')
+  const { data, error } = await supabase.rpc('meus_slides_ocultos_relatorio')
+  if (error) throw error
+  return new Set(data || [])
+}
+
 // IDs das abas que o usuário pode ver numa seção, na ordem original.
 export function abasPermitidas(permissoes, secao) {
   const mapa = PERMISSAO_POR_ABA[secao] || {}
