@@ -39,7 +39,7 @@ import {
   fmtNumero,
   fmtAreaDecimal,
 } from './aggregations.js'
-import { nomeCurtoPermissionaria } from './emergencias.js'
+import { nomeCurtoPermissionaria, fmtMesAno } from './emergencias.js'
 
 // ── Categorias de slide (contorno visual) ──────────────────────────────────
 export const CATEGORIA = {
@@ -197,6 +197,18 @@ function mensalPorAno(rows) {
       itens: totaisAnuais(rows).map((t) => ({ ano: t.label, valor: t.value })),
     },
   }
+}
+
+// "AAAA-Tn" (o `_sort` de evolucaoTrimestral) → mês em que o trimestre se
+// ENCERRA, no formato "jun/2026" (slide 20.1 — ver o case
+// 'fisc_soluc_trimestral'). T1→mar · T2→jun · T3→set · T4→dez. Devolve null
+// se a chave não estiver no formato esperado, para o chamador cair no
+// rótulo original em vez de exibir algo quebrado.
+export function mesFimTrimestre(sortKey) {
+  const m = String(sortKey || '').match(/^(\d{4})-T([1-4])$/)
+  if (!m) return null
+  const mesFim = Number(m[2]) * 3
+  return fmtMesAno(`${m[1]}-${String(mesFim).padStart(2, '0')}`)
 }
 
 // Unidade da NORCREST a partir do nome (fisc: "NORCREST - NCR" / "NORCREST/NCR").
@@ -818,14 +830,22 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
       }
     }
     case 'fisc_soluc_trimestral': {
+      // Rótulo do eixo é o MÊS DE ENCERRAMENTO do trimestre + ano
+      // ("jun/2026" em vez de "T2 2026") — pedido do usuário em 30/07/2026:
+      // a apresentação institucional comunica melhor com a data de fecho do
+      // que com a numeração do trimestre. A ordenação NÃO muda (vem do
+      // `_sort` de evolucaoTrimestral, no formato "AAAA-Tn").
       const dados = evolucaoTrimestral(fisc, 'solucionado').map((d) => ({
-        nome: d.periodo,
+        nome: mesFimTrimestre(d._sort) || d.periodo,
         valor: d.valor,
       }))
       return {
         ...base,
         dados,
-        colunas: [{ key: 'nome', label: 'Trimestre' }, { key: 'valor', label: 'Solucionados' }],
+        colunas: [
+          { key: 'nome', label: 'Trimestre (mês de encerramento)' },
+          { key: 'valor', label: 'Solucionados' },
+        ],
       }
     }
     case 'fisc_avanco': {

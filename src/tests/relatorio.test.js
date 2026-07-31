@@ -8,6 +8,7 @@ import {
   normUnidadeNorcrest,
   resolverDadosSlide,
   enriquecerExport,
+  mesFimTrimestre,
 } from '../lib/relatorio.js'
 
 // ── Fixtures mínimas ──────────────────────────────────────────────────
@@ -115,6 +116,22 @@ describe('helpers', () => {
   it('listaPermissionariasRelatorio consolida NORCREST e ordena por volume', () => {
     expect(listaPermissionariasRelatorio(GEO)).toEqual(['NORCREST', 'WINSLOW', 'HARGROVE'])
   })
+
+  // Rótulo do slide 20.1 (30/07/2026): mês em que o trimestre se encerra.
+  it('mesFimTrimestre mapeia T1→mar, T2→jun, T3→set, T4→dez', () => {
+    expect(mesFimTrimestre('2026-T1')).toBe('mar/2026')
+    expect(mesFimTrimestre('2026-T2')).toBe('jun/2026')
+    expect(mesFimTrimestre('2026-T3')).toBe('set/2026')
+    expect(mesFimTrimestre('2026-T4')).toBe('dez/2026')
+  })
+
+  it('mesFimTrimestre devolve null em chave fora do formato (chamador usa o rótulo original)', () => {
+    expect(mesFimTrimestre('T2 2026')).toBeNull() // formato de exibição, não o _sort
+    expect(mesFimTrimestre('2026-T5')).toBeNull()
+    expect(mesFimTrimestre('')).toBeNull()
+    expect(mesFimTrimestre(null)).toBeNull()
+    expect(mesFimTrimestre(undefined)).toBeNull()
+  })
 })
 
 // ── Resolver: casos gerais ────────────────────────────────────────────
@@ -221,9 +238,11 @@ describe('resolverDadosSlide — agregações', () => {
     expect(amarelo.texto).toContain('374,3') // 200 + 374,3 mi ≈ 374,3 mi
   })
 
-  it('fisc_soluc_trimestral agrega solucionados por trimestre (slide 20.1)', () => {
+  it('fisc_soluc_trimestral rotula pelo mês de encerramento do trimestre (slide 20.1)', () => {
     const r = resolverDadosSlide(slidePorAgregacao('fisc_soluc_trimestral'), bases)
-    expect(r.dados).toEqual([{ nome: 'T1 2025', valor: 1 }]) // V2 concluída em mar/2025
+    // V2 concluída em mar/2025 → T1 2025, exibido como o mês de fecho
+    expect(r.dados).toEqual([{ nome: 'mar/2025', valor: 1 }])
+    expect(r.colunas[0].label).toBe('Trimestre (mês de encerramento)')
   })
 
   it('fisc_nc_vs_andamento_norcrest agrupa unidades (NCRV→NCR) e traz % 1 casa', () => {
