@@ -642,6 +642,36 @@ function parseDash(linhasXml: Linha[]): Record<string, unknown>[] {
   return linhas
 }
 
+// Validação de sanidade dos blocos do DASH (achado de 30/07/2026): o
+// `parseDash` acima só avança `blocoAtual` quando reconhece a linha de
+// cabeçalho de um bloco (coluna B === "QTDE DE OBRAS" + rótulo da coluna A
+// batendo em `normalizarRotuloBloco`). Se o cabeçalho de UM bloco não bater
+// por qualquer motivo (espaço extra, variação de texto…), `blocoAtual` NÃO
+// avança e as linhas seguintes ficam marcadas com o bloco ANTERIOR — sem
+// nenhum erro visível. Sintoma real observado no gráfico "Série Histórica
+// por Ano" (Visão Geral do GT Obras): o bloco "2025/2026" mostrava um total
+// muito maior que o esperado, perto da soma dos 3 blocos anuais — indício
+// de que a linha "Total Geral" (bloco à parte) ficou marcada como se fosse
+// do bloco "2025/2026" e sobrescreveu a linha certa no dedup por
+// `bloco|permissionaria` (upsert). Trava aqui: cada um dos 4 blocos
+// esperados precisa ter EXATAMENTE 1 linha com `tipo_linha === 'total'` —
+// zero indica que o cabeçalho do bloco não foi reconhecido (linhas foram
+// parar no bloco anterior); mais de uma indica a mesma coisa no bloco que
+// "roubou" as linhas.
+function validarBlocosDash(linhas: Record<string, unknown>[]) {
+  const BLOCOS_ESPERADOS = ['2023', '2024', '2025_2026', 'total_geral']
+  for (const bloco of BLOCOS_ESPERADOS) {
+    const totais = linhas.filter(
+      (l) => l.bloco === bloco && l.tipo_linha === 'total'
+    )
+    if (totais.length !== 1) {
+      throw new Error(
+        `Bloco "${bloco}" da aba "${ABA_DASH}" tem ${totais.length} linha(s) "Total Geral" (esperado: 1). Isso costuma indicar que o cabeçalho de um bloco vizinho não foi reconhecido e as linhas ficaram marcadas com o bloco errado. Abortando sincronização (senão a "Série Histórica por Ano" fica incorreta).`
+      )
+    }
+  }
+}
+
 // ── CORS ────────────────────────────────────────────────────────────
 // O botão "Atualizar agora" chama esta função DO NAVEGADOR — sem estes
 // headers o preflight OPTIONS falha (mesma lição do sync-multas,
@@ -739,6 +769,7 @@ Deno.serve(async (req: Request) => {
 
     const linhasBase = parseCompatibCamila(linhasBaseXml)
     const linhasDashParsed = parseDash(linhasDashXml)
+    validarBlocosDash(linhasDashParsed)
     console.log(
       `[sync-gt-obras] parsing OK: ${linhasBase.length} linhas (base), ${linhasDashParsed.length} linhas (dash)`
     )
@@ -795,6 +826,17 @@ Deno.serve(async (req: Request) => {
       porBlocoPerm.set(`${l.bloco}|${l.permissionaria}`, l)
     }
     const linhasDashDedup = [...porBlocoPerm.values()]
+    const duplicadosDash = linhasDashParsed.length - linhasDashDedup.length
+    if (duplicadosDash > 0) {
+      // Mesmo padrão do log de `duplicadosBase` acima — antes deste achado
+      // (30/07/2026) essa colisão era silenciosa; `validarBlocosDash` já
+      // aborta se a colisão for do tipo "bloco inteiro perdido", mas vale
+      // saber se sobrou alguma colisão pontual (ex.: permissionária citada
+      // 2x dentro do mesmo bloco).
+      console.log(
+        `[sync-gt-obras] ${duplicadosDash} linha(s) duplicada(s) no dash (mesma bloco+permissionária) — mantida a última ocorrência`
+      )
+    }
 
     for (let i = 0; i < linhasDashDedup.length; i += LOTE) {
       const lote = linhasDashDedup.slice(i, i + LOTE)

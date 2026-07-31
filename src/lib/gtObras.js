@@ -174,6 +174,87 @@ export function kpisGt(linhas) {
   return { total, compatibilizadas, paralisadas, metragem, pct }
 }
 
+// KPIs consolidados de TODOS OS ANOS (30/07/2026, achado do usuário) —
+// diferente de kpisGt(linhas) acima, que só cobre `gt_obras`. `gt_obras`
+// vem da aba `COMPATIB. CAMILA`, a base GRANULAR, que só tem dados recentes
+// (2025/2026 — ver docs/plano-modulo-gt-obras.md, seção 2: "88% é
+// 2025/2026, confirma que esta aba é o recorte recente"). 2023 e 2024 só
+// existem na aba `DASH (GT)` (tabela `gt_dash`), já pré-somados por
+// permissionária × ano na própria planilha — não há como "recalcular"
+// esses 2 anos a partir de linhas granulares porque elas não existem no
+// banco. Por isso os KPIs de topo da Visão Geral usam o bloco
+// `total_geral` do DASH (a soma dos 3 blocos anuais, já pronta na
+// planilha), não `kpisGt`.
+export function kpisGtTotalGeral(gtDash) {
+  const linha = (gtDash || []).find(
+    (d) => d.bloco === 'total_geral' && d.tipo_linha === 'total'
+  )
+  const total = Number(linha?.qtde_obras) || 0
+  const compatibilizadas = Number(linha?.obras_compatibilizadas) || 0
+  const paralisadas = Number(linha?.obras_paralisadas) || 0
+  const metragem = Number(linha?.metragem_compatibilizada) || 0
+  const pct = total > 0 ? (compatibilizadas / total) * 100 : 0
+  return { total, compatibilizadas, paralisadas, metragem, pct }
+}
+
+// KPIs de TODOS OS ANOS para uma seleção de permissionárias (30/07/2026,
+// pedido do usuário). O bloco `total_geral` do DASH tem uma linha POR
+// PERMISSIONÁRIA, já somando os 3 blocos anuais — então filtrar por
+// permissionária é o único filtro da sidebar que consegue manter o escopo
+// "todos os anos" (ano é outro eixo — ver bloco de comentário em
+// `aplicarFiltrosGt`; status/subprefeitura/recape simplesmente não existem
+// no DASH).
+//
+// ⚠️ Soma só `tipo_linha === 'permissionaria'`: as linhas de agrupamento
+// ("Total Norcrest+Winslow", "OUTROS") REPETEM valores já contados nas linhas
+// individuais — incluí-las duplicaria. Casamento pela mesma régua de
+// `aplicarFiltrosGt` (NORCREST consolidada pega todas as unidades).
+//
+// Devolve `null` quando NENHUMA linha do DASH casa com a seleção — caso
+// real: permissionária pequena que a planilha joga dentro do balde
+// "OUTROS", sem linha própria. Nesse caso o chamador monta os KPIs dela a
+// partir da base granular (só 2025/2026), em vez de mostrar zero.
+export function kpisGtPermissionariasDash(gtDash, permissionarias) {
+  const permSet =
+    permissionarias instanceof Set ? permissionarias : new Set()
+  if (permSet.size === 0) return null
+  const usaNorcrestCons = permSet.has('NORCREST')
+
+  const linhas = (gtDash || []).filter((d) => {
+    if (d.bloco !== 'total_geral' || d.tipo_linha !== 'permissionaria')
+      return false
+    const p = String(d.permissionaria || '')
+    if (usaNorcrestCons && p.toUpperCase().startsWith('NORCREST')) return true
+    // Casa pelo nome cru e pelo consolidado — a grafia do DASH pode diferir
+    // da do gt_obras (que é quem alimenta as opções do filtro).
+    return permSet.has(p) || permSet.has(consolidarNorcrest(p))
+  })
+  if (linhas.length === 0) return null
+
+  const soma = (campo) =>
+    linhas.reduce((acc, l) => acc + (Number(l[campo]) || 0), 0)
+  const total = soma('qtde_obras')
+  const compatibilizadas = soma('obras_compatibilizadas')
+  const paralisadas = soma('obras_paralisadas')
+  const metragem = soma('metragem_compatibilizada')
+  const pct = total > 0 ? (compatibilizadas / total) * 100 : 0
+  return { total, compatibilizadas, paralisadas, metragem, pct }
+}
+
+// Só a seleção de permissionária consegue manter o escopo "todos os anos"
+// (ver kpisGtPermissionariasDash). Qualquer outro filtro ativo obriga a
+// cair na base granular — 2025/2026.
+export function soFiltroPermissionariaGt(filtros) {
+  const c = (s) => (s instanceof Set ? s.size : 0)
+  const f = filtros || {}
+  return (
+    c(f.permissionarias) > 0 &&
+    c(f.statusGrupo) === 0 &&
+    c(f.subprefeituras) === 0 &&
+    c(f.anos) === 0
+  )
+}
+
 // ── Agregações para os gráficos (seção 8.1/8.2 do plano) ──────────────
 // Todas contam por PROCESSO (agruparGtPorProcesso), não por via/linha —
 // exceto `agregaGtPorSituacaoRecape`, que é sobre a via (a situação do

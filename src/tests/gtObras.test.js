@@ -8,6 +8,9 @@ import {
   STATUS_PENDENCIA_ESPERA,
   agruparGtPorProcesso,
   kpisGt,
+  kpisGtTotalGeral,
+  kpisGtPermissionariasDash,
+  soFiltroPermissionariaGt,
   agregaGtPorStatusGrupo,
   agregaGtPorStatus,
   agregaGtPorStatusEAno,
@@ -289,6 +292,141 @@ describe('kpisGt', () => {
       metragem: 180, // soma das 3 vias de P1
       pct: 50,
     })
+  })
+})
+
+// ── kpisGtTotalGeral (30/07/2026: achado do usuário — gt_obras só cobre
+// 2025/2026, "COMPATIB. CAMILA" é o recorte recente; 2023/2024 só existem
+// no bloco total_geral do DASH) ──────────────────────────────────────────
+describe('kpisGtTotalGeral', () => {
+  it('lê o bloco total_geral (soma dos 3 anos, já pronta na planilha)', () => {
+    const gtDash = [
+      { bloco: '2023', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 528, obras_compatibilizadas: 446, obras_paralisadas: 82, metragem_compatibilizada: 12000 },
+      { bloco: '2024', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 754, obras_compatibilizadas: 655, obras_paralisadas: 99, metragem_compatibilizada: 18000 },
+      { bloco: '2025_2026', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 1853, obras_compatibilizadas: 1408, obras_paralisadas: 445, metragem_compatibilizada: 40000 },
+      { bloco: 'total_geral', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 3135, obras_compatibilizadas: 2509, obras_paralisadas: 626, metragem_compatibilizada: 70000 },
+    ]
+    expect(kpisGtTotalGeral(gtDash)).toEqual({
+      total: 3135,
+      compatibilizadas: 2509,
+      paralisadas: 626,
+      metragem: 70000,
+      pct: (2509 / 3135) * 100,
+    })
+  })
+
+  it('ignora linhas de outros blocos/tipos (não soma os 3 anos na mão)', () => {
+    const gtDash = [
+      { bloco: '2023', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 528, obras_compatibilizadas: 446, obras_paralisadas: 82 },
+      { bloco: 'total_geral', permissionaria: 'NORCREST', tipo_linha: 'permissionaria', qtde_obras: 1000, obras_compatibilizadas: 800, obras_paralisadas: 200 },
+      { bloco: 'total_geral', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 3135, obras_compatibilizadas: 2509, obras_paralisadas: 626 },
+    ]
+    expect(kpisGtTotalGeral(gtDash).total).toBe(3135)
+  })
+
+  it('sem bloco total_geral, devolve tudo zerado (não quebra)', () => {
+    expect(kpisGtTotalGeral([])).toEqual({
+      total: 0,
+      compatibilizadas: 0,
+      paralisadas: 0,
+      metragem: 0,
+      pct: 0,
+    })
+    expect(kpisGtTotalGeral(null)).toEqual({
+      total: 0,
+      compatibilizadas: 0,
+      paralisadas: 0,
+      metragem: 0,
+      pct: 0,
+    })
+  })
+})
+
+// ── kpisGtPermissionariasDash / soFiltroPermissionariaGt (30/07/2026:
+// filtro de permissionária é o único que consegue manter "todos os anos",
+// lendo o breakdown por permissionária do bloco total_geral) ─────────────
+describe('kpisGtPermissionariasDash', () => {
+  const gtDash = [
+    // Bloco anual — NÃO deve ser somado (já está dentro do total_geral)
+    { bloco: '2023', permissionaria: 'NORCREST', tipo_linha: 'permissionaria', qtde_obras: 200, obras_compatibilizadas: 180, obras_paralisadas: 20, metragem_compatibilizada: 5000 },
+    // Bloco total_geral — a fonte certa
+    { bloco: 'total_geral', permissionaria: 'NORCREST', tipo_linha: 'permissionaria', qtde_obras: 1000, obras_compatibilizadas: 800, obras_paralisadas: 200, metragem_compatibilizada: 30000 },
+    { bloco: 'total_geral', permissionaria: 'WINSLOW', tipo_linha: 'permissionaria', qtde_obras: 500, obras_compatibilizadas: 400, obras_paralisadas: 100, metragem_compatibilizada: 15000 },
+    // Agrupamentos: REPETEM valores das linhas individuais — não podem entrar
+    { bloco: 'total_geral', permissionaria: 'Total Norcrest+Winslow', tipo_linha: 'agrupamento', qtde_obras: 1500, obras_compatibilizadas: 1200, obras_paralisadas: 300 },
+    { bloco: 'total_geral', permissionaria: 'OUTROS', tipo_linha: 'agrupamento', qtde_obras: 635, obras_compatibilizadas: 509, obras_paralisadas: 126 },
+    { bloco: 'total_geral', permissionaria: 'Total Geral', tipo_linha: 'total', qtde_obras: 3135, obras_compatibilizadas: 2509, obras_paralisadas: 626 },
+  ]
+
+  it('lê a linha da permissionária no bloco total_geral (todos os anos)', () => {
+    const r = kpisGtPermissionariasDash(gtDash, new Set(['WINSLOW']))
+    expect(r).toEqual({
+      total: 500,
+      compatibilizadas: 400,
+      paralisadas: 100,
+      metragem: 15000,
+      pct: 80,
+    })
+  })
+
+  it('soma várias permissionárias selecionadas', () => {
+    const r = kpisGtPermissionariasDash(gtDash, new Set(['NORCREST', 'WINSLOW']))
+    expect(r.total).toBe(1500) // 1000 + 500 — não os 1500 da linha de agrupamento
+    expect(r.compatibilizadas).toBe(1200)
+  })
+
+  it('ignora blocos anuais e linhas de agrupamento/total (não duplica)', () => {
+    // NORCREST tem 200 no bloco 2023 e 1000 no total_geral — só o segundo vale
+    expect(kpisGtPermissionariasDash(gtDash, new Set(['NORCREST'])).total).toBe(1000)
+  })
+
+  it('NORCREST consolidada pega as unidades com sufixo', () => {
+    const comUnidades = [
+      { bloco: 'total_geral', permissionaria: 'NORCREST/NCR', tipo_linha: 'permissionaria', qtde_obras: 600, obras_compatibilizadas: 500, obras_paralisadas: 100 },
+      { bloco: 'total_geral', permissionaria: 'NORCREST/NCJ', tipo_linha: 'permissionaria', qtde_obras: 400, obras_compatibilizadas: 300, obras_paralisadas: 100 },
+      { bloco: 'total_geral', permissionaria: 'HARGROVE', tipo_linha: 'permissionaria', qtde_obras: 100, obras_compatibilizadas: 90, obras_paralisadas: 10 },
+    ]
+    expect(kpisGtPermissionariasDash(comUnidades, new Set(['NORCREST'])).total).toBe(1000)
+  })
+
+  it('devolve null quando a permissionária não tem linha própria (balde OUTROS)', () => {
+    // O chamador usa esse null para montar os KPIs dela do granular
+    expect(kpisGtPermissionariasDash(gtDash, new Set(['KELLARD']))).toBeNull()
+  })
+
+  it('devolve null sem seleção ou sem dados', () => {
+    expect(kpisGtPermissionariasDash(gtDash, new Set())).toBeNull()
+    expect(kpisGtPermissionariasDash([], new Set(['NORCREST']))).toBeNull()
+    expect(kpisGtPermissionariasDash(null, new Set(['NORCREST']))).toBeNull()
+  })
+})
+
+describe('soFiltroPermissionariaGt', () => {
+  it('true só quando permissionária é o ÚNICO filtro ativo', () => {
+    expect(
+      soFiltroPermissionariaGt({
+        ...FILTROS_VAZIOS_GT,
+        permissionarias: new Set(['NORCREST']),
+      })
+    ).toBe(true)
+  })
+
+  it('false quando combina com status/subprefeitura/ano', () => {
+    const base = { ...FILTROS_VAZIOS_GT, permissionarias: new Set(['NORCREST']) }
+    expect(
+      soFiltroPermissionariaGt({ ...base, statusGrupo: new Set(['paralisada']) })
+    ).toBe(false)
+    expect(
+      soFiltroPermissionariaGt({ ...base, subprefeituras: new Set(['SE']) })
+    ).toBe(false)
+    expect(soFiltroPermissionariaGt({ ...base, anos: new Set([2025]) })).toBe(
+      false
+    )
+  })
+
+  it('false sem nenhum filtro ou com filtros nulos', () => {
+    expect(soFiltroPermissionariaGt(FILTROS_VAZIOS_GT)).toBe(false)
+    expect(soFiltroPermissionariaGt(null)).toBe(false)
   })
 })
 
