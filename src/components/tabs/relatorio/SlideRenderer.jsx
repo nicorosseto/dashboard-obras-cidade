@@ -314,6 +314,28 @@ function CabecalhoSlide({ slide }) {
   )
 }
 
+// Aviso de "dado parcial" (pedido do usuário em 31/07/2026): o campo-fonte de
+// alguns slides não está preenchido em 100% da base — sem isso, as linhas sem
+// o dado somem do gráfico (ou entram como zero) sem nenhum aviso. Faixas de
+// severidade escolhidas pelo usuário: ≥99% não mostra nada, 90–99% cinza
+// discreto, <90% âmbar. Entra na imagem exportada de propósito (sem
+// data-no-export) — é informação da análise, não controle de UI.
+function AvisoCompletude({ completude }) {
+  if (!completude || completude.pct >= 99) return null
+  const grave = completude.pct < 90
+  const pctFmt = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(completude.pct)
+  return (
+    <div
+      className={`mb-2 rounded-md border px-3 py-2 text-xs ${grave ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-slate-200 bg-slate-50 text-slate-600'}`}
+    >
+      {grave ? '⚠️' : 'ℹ️'} <strong>Dado parcial:</strong> {pctFmt}% dos registros
+      têm {completude.rotulo} preenchido(s) ({fmtNumero(completude.preenchidos)}{' '}
+      de {fmtNumero(completude.total)}). Os demais não têm esse dado e podem
+      estar sub-representados nesta análise.
+    </div>
+  )
+}
+
 // Corpo com coluna à direita (destaques, painel de anos, lista de %).
 function CorpoComLateral({ slide, janelaRows, children }) {
   const destaquesLado = slide.destaquePos === 'topo' ? [] : slide.destaques || []
@@ -880,6 +902,8 @@ export default function SlideRenderer({ slide, campos, onCampo }) {
         {!ehCapa && (slide.tituloInterno || slide.subtitulo || slide.contexto || slide.painelTexto) && (
           <CabecalhoSlide slide={slide} />
         )}
+
+        <AvisoCompletude completude={slide.completude} />
 
         {slide.aviso && (
           <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800" data-no-export>

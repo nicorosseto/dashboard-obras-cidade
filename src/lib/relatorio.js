@@ -70,6 +70,20 @@ const pct = (n, d) => (d > 0 ? Math.round((n / d) * 100) : 0)
 // Percentual com 1 casa decimal (listas laterais dos slides 12/29/30/31).
 const pct1 = (n, d) => (d > 0 ? Math.round((n / d) * 1000) / 10 : 0)
 
+// Completude de um campo na base: quantas linhas realmente têm o dado (pedido
+// do usuário em 31/07/2026 — indicador de "dado parcial" nos slides). `rotulo`
+// é o texto exibido no aviso (ex.: "classificação viária"); `preenchido`
+// opcional para campos que não são "vazio simples" (ex.: só 3 valores contam
+// como preenchidos na classificação viária).
+export function completude(rows, campo, rotulo, preenchido) {
+  const total = (rows || []).length
+  const ok = (rows || []).filter(
+    preenchido ||
+      ((r) => r[campo] !== null && r[campo] !== undefined && String(r[campo]).trim() !== '')
+  ).length
+  return { preenchidos: ok, total, pct: pct1(ok, total), rotulo }
+}
+
 const fmtReais = (v) =>
   'R$ ' +
   new Intl.NumberFormat('pt-BR', {
@@ -630,6 +644,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
         colunas: [{ key: 'nome', label: 'Permissionária' }, { key: 'valor', label: 'Processos' }],
         contexto: [{ rotulo: 'Total de protocolos no SistemaGeo', valor: fmtNumero(geoAll.length) }],
         destaques: [{ valor: `${pct(nNorcrest, geoAll.length)}%`, texto: 'das obras e serviços registradas no Sistema Geo são motivadas pela NORCREST' }],
+        completude: completude(geoAll, 'permissionaria', 'permissionária', (r) => !!consolidarNorcrest(r.permissionaria)),
       }
     }
     case 'geo_por_tipo_processo': {
@@ -652,6 +667,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
         ...base,
         ...mensalPorAno(geo),
         contexto: [{ rotulo: 'Total de protocolos no SistemaGeo', valor: fmtNumero(geo.length) }],
+        completude: completude(geo, 'data_cadastro', 'data de cadastro'),
       }
     }
     case 'geo_emerg_mensal': {
@@ -664,6 +680,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { rotulo: 'Total de protocolos no Sistema Geo', valor: fmtNumero(geo.length) },
           { rotulo: "Total de protocolos de 'Emergência' no Sistema Geo", valor: fmtNumero(rows.length) },
         ],
+        completude: completude(rows, 'data_cadastro', 'data de cadastro'),
       }
     }
     case 'geo_total_vs_emerg': {
@@ -684,6 +701,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { rotulo: "Total de protocolos de 'Emergência' no Sistema Geo", valor: fmtNumero(nEmerg) },
         ],
         destaques: [{ valor: `${pct(norcrestEmerg, norcrest.length)}%`, texto: 'das obras da NORCREST registradas no SistemaGeo são categorizadas como Emergência' }],
+        completude: completude(geoAll, 'permissionaria', 'permissionária', (r) => !!consolidarNorcrest(r.permissionaria)),
       }
     }
     case 'geo_emerg_vs_corretiva': {
@@ -716,22 +734,29 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { rotulo: "Total de protocolos de 'Emergência' no SistemaGeo", valor: fmtNumero(totEmerg) },
           { rotulo: "Total de protocolos de 'Manutenção Corretiva' no Sistema Geo", valor: fmtNumero(totCorr) },
         ],
+        completude: completude(geoAll, 'permissionaria', 'permissionária', (r) => !!consolidarNorcrest(r.permissionaria)),
       }
     }
     case 'geo_autorizacoes_anual': {
       const rows = geo.filter((r) => !ehEmergencia(r))
-      return { ...base, ...mensalPorAno(rows) }
+      return { ...base, ...mensalPorAno(rows), completude: completude(rows, 'data_cadastro', 'data de cadastro') }
     }
     case 'geo_emerg_anual': {
       const rows = geo.filter(ehEmergencia)
-      return { ...base, ...mensalPorAno(rows) }
+      return { ...base, ...mensalPorAno(rows), completude: completude(rows, 'data_cadastro', 'data de cadastro') }
     }
     case 'geo_emerg_barra_anual': {
-      const dados = totaisAnuais(geo.filter(ehEmergencia)).map((d) => ({
+      const rowsEmerg = geo.filter(ehEmergencia)
+      const dados = totaisAnuais(rowsEmerg).map((d) => ({
         nome: d.label,
         valor: d.value,
       }))
-      return { ...base, dados, colunas: [{ key: 'nome', label: 'Ano' }, { key: 'valor', label: 'Emergências' }] }
+      return {
+        ...base,
+        dados,
+        colunas: [{ key: 'nome', label: 'Ano' }, { key: 'valor', label: 'Emergências' }],
+        completude: completude(rowsEmerg, 'data_cadastro', 'data de cadastro'),
+      }
     }
     case 'geo_norcrest_por_unidade': {
       // NORCREST-específico (como 17/23/28/31): ignora o seletor de
@@ -804,6 +829,10 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
         nome: mesFimTrimestre(d._sort) || d.periodo,
         valor: d.valor,
       }))
+      // Completude medida só entre os SOLUCIONADOS (única população que este
+      // gráfico de fato usa) — medir em `fisc` inteiro inflaria a lacuna com
+      // linhas que nunca teriam data_conclusao mesmo preenchidas por completo.
+      const soluc = fisc.filter((r) => r.solucionado)
       return {
         ...base,
         dados,
@@ -811,6 +840,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { key: 'nome', label: 'Trimestre (mês de encerramento)' },
           { key: 'valor', label: 'Solucionados' },
         ],
+        completude: completude(soluc, 'data_conclusao', 'data de conclusão'),
       }
     }
     case 'fisc_avanco': {
@@ -833,7 +863,12 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           pct_leg: pct(o.leg, o.total),
           pct_nc: pct(o.nc, o.total),
         }))
-      return { ...base, dados, colunas: [{ key: 'periodo', label: 'Trimestre' }, { key: 'pct_leg', label: '% Legislação Atendida' }, { key: 'pct_nc', label: '% Não Atenderam' }] }
+      return {
+        ...base,
+        dados,
+        colunas: [{ key: 'periodo', label: 'Trimestre' }, { key: 'pct_leg', label: '% Legislação Atendida' }, { key: 'pct_nc', label: '% Não Atenderam' }],
+        completude: completude(fisc, 'data_inicio', 'data de início'),
+      }
     }
     case 'fisc_metragem_norcrest': {
       // Sempre NORCREST (título do slide); soma área (m²) das visitas com NC e
@@ -866,6 +901,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { nome: 'Ainda não solucionado (em andamento)', area_m2: areaAnd, multa_estimada: multa ? areaAnd * multa : null },
         ],
         colunas: [{ key: 'nome', label: 'Situação' }, { key: 'area_m2', label: 'Área (m²)' }, { key: 'multa_estimada', label: 'Multa estimada (R$)' }],
+        completude: completude(rows, 'area_m2', 'área (m²)'),
       }
     }
     case 'fisc_recomposicao': {
@@ -877,11 +913,15 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           ? { estilo: 'amarelo', full: true, texto: `Estimativa de Economia: ${fmtMilhoes(rec.economia)}` }
           : { estilo: 'claro', full: true, texto: 'Informe o custo da recomposição por m² para estimar a economia.' },
       ]
+      // Completude medida só entre as linhas "legislação atendida" — é a
+      // única população cuja área o slide soma (`recomposicaoLegAtendida`).
+      const legAtendida = fisc.filter((r) => r.legislacao_atendida)
       return {
         ...base,
         blocos,
         dados: [{ nome: 'Legislação atendida', area_m2: rec.area, vias: rec.nVias, economia: rec.economia }],
         colunas: [{ key: 'nome', label: 'Base' }, { key: 'area_m2', label: 'Área (m²)' }, { key: 'vias', label: 'Vias (processos distintos)' }, { key: 'economia', label: 'Economia estimada (R$)' }],
+        completude: completude(legAtendida, 'area_m2', 'área (m²)'),
       }
     }
     case 'fisc_recomposicao_total':
@@ -901,6 +941,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           ? { estilo: 'amarelo', full: true, texto: `ESTIMATIVA DE ECONOMIA DA PREFEITURA COM RECAPEAMENTO ASFÁLTICO: ${fmtMilhoes(total)}` }
           : { estilo: 'claro', full: true, texto: 'Informe o custo da recomposição por m² para somar as duas estimativas.' },
       ]
+      const legAtendida = rows.filter((r) => r.legislacao_atendida)
       return {
         ...base,
         blocos,
@@ -909,6 +950,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { nome: 'Termo de Cooperação – Recapeamento NORCREST', area_m2: 1497245.78, vias: 308, economia: TERMO_NORCREST.economiaValor },
         ],
         colunas: [{ key: 'nome', label: 'Base' }, { key: 'area_m2', label: 'Área (m²)' }, { key: 'vias', label: 'Vias' }, { key: 'economia', label: 'Economia estimada (R$)' }],
+        completude: completude(legAtendida, 'area_m2', 'área (m²)'),
       }
     }
     case 'fisc_laudos_vs_nc': {
@@ -996,7 +1038,14 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
     }
     case 'fisc_classificacao_viaria': {
       const dados = classificacaoViaria(fisc)
-      return { ...base, dados, colunas: [{ key: 'nome', label: 'Classificação viária' }, { key: 'total', label: 'Total' }, { key: 'leg_atendida', label: 'Leg. Atendida' }, { key: 'nao_atendida', label: 'Não Atenderam' }, { key: 'solucionados', label: 'Solucionados' }, { key: 'em_andamento', label: 'Em andamento' }] }
+      return {
+        ...base,
+        dados,
+        colunas: [{ key: 'nome', label: 'Classificação viária' }, { key: 'total', label: 'Total' }, { key: 'leg_atendida', label: 'Leg. Atendida' }, { key: 'nao_atendida', label: 'Não Atenderam' }, { key: 'solucionados', label: 'Solucionados' }, { key: 'em_andamento', label: 'Em andamento' }],
+        completude: completude(fisc, 'classificacao_viaria', 'classificação viária', (r) =>
+          ['LOCAL', 'COLETORA', 'ARTERIAL'].includes(String(r.classificacao_viaria || '').trim().toUpperCase())
+        ),
+      }
     }
     case 'fisc_por_regiao':
     case 'fisc_andamento_por_regiao': {
