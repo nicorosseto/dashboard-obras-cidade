@@ -164,24 +164,6 @@ export function normUnidadeNorcrest(u) {
   return UNIDADES_NORCREST_AGRUPADAS[up] || up
 }
 
-// "X anos e Y meses" de um marco FIXO até a maior data presente nos dados.
-function spanDesde(inicioFixo, rows, campo) {
-  let max = null
-  for (const r of rows) {
-    const d = r[campo]
-    if (d && (!max || d > max)) max = d
-  }
-  if (!max || max < inicioFixo) return null
-  const meses =
-    (+max.slice(0, 4) - +inicioFixo.slice(0, 4)) * 12 +
-    (+max.slice(5, 7) - +inicioFixo.slice(5, 7))
-  const anos = Math.floor(meses / 12)
-  const resto = meses % 12
-  const pAnos = anos > 0 ? `${anos} ano${anos > 1 ? 's' : ''}` : ''
-  const pMeses = resto > 0 ? `${resto} ${resto > 1 ? 'meses' : 'mês'}` : ''
-  return [pAnos, pMeses].filter(Boolean).join(' e ') || 'menos de 1 mês'
-}
-
 // Linhas mensais comparativas por ano + painel "TOTAIS POR ANO".
 function mensalPorAno(rows) {
   const { anos, data } = comparativoAnualPorMes(rows)
@@ -327,8 +309,7 @@ export const MODELO_INSTITUCIONAL = {
     // — Sistema Geo (dados) —
     { n: 7, titulo: 'Sistema Geo — Visão Geral', categoria: 'dados', tipo: 'kpis',
       tituloInterno: 'VISÃO GERAL',
-      fonte: 'geo', agregacao: 'geo_visao_geral',
-      manuais: ['Usuários cadastrados no Sistema Geo'] },
+      fonte: 'geo', agregacao: 'geo_visao_geral' },
     { n: 8, titulo: 'Processos por Permissionária', categoria: 'dados', tipo: 'barra',
       tituloInterno: 'PROCESSOS | POR PERMISSIONÁRIA',
       fonte: 'geo', agregacao: 'geo_por_permissionaria', config: { topN: 10 } },
@@ -442,9 +423,8 @@ export const MODELO_INSTITUCIONAL = {
     { n: 32, titulo: 'Fiscalização — Tipo de Falhas', categoria: 'dados', tipo: 'barra_horizontal',
       tituloInterno: 'FISCALIZAÇÃO – TIPO DE FALHAS',
       fonte: 'fisc', agregacao: 'fisc_tipos_falha' },
-    { n: 33, titulo: 'Fiscalização — Tipo de Falhas (destaques)', categoria: 'dados', tipo: 'cards_falha',
-      tituloInterno: 'FISCALIZAÇÃO – TIPO DE FALHAS',
-      fonte: 'fisc', agregacao: 'fisc_tipos_falha_kpis' },
+    // (slide 33 — "Tipo de Falhas (destaques)" — removido por decisão de
+    //  02/08/2026, junto com os slides 45+; ver Frente 1 do plano de agosto)
     { n: 34, titulo: 'Fiscalização — Classificação Viária', categoria: 'dados', tipo: 'pizzas_viaria',
       tituloInterno: 'FISCALIZAÇÃO', subtitulo: 'ANÁLISE POR CLASSIFICAÇÃO VIÁRIA',
       fonte: 'fisc', agregacao: 'fisc_classificacao_viaria' },
@@ -487,45 +467,9 @@ export const MODELO_INSTITUCIONAL = {
         { estilo: 'navy', titulo: '81%', texto: 'das vias compatibilizadas com programa de recapeamento' },
         { estilo: 'amarelo', full: true, texto: 'Município, junto às concessionárias, evitou danos ao pavimento equivalentes a R$ 3,6 MILHÕES' },
       ] },
-
-    // — Integrações (GeoSampa / GAIA) —
-    { n: 45, titulo: 'Divisória — Integração GeoSampa', categoria: 'texto', tipo: 'capa',
-      texto: 'INTEGRAÇÃO GEOSAMPA', sub: 'SMSUB' },
-    { n: 46, titulo: 'Integração Sistema Geo com GeoSampa', categoria: 'texto', tipo: 'quadros',
-      tituloInterno: 'INTEGRAÇÃO SISTEMA GEO COM GEOSAMPA',
-      texto: 'As obras e autorizações do Sistema Geo passam a ser visualizadas no GeoSampa (Mapa Digital da Cidade de São Paulo), junto às demais camadas oficiais do município. No PPT, este slide usa uma captura de tela do GeoSampa.',
-      blocos: [
-        { estilo: 'claro', full: true, titulo: 'GeoSampa — Mapa Digital da Cidade de São Paulo', texto: 'As camadas do Sistema Geo (obras e autorizações em via pública) integram o mapa oficial do município, ao lado de limites administrativos, sistema viário, infraestrutura urbana e demais camadas. ✍️ Usar a captura de tela do GeoSampa do PPT original.' },
-      ] },
-    { n: 47, titulo: 'Divisória — Integração Sistema Geo–GAIA', categoria: 'texto', tipo: 'capa',
-      texto: 'INTEGRAÇÃO SISTEMA GEO – GAIA', sub: 'SMSUB' },
-    { n: 48, titulo: 'Sistema Geo (imagem institucional)', categoria: 'texto', tipo: 'quadros',
-      tituloInterno: 'SISTEMA GEO',
-      texto: 'Slide de imagem institucional do Sistema Geo (foto da cidade). Usar a arte do PPT original.',
-      blocos: [
-        { estilo: 'claro', full: true, titulo: 'SISTEMA GEO', texto: '✍️ Slide de imagem institucional (foto da cidade + logo do Sistema Geo) — usar a arte do PPT original.' },
-      ] },
-    { n: 49, titulo: 'GAIA — vídeo demonstrativo', categoria: 'texto', tipo: 'quadros',
-      tituloInterno: 'GAIA',
-      texto: 'Vídeo demonstrativo das detecções dos elementos (imagens de satélite). Acesso: https://gaia.prefeitura.sp.gov.br/',
-      blocos: [
-        { estilo: 'navy', full: true, titulo: 'VÍDEO DEMONSTRATIVO DAS DETECÇÕES DOS ELEMENTOS', texto: '✍️ No PPT, este slide traz o vídeo/imagem de satélite do GAIA. Acesso: https://gaia.prefeitura.sp.gov.br/' },
-      ] },
-    { n: 50, titulo: 'Compatibilização de Obras — GAIA (integração)', categoria: 'texto', tipo: 'quadros',
-      tituloInterno: 'COMPATIBILIZAÇÃO DE OBRAS',
-      texto: 'O GAIA conecta SMSUB, SMT, SIURB, SPObras, SPUrbanismo, SME e o Sistema Geo (permissionárias/concessionárias) para análise em tempo real e compatibilização das obras. Antes do Sistema Geo não havia essa compatibilização.',
-      blocos: [
-        { estilo: 'navy', full: true, titulo: 'ANÁLISE EM TEMPO REAL → OBRAS COMPATIBILIZADAS', texto: 'O GAIA integra SMSUB · SMT · SIURB · SPOBRAS · SPURBANISMO · SME · SISTEMA GEO (permissionárias e concessionárias).' },
-        { estilo: 'claro', full: true, texto: 'Anteriormente ao Sistema Geo NÃO havia essa compatibilização.' },
-      ] },
-    { n: 51, titulo: 'Compatibilização de Obras — fluxo SMSUB → Concessionárias', categoria: 'texto', tipo: 'quadros',
-      tituloInterno: 'COMPATIBILIZAÇÃO DE OBRAS',
-      texto: 'SMSUB (manutenção de conservação de malha viária; requalificação de calçada; sugestão de prazo: 40 dias) → OBRAS → concessionárias (NORCREST, WINSLOW, HARGROVE, VELMONT e demais) → obras compatibilizadas.',
-      blocos: [
-        { estilo: 'navy', titulo: 'SMSUB', texto: '1. Manutenção de Conservação de Malha Viária · 2. Requalificação de Calçada. Sugestão de prazo: 40 dias.' },
-        { estilo: 'navy', titulo: 'CONCESSIONÁRIAS', texto: 'NORCREST · WINSLOW · HARGROVE · VELMONT · … demais empresas' },
-        { estilo: 'claro', full: true, texto: 'SMSUB → OBRAS → Concessionárias → OBRAS COMPATIBILIZADAS' },
-      ] },
+    // (slides 45–51 — integrações GeoSampa/GAIA — removidos por decisão de
+    //  02/08/2026; o slide 52 de encerramento passa a vir logo em seguida,
+    //  como o novo último slide da apresentação — Frente 1 do plano de agosto)
     { n: 52, titulo: 'Encerramento — OBRAS', categoria: 'texto', tipo: 'capa',
       texto: 'OBRAS', sub: 'Departamento de Controle de Uso de Vias Públicas — OBRIGADO!' },
   ],
@@ -685,8 +629,6 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
         destaqueNome: permSel,
         colunas: [{ key: 'nome', label: 'Permissionária' }, { key: 'valor', label: 'Processos' }],
         contexto: [{ rotulo: 'Total de protocolos no SistemaGeo', valor: fmtNumero(geoAll.length) }],
-        // Marco fixo: o Sistema Geo entrou em operação em dezembro/2019.
-        painelTexto: spanDesde('2019-12', geoAll, 'data_cadastro') ? `${spanDesde('2019-12', geoAll, 'data_cadastro')} de Sistema Geo` : null,
         destaques: [{ valor: `${pct(nNorcrest, geoAll.length)}%`, texto: 'das obras e serviços registradas no Sistema Geo são motivadas pela NORCREST' }],
       }
     }
@@ -846,8 +788,6 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { rotulo: 'Total que apresentaram não-conformidade', valor: fmtNumero(k.naoConform) },
           { rotulo: 'Total de não-conformidades em andamento', valor: fmtNumero(k.emAndamento) },
         ],
-        // Marco fixo: o Controle Tecnológico começou em junho/2020.
-        painelTexto: spanDesde('2020-06', fiscAll, 'data_inicio') ? `${spanDesde('2020-06', fiscAll, 'data_inicio')} de Controle Tecnológico` : null,
         destaques: [
           { valor: `${k.pctNaoConform}%`, texto: 'das obras visitadas não atenderam à Legislação' },
           { valor: `${k.pctSolucNC}%`, texto: 'das obras e serviços que não atenderam à Legislação foram solucionados' },
@@ -1048,29 +988,6 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
         ...base,
         dados,
         colunas: [{ key: 'nome', label: 'Tipo de falha' }, { key: 'valor', label: 'Ocorrências' }],
-        contexto: [
-          { rotulo: 'Total de Visitas Técnicas', valor: fmtNumero(k.total) },
-          { rotulo: 'Total que Apresentaram Não-Conformidade', valor: fmtNumero(k.naoConform) },
-        ],
-      }
-    }
-    case 'fisc_tipos_falha_kpis': {
-      // FIXA Nivelamento/Geometria/Afundamento/Trincas; o resto soma em
-      // "Demais patologias" (decisão de 03/07).
-      const k = calcularKPIsPBI(fisc)
-      const FIXAS = ['Nivelamento', 'Geometria', 'Afundamento', 'Trincas']
-      const ranking = rankingTiposFalha(fisc)
-      const kpis = FIXAS.map((nome) => ({
-        rotulo: nome,
-        valor: ranking.find((d) => d.nome === nome)?.laudos || 0,
-      }))
-      const resto = ranking
-        .filter((d) => !FIXAS.includes(d.nome))
-        .reduce((s, d) => s + d.laudos, 0)
-      kpis.push({ rotulo: 'Demais patologias', valor: resto, resto: true })
-      return {
-        ...base,
-        kpis,
         contexto: [
           { rotulo: 'Total de Visitas Técnicas', valor: fmtNumero(k.total) },
           { rotulo: 'Total que Apresentaram Não-Conformidade', valor: fmtNumero(k.naoConform) },
