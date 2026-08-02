@@ -112,6 +112,38 @@ o fluxo de login).
 > ao desktop e quer tentar. Não é uma pendência a perseguir sozinho; é uma decisão
 > dele revisitar quando fizer sentido.
 
+> **✅ DESBLOQUEADO (02/08/2026):** o usuário instalou o **Claude Code Desktop** e
+> clonou o repo localmente (Windows, `git clone` numa pasta própria). O login do
+> `/mcp` **não completa pelo chat gráfico do Desktop** — nessa versão, `/mcp` no
+> composer gráfico abre a tela "Diretório" (conectores genéricos claude.ai:
+> Google Drive, Gmail, Slack…), **não** o gerenciador de MCPs do projeto. O caminho
+> que funcionou foi abrir um **terminal de verdade** (PowerShell) dentro da pasta
+> clonada e rodar o **CLI `claude`** (`claude --version` → `2.1.140`) — dentro dele,
+> `/mcp` mostra a tela correta ("Manage MCP servers, 6 servers") com o status real
+> de cada server e a opção de autenticar. Autorizado com sucesso:
+> - **`supabase-dev`** — "Authentication successful. Connected to supabase-dev."
+> - **`supabase-prod`** — "Authentication successful. Connected to supabase-prod."
+> (`context7` já estava `connected`; `playwright` segue `failed`, ver achado de
+> 08/07/2026 abaixo; `vercel` ainda não autorizado nesta sessão.)
+>
+> **Confirmado real, não só a autorização:** rodada 1 consulta de teste em
+> **produção** (`supabase-prod`, com permissão explícita do usuário no prompt de
+> confirmação da ferramenta) para medir o preenchimento do campo `classificacao_
+> viaria` (slide 34 da Apresentação, Frente 2 do `plano-melhorias-2026-08.md`):
+> de **81.509** registros de fiscalização, só **26.739** têm o campo preenchido —
+> **32,8%**. Confirma que o indicador de "dado parcial" da Frente 2 é relevante
+> nesse slide (mais de 2/3 dos registros ficariam de fora de uma leitura que
+> ignorasse isso). As outras ~9 consultas da lista de validação (mesma planilha
+> de 15 campos, nos dois bancos) ainda **não foram rodadas** — ver
+> `docs/progresso.md` para a lista completa pendente.
+>
+> **Importante para sessões futuras:** a autorização OAuth fica salva **por
+> máquina/conta**, não por sessão de chat — uma vez feita pelo terminal nesta
+> máquina, outras sessões locais (inclusive o chat gráfico do Desktop) devem
+> reconhecer supabase-dev/supabase-prod já conectados, sem precisar refazer o
+> login. Se algum dia parar de funcionar, o caminho é o mesmo: terminal local
+> (`claude` CLI) → `/mcp` → autenticar.
+
 > **⚠️ Achado (08/07/2026):** o MCP `playwright` (`browser_run_code_unsafe`,
 > `browser_navigate`, etc.) **falhou** numa sessão web com
 > `Error: Chromium distribution 'chrome' is not found at
