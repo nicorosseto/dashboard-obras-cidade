@@ -90,6 +90,13 @@ export const TOUR_MULTAS_BUSCA = {
         'Sem digitar nada, clique aqui para listar todas as multas carregadas.',
     },
     {
+      alvo: '[data-tour="multas-busca-incluir-sem-processo"]',
+      titulo: 'Incluir multas sem processo',
+      texto:
+        'Mesmo seletor da Visão Geral: por padrão, a busca e a listagem não trazem ' +
+        'multas sem número de processo na planilha. Marque aqui para incluí-las.',
+    },
+    {
       alvo: '[data-tour="multas-toggle-inconsistencias"]',
       titulo: 'Verificar inconsistências',
       texto:
