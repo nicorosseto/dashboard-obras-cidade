@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   PieChart,
   Pie,
@@ -47,11 +47,21 @@ const COR_STATUS = {
 }
 
 export default function AbaMultasGeral({ linhas }) {
-  // Multas sem número de processo são ruído para a visão geral (não há obra/
-  // processo real a acompanhar) — ficam de fora dos KPIs e gráficos daqui;
-  // seguem auditáveis na seção de Inconsistências, dentro da aba Lista
-  // (melhoria de 16/07/2026, 2ª rodada de feedback da validação).
-  const linhasValidas = useMemo(() => excluirSemProcesso(linhas), [linhas])
+  // Multas sem número de processo são ruído para a visão geral por padrão
+  // (não há obra/processo real a acompanhar) — ficam de fora dos KPIs e
+  // gráficos daqui; seguem auditáveis na seção de Inconsistências, dentro da
+  // aba Lista (melhoria de 16/07/2026, 2ª rodada de feedback da validação).
+  // Seletor (decisão do usuário, 02/08/2026, Frente 3): permite incluí-las,
+  // recalculando tudo — sem substituir o padrão (que continua excluindo).
+  const [incluirSemProcesso, setIncluirSemProcesso] = useState(false)
+  const semProcessoQtd = useMemo(
+    () => (linhas || []).length - excluirSemProcesso(linhas).length,
+    [linhas]
+  )
+  const linhasValidas = useMemo(
+    () => (incluirSemProcesso ? linhas || [] : excluirSemProcesso(linhas)),
+    [linhas, incluirSemProcesso]
+  )
 
   const total = linhasValidas.length
   const valorTotal = useMemo(
@@ -161,10 +171,25 @@ export default function AbaMultasGeral({ linhas }) {
           </div>
         </div>
       </div>
-      <p className="text-[10px] text-gray-400 -mt-2">
-        Não conta multas sem número de processo na planilha — veja-as na aba
-        Lista, seção "Inconsistências".
-      </p>
+      <div className="flex items-center justify-between gap-2 -mt-2">
+        <p className="text-[10px] text-gray-400">
+          {incluirSemProcesso
+            ? `Incluindo ${fmtNumero(semProcessoQtd)} multa(s) sem número de processo nos KPIs e gráficos abaixo.`
+            : `Não conta ${fmtNumero(semProcessoQtd)} multa(s) sem número de processo na planilha — veja-as na aba Lista, seção "Inconsistências".`}
+        </p>
+        {semProcessoQtd > 0 && (
+          <label className="flex items-center gap-1.5 text-[10px] text-gray-600 cursor-pointer select-none shrink-0">
+            <input
+              type="checkbox"
+              checked={incluirSemProcesso}
+              onChange={(e) => setIncluirSemProcesso(e.target.checked)}
+              className="w-3.5 h-3.5 accent-red"
+              data-tour="multas-incluir-sem-processo"
+            />
+            Incluir multas sem processo
+          </label>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ChartCard
