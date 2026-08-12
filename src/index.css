@@ -51,8 +51,25 @@
   }
 }
 
+/*
+  Manrope (self-hosted, public/fonts/) — substituta livre da fonte oficial da
+  Identidade Visual PMSP (Axiforma, comercial paga sem licença web disponível;
+  decisão do usuário em 02/08/2026, Frente 4 do plano de melhorias de agosto).
+  Fonte variável: um único arquivo cobre os pesos 400–800 (subconjunto latino,
+  cobre acentuação pt-BR). Self-hosted de propósito — nada de CDN do Google
+  Fonts, para não depender de rede externa (CSP + modo demo).
+*/
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/manrope-variable-latin.woff2') format('woff2-variations');
+}
+
 body {
   font-family:
+    'Manrope',
     'Segoe UI',
     ui-sans-serif,
     system-ui,
