@@ -2,7 +2,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { fmtNumero } from '../../lib/aggregations.js'
 import ChartTooltip from './ChartTooltip.jsx'
 
-export default function DonutComparativo({ titulo, dados, cores, total }) {
+export default function DonutComparativo({ titulo, dados, cores, total, legendaLado = false }) {
   // dados: [{ nome, valor, pct }, ...]
   return (
     <div className="bg-white rounded-md shadow-card p-4">
@@ -11,7 +11,8 @@ export default function DonutComparativo({ titulo, dados, cores, total }) {
           {titulo}
         </h3>
       )}
-      <div className="relative">
+      <div className={legendaLado ? 'flex flex-col sm:flex-row sm:items-center gap-2' : ''}>
+      <div className={`relative ${legendaLado ? 'sm:w-56 shrink-0' : ''}`}>
         <ResponsiveContainer width="100%" height={220}>
           <PieChart>
             <Pie
@@ -59,8 +60,16 @@ export default function DonutComparativo({ titulo, dados, cores, total }) {
           </div>
         )}
       </div>
-      {/* Legenda: nome + valor + % por fatia (substitui o rótulo sobreposto) */}
-      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2">
+      {/* Legenda: nome + valor + % por fatia (substitui o rótulo sobreposto).
+          Ao lado do gráfico (legendaLado): lista vertical. Padrão: linha
+          embaixo, quebrando em várias conforme o espaço. */}
+      <div
+        className={
+          legendaLado
+            ? 'flex flex-col gap-1 sm:flex-1'
+            : 'flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2'
+        }
+      >
         {dados.map((d, i) => (
           <span
             key={d.nome ?? i}
@@ -73,6 +82,7 @@ export default function DonutComparativo({ titulo, dados, cores, total }) {
             {d.nome}: <strong>{fmtNumero(d.valor)}</strong> ({d.pct}%)
           </span>
         ))}
+      </div>
       </div>
     </div>
   )

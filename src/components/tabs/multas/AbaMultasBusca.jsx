@@ -9,6 +9,7 @@ import {
   SITUACAO_VINCULO_LABEL,
   SITUACAO_VINCULO_COR,
   agruparPorVinculo,
+  excluirSemProcesso,
 } from '../../../lib/multas.js'
 import { LoadingInline } from '../../Loading.jsx'
 import BotaoExportarGrafico from '../../BotaoExportarGrafico.jsx'
@@ -103,6 +104,20 @@ export default function AbaMultasBusca({ linhas, podeVerInconsistencias }) {
   const [pag, setPag] = useState(0)
   const raf2Ref = useRef(0)
 
+  // Mesmo seletor da Visão Geral (Frente 3, 12/08/2026): por padrão, multas
+  // sem número de processo ficam de fora da busca/listagem — seguem
+  // auditáveis na seção "Verificar inconsistências". Marcando, entram na
+  // lista normalmente.
+  const [incluirSemProcesso, setIncluirSemProcesso] = useState(false)
+  const semProcessoQtd = useMemo(
+    () => (linhas || []).length - excluirSemProcesso(linhas).length,
+    [linhas]
+  )
+  const linhasBase = useMemo(
+    () => (incluirSemProcesso ? linhas || [] : excluirSemProcesso(linhas)),
+    [linhas, incluirSemProcesso]
+  )
+
   useEffect(() => {
     const t = setTimeout(() => {
       const v = busca.trim()
@@ -116,7 +131,7 @@ export default function AbaMultasBusca({ linhas, podeVerInconsistencias }) {
   useEffect(() => {
     setListarAtivado(false)
     setPag(0)
-  }, [linhas])
+  }, [linhas, incluirSemProcesso])
 
   function handleFiltrar() {
     setCarregando(true)
@@ -128,13 +143,13 @@ export default function AbaMultasBusca({ linhas, podeVerInconsistencias }) {
   const resultado = useMemo(() => {
     if (!mostrarTabela) return []
     const q = normBusca(buscaAplicada)
-    if (!q) return linhas
-    return linhas.filter(
+    if (!q) return linhasBase
+    return linhasBase.filter(
       (r) =>
         normBusca(r.num_processo).includes(q) ||
         normBusca(r.auto_multa).includes(q)
     )
-  }, [linhas, buscaAplicada, mostrarTabela])
+  }, [linhasBase, buscaAplicada, mostrarTabela])
 
   useEffect(() => {
     if (!mostrarTabela) {
@@ -207,9 +222,26 @@ export default function AbaMultasBusca({ linhas, podeVerInconsistencias }) {
         data-tour="multas-busca-campo"
       >
         <div>
-          <h3 className="text-sm font-bold text-navy uppercase tracking-wide mb-3">
-            Busca por Nº de Processo ou Auto da Multa
-          </h3>
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <h3 className="text-sm font-bold text-navy uppercase tracking-wide">
+              Busca por Nº de Processo ou Auto da Multa
+            </h3>
+            {semProcessoQtd > 0 && (
+              <label
+                className="flex items-center gap-1.5 text-[10px] text-gray-600 cursor-pointer select-none shrink-0"
+                title={`${fmtNumero(semProcessoQtd)} multa(s) sem número de processo na planilha`}
+              >
+                <input
+                  type="checkbox"
+                  checked={incluirSemProcesso}
+                  onChange={(e) => setIncluirSemProcesso(e.target.checked)}
+                  className="w-3.5 h-3.5 accent-red"
+                  data-tour="multas-busca-incluir-sem-processo"
+                />
+                Incluir multas sem processo ({fmtNumero(semProcessoQtd)})
+              </label>
+            )}
+          </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex-1 relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">

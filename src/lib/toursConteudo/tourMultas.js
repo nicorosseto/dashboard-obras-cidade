@@ -48,6 +48,14 @@ export const TOUR_MULTAS = {
         'e a distribuição por permissionária, status, mês e ano da infração.',
     },
     {
+      alvo: '[data-tour="multas-incluir-sem-processo"]',
+      titulo: 'Incluir multas sem processo',
+      texto:
+        'Por padrão, multas sem número de processo na planilha ficam fora dos KPIs ' +
+        'e gráficos (não há obra real para acompanhar). Marque aqui para incluí-las ' +
+        'e recalcular tudo — a auditoria delas também continua na Lista.',
+    },
+    {
       alvo: '[data-tour="header-modulos"]',
       titulo: 'Trocar de módulo',
       texto:
@@ -80,6 +88,13 @@ export const TOUR_MULTAS_BUSCA = {
       titulo: 'Listar tudo',
       texto:
         'Sem digitar nada, clique aqui para listar todas as multas carregadas.',
+    },
+    {
+      alvo: '[data-tour="multas-busca-incluir-sem-processo"]',
+      titulo: 'Incluir multas sem processo',
+      texto:
+        'Mesmo seletor da Visão Geral: por padrão, a busca e a listagem não trazem ' +
+        'multas sem número de processo na planilha. Marque aqui para incluí-las.',
     },
     {
       alvo: '[data-tour="multas-toggle-inconsistencias"]',

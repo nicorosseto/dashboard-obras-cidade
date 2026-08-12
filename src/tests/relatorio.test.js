@@ -9,6 +9,7 @@ import {
   resolverDadosSlide,
   enriquecerExport,
   mesFimTrimestre,
+  completude,
 } from '../lib/relatorio.js'
 
 // ── Fixtures mínimas ──────────────────────────────────────────────────
@@ -56,15 +57,19 @@ function slidePorAgregacao(agregacao) {
 
 // ── Seed ──────────────────────────────────────────────────────────────
 describe('MODELO_INSTITUCIONAL (seed)', () => {
-  it('numeração única e ascendente (segue o PPT; 22/35/36/37 removidos, 20.1 extra, vai até 52)', () => {
+  it('numeração única e ascendente (segue o PPT; 22/33/35/36/37/45–51 removidos, 20.1 extra, 52 encerra logo após o 44)', () => {
     const ns = MODELO_INSTITUCIONAL.slides.map((s) => s.n)
     expect(new Set(ns).size).toBe(ns.length)
     for (let i = 1; i < ns.length; i++) expect(ns[i]).toBeGreaterThan(ns[i - 1])
-    for (const removido of [22, 35, 36, 37]) expect(ns).not.toContain(removido)
+    for (const removido of [22, 33, 35, 36, 37, 45, 46, 47, 48, 49, 50, 51])
+      expect(ns).not.toContain(removido)
     expect(ns).toContain(16.1)
     expect(ns).toContain(20.1)
-    // PDF completo (52 páginas): slides 38–52 presentes
-    for (let n = 38; n <= 52; n++) expect(ns).toContain(n)
+    // Slides finais presentes: 38–44 (laudos/multas/compatibilização) + 52
+    // (encerramento, movido para logo após o 44 — decisão de 02/08/2026)
+    for (let n = 38; n <= 44; n++) expect(ns).toContain(n)
+    expect(ns).toContain(52)
+    expect(ns[ns.length - 1]).toBe(52) // último slide da apresentação
   })
 
   it('todo slide tem categoria válida e título', () => {
@@ -74,11 +79,11 @@ describe('MODELO_INSTITUCIONAL (seed)', () => {
     }
   })
 
-  it('distribuição das categorias: 30 dados · 19 texto · 1 futuro (50 slides)', () => {
+  it('distribuição das categorias: 29 dados · 12 texto · 1 futuro (42 slides)', () => {
     const conta = { dados: 0, texto: 0, futuro: 0 }
     for (const s of MODELO_INSTITUCIONAL.slides) conta[s.categoria]++
-    expect(conta).toEqual({ dados: 30, texto: 19, futuro: 1 })
-    expect(MODELO_INSTITUCIONAL.slides).toHaveLength(50)
+    expect(conta).toEqual({ dados: 29, texto: 12, futuro: 1 })
+    expect(MODELO_INSTITUCIONAL.slides).toHaveLength(42)
   })
 
   it('fisc_por_regiao e fisc_andamento_por_regiao agregam por região (slides 38/39)', () => {
@@ -178,11 +183,11 @@ describe('resolverDadosSlide — agregações', () => {
     expect(r.destaques[0].valor).toBe('50%') // 2 de 4 são NORCREST
   })
 
-  it('geo_visao_geral conta executoras distintas (case-insensitive) + manual', () => {
+  it('geo_visao_geral conta executoras distintas (case-insensitive), sem KPI manual (removido em 02/08/2026)', () => {
     const r = resolverDadosSlide(slidePorAgregacao('geo_visao_geral'), bases)
     const exec = r.kpis.find((k) => k.rotulo.includes('executantes'))
     expect(exec.valor).toBe(2) // Alfa Engenharia (2 grafias) + Beta Obras
-    expect(r.kpis.filter((k) => k.manual)).toHaveLength(1) // só usuários
+    expect(r.kpis.filter((k) => k.manual)).toHaveLength(0)
     expect(r.kpis.some((k) => k.duplo)).toBe(true)
   })
 
@@ -254,19 +259,6 @@ describe('resolverDadosSlide — agregações', () => {
     expect(r.listaLateral.pctKey).toBe('pct_andamento')
   })
 
-  it('fisc_tipos_falha_kpis fixa as 4 patologias + Demais patologias', () => {
-    const fisc6 = [
-      { falha_nivelamento: true }, { falha_afundamento: true },
-      { falha_sarjeta: true }, { falha_guia: true },
-    ]
-    const r = resolverDadosSlide(slidePorAgregacao('fisc_tipos_falha_kpis'), { fisc: fisc6 })
-    expect(r.kpis.map((k) => k.rotulo)).toEqual([
-      'Nivelamento', 'Geometria', 'Afundamento', 'Trincas', 'Demais patologias',
-    ])
-    expect(r.kpis.find((k) => k.rotulo === 'Geometria').valor).toBe(0) // fixa mesmo zerada
-    expect(r.kpis.find((k) => k.resto).valor).toBe(2) // sarjeta + guia
-  })
-
   it('geo_norcrest_por_unidade: só NORCREST, agrupado por unidade, ignora o filtro de permissionária (slide 16.1)', () => {
     const r = resolverDadosSlide(slidePorAgregacao('geo_norcrest_por_unidade'), bases, { permissionaria: 'WINSLOW' })
     // GEO: 'NORCREST - NCR' e 'NORCREST - NCJ', 1 cada; WINSLOW e HARGROVE ficam fora.
@@ -289,17 +281,6 @@ describe('resolverDadosSlide — agregações', () => {
     expect(r.aviso).toBeNull()
   })
 
-  it('fisc_leg_vs_nc traz painel com marco fixo (junho/2020)', () => {
-    const r = resolverDadosSlide(slidePorAgregacao('fisc_leg_vs_nc'), bases)
-    // max data_inicio = 2025-02 → 4 anos e 8 meses desde 2020-06
-    expect(r.painelTexto).toBe('4 anos e 8 meses de Controle Tecnológico')
-  })
-
-  it('geo_por_permissionaria traz painel com marco fixo (dezembro/2019)', () => {
-    const r = resolverDadosSlide(slidePorAgregacao('geo_por_permissionaria'), bases)
-    // max data_cadastro = 2025-04 → 5 anos e 4 meses desde 2019-12
-    expect(r.painelTexto).toBe('5 anos e 4 meses de Sistema Geo')
-  })
 })
 
 // ── enriquecerExport (achado de 30/07/2026: exportação só trazia a tabela
@@ -376,5 +357,180 @@ describe('multas_geral / multas_norcrest (slides 40/41)', () => {
     })
     expect(r.aviso).toBeTruthy()
     expect(r.kpis.find((k) => k.rotulo === 'Total de Multas Lavradas').valor).toBe(0)
+  })
+})
+
+// ── Indicador de "dado parcial" (Frente 2 do plano de agosto/2026,
+// 02/08/2026): completude() é a função pura; cada slide de prioridade alta
+// devolve `completude` na mesma base que o gráfico de fato analisa. ──────
+describe('completude', () => {
+  it('conta preenchidos com o padrão (não nulo/indefinido/vazio)', () => {
+    const rows = [{ x: 1 }, { x: null }, { x: '' }, { x: 2 }]
+    expect(completude(rows, 'x', 'campo x')).toEqual({
+      preenchidos: 2,
+      total: 4,
+      pct: 50,
+      rotulo: 'campo x',
+    })
+  })
+
+  it('base vazia não divide por zero (pct: 0)', () => {
+    expect(completude([], 'x', 'campo x')).toEqual({
+      preenchidos: 0,
+      total: 0,
+      pct: 0,
+      rotulo: 'campo x',
+    })
+  })
+
+  it('aceita `preenchido` customizado (só valores específicos contam)', () => {
+    const rows = [{ v: 'LOCAL' }, { v: 'outro' }, { v: '' }]
+    const r = completude(rows, 'v', 'classificação', (row) => row.v === 'LOCAL')
+    expect(r).toEqual({ preenchidos: 1, total: 3, pct: 33.3, rotulo: 'classificação' })
+  })
+})
+
+describe('resolverDadosSlide — completude por slide (prioridade alta)', () => {
+  it('geo_por_permissionaria (slide 8): completude por permissionária, base geoAll', () => {
+    const geo = [
+      { permissionaria: 'NORCREST' },
+      { permissionaria: '' },
+      { permissionaria: 'WINSLOW' },
+      { permissionaria: null },
+    ]
+    const r = resolverDadosSlide(slidePorAgregacao('geo_por_permissionaria'), { geo })
+    expect(r.completude).toMatchObject({ preenchidos: 2, total: 4, pct: 50, rotulo: 'permissionária' })
+  })
+
+  it('geo_total_vs_emerg (slide 12): mesma base/campo do slide 8', () => {
+    const geo = [
+      { permissionaria: 'NORCREST', tipo_processo_nome: 'Emergência' },
+      { permissionaria: '', tipo_processo_nome: 'Emergência' },
+      { permissionaria: 'WINSLOW', tipo_processo_nome: 'Manutenção Corretiva' },
+      { permissionaria: null, tipo_processo_nome: 'Manutenção Corretiva' },
+    ]
+    const r = resolverDadosSlide(slidePorAgregacao('geo_total_vs_emerg'), { geo })
+    expect(r.completude).toMatchObject({ preenchidos: 2, total: 4, pct: 50 })
+  })
+
+  it('geo_emerg_vs_corretiva (slide 13): mesma base/campo do slide 8', () => {
+    const geo = [
+      { permissionaria: 'NORCREST', tipo_processo_nome: 'Emergência' },
+      { permissionaria: '', tipo_processo_nome: 'Emergência' },
+      { permissionaria: 'WINSLOW', tipo_processo_nome: 'Manutenção Corretiva' },
+      { permissionaria: null, tipo_processo_nome: 'Manutenção Corretiva' },
+    ]
+    const r = resolverDadosSlide(slidePorAgregacao('geo_emerg_vs_corretiva'), { geo })
+    expect(r.completude).toMatchObject({ preenchidos: 2, total: 4, pct: 50 })
+  })
+
+  const GEO_DATA_CADASTRO = [
+    { tipo_processo_nome: 'Emergência', data_cadastro: '2025-01-10' },
+    { tipo_processo_nome: 'Emergência', data_cadastro: null },
+    { tipo_processo_nome: 'Emergência', data_cadastro: '2025-02-01' },
+    { tipo_processo_nome: 'Manutenção Preventiva', data_cadastro: null },
+  ]
+
+  it('geo_controle_mensal (slide 10): completude de data_cadastro na base toda', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('geo_controle_mensal'), { geo: GEO_DATA_CADASTRO })
+    expect(r.completude).toMatchObject({ preenchidos: 2, total: 4, pct: 50, rotulo: 'data de cadastro' })
+  })
+
+  it('geo_emerg_mensal (slide 11): completude só entre as linhas de Emergência', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('geo_emerg_mensal'), { geo: GEO_DATA_CADASTRO })
+    expect(r.completude).toMatchObject({ preenchidos: 2, total: 3, pct: 66.7 })
+  })
+
+  it('geo_autorizacoes_anual (slide 14): completude só entre as NÃO-emergência', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('geo_autorizacoes_anual'), { geo: GEO_DATA_CADASTRO })
+    expect(r.completude).toMatchObject({ preenchidos: 0, total: 1, pct: 0 })
+  })
+
+  it('geo_emerg_anual (slide 15): completude só entre as linhas de Emergência', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('geo_emerg_anual'), { geo: GEO_DATA_CADASTRO })
+    expect(r.completude).toMatchObject({ preenchidos: 2, total: 3, pct: 66.7 })
+  })
+
+  it('geo_emerg_barra_anual (slide 16): completude só entre as linhas de Emergência', () => {
+    const r = resolverDadosSlide(slidePorAgregacao('geo_emerg_barra_anual'), { geo: GEO_DATA_CADASTRO })
+    expect(r.completude).toMatchObject({ preenchidos: 2, total: 3, pct: 66.7 })
+  })
+
+  it('fisc_soluc_trimestral (slide 20.1): completude de data_conclusao só entre os solucionados', () => {
+    const fisc = [
+      { solucionado: true, data_conclusao: '2025-03-15' },
+      { solucionado: true, data_conclusao: null },
+      { solucionado: false, data_conclusao: null },
+    ]
+    const r = resolverDadosSlide(slidePorAgregacao('fisc_soluc_trimestral'), { fisc })
+    expect(r.completude).toMatchObject({ preenchidos: 1, total: 2, pct: 50, rotulo: 'data de conclusão' })
+  })
+
+  it('fisc_avanco (slide 21): completude de data_inicio na base toda', () => {
+    const fisc = [
+      { data_inicio: '2025-01-01', legislacao_atendida: true, tem_nao_conformidade: false },
+      { data_inicio: null, legislacao_atendida: false, tem_nao_conformidade: true },
+      { data_inicio: '2025-02-01', legislacao_atendida: false, tem_nao_conformidade: false },
+    ]
+    const r = resolverDadosSlide(slidePorAgregacao('fisc_avanco'), { fisc })
+    expect(r.completude).toMatchObject({ preenchidos: 2, total: 3, pct: 66.7 })
+  })
+
+  it('fisc_metragem_norcrest (slide 23): completude de area_m2 só entre a NORCREST', () => {
+    const fisc = [
+      { permissionaria: 'NORCREST - NCR', area_m2: 100, tem_nao_conformidade: true, em_andamento: false },
+      { permissionaria: 'NORCREST - NCJ', area_m2: null, tem_nao_conformidade: false, em_andamento: true },
+      { permissionaria: 'WINSLOW', area_m2: 50, tem_nao_conformidade: true, em_andamento: false },
+    ]
+    const r = resolverDadosSlide(slidePorAgregacao('fisc_metragem_norcrest'), { fisc })
+    expect(r.completude).toMatchObject({ preenchidos: 1, total: 2, pct: 50, rotulo: 'área (m²)' })
+  })
+
+  it('fisc_recomposicao (slide 24): completude de area_m2 só entre legislação atendida', () => {
+    const fisc = [
+      { legislacao_atendida: true, area_m2: 100, id_origem: 'A' },
+      { legislacao_atendida: true, area_m2: null, id_origem: 'B' },
+      { legislacao_atendida: false, area_m2: 30, id_origem: 'C' },
+    ]
+    const r = resolverDadosSlide(slidePorAgregacao('fisc_recomposicao'), { fisc })
+    expect(r.completude).toMatchObject({ preenchidos: 1, total: 2, pct: 50 })
+  })
+
+  it('fisc_recomposicao_total (slide 27): mesma lógica do 24, sem filtro de NORCREST', () => {
+    const fisc = [
+      { legislacao_atendida: true, area_m2: 100, id_origem: 'A' },
+      { legislacao_atendida: true, area_m2: null, id_origem: 'B' },
+      { legislacao_atendida: false, area_m2: 30, id_origem: 'C' },
+    ]
+    const r = resolverDadosSlide(slidePorAgregacao('fisc_recomposicao_total'), { fisc })
+    expect(r.completude).toMatchObject({ preenchidos: 1, total: 2, pct: 50 })
+  })
+
+  it('fisc_recomposicao_norcrest (slide 28): completude só entre legislação atendida da NORCREST', () => {
+    const fisc = [
+      { permissionaria: 'NORCREST - NCR', legislacao_atendida: true, area_m2: 100 },
+      { permissionaria: 'NORCREST - NCJ', legislacao_atendida: true, area_m2: null },
+      { permissionaria: 'WINSLOW', legislacao_atendida: true, area_m2: 40 },
+    ]
+    const r = resolverDadosSlide(slidePorAgregacao('fisc_recomposicao_norcrest'), { fisc })
+    expect(r.completude).toMatchObject({ preenchidos: 1, total: 2, pct: 50 })
+  })
+
+  it('fisc_classificacao_viaria (slide 34): só LOCAL/COLETORA/ARTERIAL contam como preenchido', () => {
+    const fisc = [
+      { classificacao_viaria: 'LOCAL' },
+      { classificacao_viaria: 'ARTERIAL' },
+      { classificacao_viaria: 'DESCONHECIDO' },
+      { classificacao_viaria: '' },
+    ]
+    const r = resolverDadosSlide(slidePorAgregacao('fisc_classificacao_viaria'), { fisc })
+    expect(r.completude).toMatchObject({ preenchidos: 2, total: 4, pct: 50, rotulo: 'classificação viária' })
+  })
+
+  it('base completa (100%) não aparece em nenhum slide já coberto pelos testes gerais', () => {
+    // fisc_leg_vs_nc (slide 20) NÃO está na lista de prioridade alta —
+    // não deve ganhar `completude`.
+    const r = resolverDadosSlide(slidePorAgregacao('fisc_leg_vs_nc'), bases)
+    expect(r.completude).toBeUndefined()
   })
 })

@@ -70,6 +70,20 @@ const pct = (n, d) => (d > 0 ? Math.round((n / d) * 100) : 0)
 // Percentual com 1 casa decimal (listas laterais dos slides 12/29/30/31).
 const pct1 = (n, d) => (d > 0 ? Math.round((n / d) * 1000) / 10 : 0)
 
+// Completude de um campo na base: quantas linhas realmente têm o dado (pedido
+// do usuário em 31/07/2026 — indicador de "dado parcial" nos slides). `rotulo`
+// é o texto exibido no aviso (ex.: "classificação viária"); `preenchido`
+// opcional para campos que não são "vazio simples" (ex.: só 3 valores contam
+// como preenchidos na classificação viária).
+export function completude(rows, campo, rotulo, preenchido) {
+  const total = (rows || []).length
+  const ok = (rows || []).filter(
+    preenchido ||
+      ((r) => r[campo] !== null && r[campo] !== undefined && String(r[campo]).trim() !== '')
+  ).length
+  return { preenchidos: ok, total, pct: pct1(ok, total), rotulo }
+}
+
 const fmtReais = (v) =>
   'R$ ' +
   new Intl.NumberFormat('pt-BR', {
@@ -162,24 +176,6 @@ const UNIDADES_NORCREST_AGRUPADAS = { NCRV: 'NCR', NCRS: 'NCR', NCJV: 'NCJ', NCJ
 export function normUnidadeNorcrest(u) {
   const up = String(u || '').toUpperCase()
   return UNIDADES_NORCREST_AGRUPADAS[up] || up
-}
-
-// "X anos e Y meses" de um marco FIXO até a maior data presente nos dados.
-function spanDesde(inicioFixo, rows, campo) {
-  let max = null
-  for (const r of rows) {
-    const d = r[campo]
-    if (d && (!max || d > max)) max = d
-  }
-  if (!max || max < inicioFixo) return null
-  const meses =
-    (+max.slice(0, 4) - +inicioFixo.slice(0, 4)) * 12 +
-    (+max.slice(5, 7) - +inicioFixo.slice(5, 7))
-  const anos = Math.floor(meses / 12)
-  const resto = meses % 12
-  const pAnos = anos > 0 ? `${anos} ano${anos > 1 ? 's' : ''}` : ''
-  const pMeses = resto > 0 ? `${resto} ${resto > 1 ? 'meses' : 'mês'}` : ''
-  return [pAnos, pMeses].filter(Boolean).join(' e ') || 'menos de 1 mês'
 }
 
 // Linhas mensais comparativas por ano + painel "TOTAIS POR ANO".
@@ -327,8 +323,7 @@ export const MODELO_INSTITUCIONAL = {
     // — Sistema Geo (dados) —
     { n: 7, titulo: 'Sistema Geo — Visão Geral', categoria: 'dados', tipo: 'kpis',
       tituloInterno: 'VISÃO GERAL',
-      fonte: 'geo', agregacao: 'geo_visao_geral',
-      manuais: ['Usuários cadastrados no Sistema Geo'] },
+      fonte: 'geo', agregacao: 'geo_visao_geral' },
     { n: 8, titulo: 'Processos por Permissionária', categoria: 'dados', tipo: 'barra',
       tituloInterno: 'PROCESSOS | POR PERMISSIONÁRIA',
       fonte: 'geo', agregacao: 'geo_por_permissionaria', config: { topN: 10 } },
@@ -442,9 +437,8 @@ export const MODELO_INSTITUCIONAL = {
     { n: 32, titulo: 'Fiscalização — Tipo de Falhas', categoria: 'dados', tipo: 'barra_horizontal',
       tituloInterno: 'FISCALIZAÇÃO – TIPO DE FALHAS',
       fonte: 'fisc', agregacao: 'fisc_tipos_falha' },
-    { n: 33, titulo: 'Fiscalização — Tipo de Falhas (destaques)', categoria: 'dados', tipo: 'cards_falha',
-      tituloInterno: 'FISCALIZAÇÃO – TIPO DE FALHAS',
-      fonte: 'fisc', agregacao: 'fisc_tipos_falha_kpis' },
+    // (slide 33 — "Tipo de Falhas (destaques)" — removido por decisão de
+    //  02/08/2026, junto com os slides 45+; ver Frente 1 do plano de agosto)
     { n: 34, titulo: 'Fiscalização — Classificação Viária', categoria: 'dados', tipo: 'pizzas_viaria',
       tituloInterno: 'FISCALIZAÇÃO', subtitulo: 'ANÁLISE POR CLASSIFICAÇÃO VIÁRIA',
       fonte: 'fisc', agregacao: 'fisc_classificacao_viaria' },
@@ -487,45 +481,9 @@ export const MODELO_INSTITUCIONAL = {
         { estilo: 'navy', titulo: '81%', texto: 'das vias compatibilizadas com programa de recapeamento' },
         { estilo: 'amarelo', full: true, texto: 'Município, junto às concessionárias, evitou danos ao pavimento equivalentes a R$ 3,6 MILHÕES' },
       ] },
-
-    // — Integrações (GeoSampa / GAIA) —
-    { n: 45, titulo: 'Divisória — Integração GeoSampa', categoria: 'texto', tipo: 'capa',
-      texto: 'INTEGRAÇÃO GEOSAMPA', sub: 'SMSUB' },
-    { n: 46, titulo: 'Integração Sistema Geo com GeoSampa', categoria: 'texto', tipo: 'quadros',
-      tituloInterno: 'INTEGRAÇÃO SISTEMA GEO COM GEOSAMPA',
-      texto: 'As obras e autorizações do Sistema Geo passam a ser visualizadas no GeoSampa (Mapa Digital da Cidade de São Paulo), junto às demais camadas oficiais do município. No PPT, este slide usa uma captura de tela do GeoSampa.',
-      blocos: [
-        { estilo: 'claro', full: true, titulo: 'GeoSampa — Mapa Digital da Cidade de São Paulo', texto: 'As camadas do Sistema Geo (obras e autorizações em via pública) integram o mapa oficial do município, ao lado de limites administrativos, sistema viário, infraestrutura urbana e demais camadas. ✍️ Usar a captura de tela do GeoSampa do PPT original.' },
-      ] },
-    { n: 47, titulo: 'Divisória — Integração Sistema Geo–GAIA', categoria: 'texto', tipo: 'capa',
-      texto: 'INTEGRAÇÃO SISTEMA GEO – GAIA', sub: 'SMSUB' },
-    { n: 48, titulo: 'Sistema Geo (imagem institucional)', categoria: 'texto', tipo: 'quadros',
-      tituloInterno: 'SISTEMA GEO',
-      texto: 'Slide de imagem institucional do Sistema Geo (foto da cidade). Usar a arte do PPT original.',
-      blocos: [
-        { estilo: 'claro', full: true, titulo: 'SISTEMA GEO', texto: '✍️ Slide de imagem institucional (foto da cidade + logo do Sistema Geo) — usar a arte do PPT original.' },
-      ] },
-    { n: 49, titulo: 'GAIA — vídeo demonstrativo', categoria: 'texto', tipo: 'quadros',
-      tituloInterno: 'GAIA',
-      texto: 'Vídeo demonstrativo das detecções dos elementos (imagens de satélite). Acesso: https://gaia.prefeitura.sp.gov.br/',
-      blocos: [
-        { estilo: 'navy', full: true, titulo: 'VÍDEO DEMONSTRATIVO DAS DETECÇÕES DOS ELEMENTOS', texto: '✍️ No PPT, este slide traz o vídeo/imagem de satélite do GAIA. Acesso: https://gaia.prefeitura.sp.gov.br/' },
-      ] },
-    { n: 50, titulo: 'Compatibilização de Obras — GAIA (integração)', categoria: 'texto', tipo: 'quadros',
-      tituloInterno: 'COMPATIBILIZAÇÃO DE OBRAS',
-      texto: 'O GAIA conecta SMSUB, SMT, SIURB, SPObras, SPUrbanismo, SME e o Sistema Geo (permissionárias/concessionárias) para análise em tempo real e compatibilização das obras. Antes do Sistema Geo não havia essa compatibilização.',
-      blocos: [
-        { estilo: 'navy', full: true, titulo: 'ANÁLISE EM TEMPO REAL → OBRAS COMPATIBILIZADAS', texto: 'O GAIA integra SMSUB · SMT · SIURB · SPOBRAS · SPURBANISMO · SME · SISTEMA GEO (permissionárias e concessionárias).' },
-        { estilo: 'claro', full: true, texto: 'Anteriormente ao Sistema Geo NÃO havia essa compatibilização.' },
-      ] },
-    { n: 51, titulo: 'Compatibilização de Obras — fluxo SMSUB → Concessionárias', categoria: 'texto', tipo: 'quadros',
-      tituloInterno: 'COMPATIBILIZAÇÃO DE OBRAS',
-      texto: 'SMSUB (manutenção de conservação de malha viária; requalificação de calçada; sugestão de prazo: 40 dias) → OBRAS → concessionárias (NORCREST, WINSLOW, HARGROVE, VELMONT e demais) → obras compatibilizadas.',
-      blocos: [
-        { estilo: 'navy', titulo: 'SMSUB', texto: '1. Manutenção de Conservação de Malha Viária · 2. Requalificação de Calçada. Sugestão de prazo: 40 dias.' },
-        { estilo: 'navy', titulo: 'CONCESSIONÁRIAS', texto: 'NORCREST · WINSLOW · HARGROVE · VELMONT · … demais empresas' },
-        { estilo: 'claro', full: true, texto: 'SMSUB → OBRAS → Concessionárias → OBRAS COMPATIBILIZADAS' },
-      ] },
+    // (slides 45–51 — integrações GeoSampa/GAIA — removidos por decisão de
+    //  02/08/2026; o slide 52 de encerramento passa a vir logo em seguida,
+    //  como o novo último slide da apresentação — Frente 1 do plano de agosto)
     { n: 52, titulo: 'Encerramento — OBRAS', categoria: 'texto', tipo: 'capa',
       texto: 'OBRAS', sub: 'Departamento de Controle de Uso de Vias Públicas — OBRIGADO!' },
   ],
@@ -685,9 +643,8 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
         destaqueNome: permSel,
         colunas: [{ key: 'nome', label: 'Permissionária' }, { key: 'valor', label: 'Processos' }],
         contexto: [{ rotulo: 'Total de protocolos no SistemaGeo', valor: fmtNumero(geoAll.length) }],
-        // Marco fixo: o Sistema Geo entrou em operação em dezembro/2019.
-        painelTexto: spanDesde('2019-12', geoAll, 'data_cadastro') ? `${spanDesde('2019-12', geoAll, 'data_cadastro')} de Sistema Geo` : null,
         destaques: [{ valor: `${pct(nNorcrest, geoAll.length)}%`, texto: 'das obras e serviços registradas no Sistema Geo são motivadas pela NORCREST' }],
+        completude: completude(geoAll, 'permissionaria', 'permissionária', (r) => !!consolidarNorcrest(r.permissionaria)),
       }
     }
     case 'geo_por_tipo_processo': {
@@ -710,6 +667,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
         ...base,
         ...mensalPorAno(geo),
         contexto: [{ rotulo: 'Total de protocolos no SistemaGeo', valor: fmtNumero(geo.length) }],
+        completude: completude(geo, 'data_cadastro', 'data de cadastro'),
       }
     }
     case 'geo_emerg_mensal': {
@@ -722,6 +680,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { rotulo: 'Total de protocolos no Sistema Geo', valor: fmtNumero(geo.length) },
           { rotulo: "Total de protocolos de 'Emergência' no Sistema Geo", valor: fmtNumero(rows.length) },
         ],
+        completude: completude(rows, 'data_cadastro', 'data de cadastro'),
       }
     }
     case 'geo_total_vs_emerg': {
@@ -742,6 +701,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { rotulo: "Total de protocolos de 'Emergência' no Sistema Geo", valor: fmtNumero(nEmerg) },
         ],
         destaques: [{ valor: `${pct(norcrestEmerg, norcrest.length)}%`, texto: 'das obras da NORCREST registradas no SistemaGeo são categorizadas como Emergência' }],
+        completude: completude(geoAll, 'permissionaria', 'permissionária', (r) => !!consolidarNorcrest(r.permissionaria)),
       }
     }
     case 'geo_emerg_vs_corretiva': {
@@ -774,22 +734,29 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { rotulo: "Total de protocolos de 'Emergência' no SistemaGeo", valor: fmtNumero(totEmerg) },
           { rotulo: "Total de protocolos de 'Manutenção Corretiva' no Sistema Geo", valor: fmtNumero(totCorr) },
         ],
+        completude: completude(geoAll, 'permissionaria', 'permissionária', (r) => !!consolidarNorcrest(r.permissionaria)),
       }
     }
     case 'geo_autorizacoes_anual': {
       const rows = geo.filter((r) => !ehEmergencia(r))
-      return { ...base, ...mensalPorAno(rows) }
+      return { ...base, ...mensalPorAno(rows), completude: completude(rows, 'data_cadastro', 'data de cadastro') }
     }
     case 'geo_emerg_anual': {
       const rows = geo.filter(ehEmergencia)
-      return { ...base, ...mensalPorAno(rows) }
+      return { ...base, ...mensalPorAno(rows), completude: completude(rows, 'data_cadastro', 'data de cadastro') }
     }
     case 'geo_emerg_barra_anual': {
-      const dados = totaisAnuais(geo.filter(ehEmergencia)).map((d) => ({
+      const rowsEmerg = geo.filter(ehEmergencia)
+      const dados = totaisAnuais(rowsEmerg).map((d) => ({
         nome: d.label,
         valor: d.value,
       }))
-      return { ...base, dados, colunas: [{ key: 'nome', label: 'Ano' }, { key: 'valor', label: 'Emergências' }] }
+      return {
+        ...base,
+        dados,
+        colunas: [{ key: 'nome', label: 'Ano' }, { key: 'valor', label: 'Emergências' }],
+        completude: completude(rowsEmerg, 'data_cadastro', 'data de cadastro'),
+      }
     }
     case 'geo_norcrest_por_unidade': {
       // NORCREST-específico (como 17/23/28/31): ignora o seletor de
@@ -846,8 +813,6 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { rotulo: 'Total que apresentaram não-conformidade', valor: fmtNumero(k.naoConform) },
           { rotulo: 'Total de não-conformidades em andamento', valor: fmtNumero(k.emAndamento) },
         ],
-        // Marco fixo: o Controle Tecnológico começou em junho/2020.
-        painelTexto: spanDesde('2020-06', fiscAll, 'data_inicio') ? `${spanDesde('2020-06', fiscAll, 'data_inicio')} de Controle Tecnológico` : null,
         destaques: [
           { valor: `${k.pctNaoConform}%`, texto: 'das obras visitadas não atenderam à Legislação' },
           { valor: `${k.pctSolucNC}%`, texto: 'das obras e serviços que não atenderam à Legislação foram solucionados' },
@@ -864,6 +829,10 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
         nome: mesFimTrimestre(d._sort) || d.periodo,
         valor: d.valor,
       }))
+      // Completude medida só entre os SOLUCIONADOS (única população que este
+      // gráfico de fato usa) — medir em `fisc` inteiro inflaria a lacuna com
+      // linhas que nunca teriam data_conclusao mesmo preenchidas por completo.
+      const soluc = fisc.filter((r) => r.solucionado)
       return {
         ...base,
         dados,
@@ -871,6 +840,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { key: 'nome', label: 'Trimestre (mês de encerramento)' },
           { key: 'valor', label: 'Solucionados' },
         ],
+        completude: completude(soluc, 'data_conclusao', 'data de conclusão'),
       }
     }
     case 'fisc_avanco': {
@@ -893,7 +863,12 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           pct_leg: pct(o.leg, o.total),
           pct_nc: pct(o.nc, o.total),
         }))
-      return { ...base, dados, colunas: [{ key: 'periodo', label: 'Trimestre' }, { key: 'pct_leg', label: '% Legislação Atendida' }, { key: 'pct_nc', label: '% Não Atenderam' }] }
+      return {
+        ...base,
+        dados,
+        colunas: [{ key: 'periodo', label: 'Trimestre' }, { key: 'pct_leg', label: '% Legislação Atendida' }, { key: 'pct_nc', label: '% Não Atenderam' }],
+        completude: completude(fisc, 'data_inicio', 'data de início'),
+      }
     }
     case 'fisc_metragem_norcrest': {
       // Sempre NORCREST (título do slide); soma área (m²) das visitas com NC e
@@ -926,6 +901,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { nome: 'Ainda não solucionado (em andamento)', area_m2: areaAnd, multa_estimada: multa ? areaAnd * multa : null },
         ],
         colunas: [{ key: 'nome', label: 'Situação' }, { key: 'area_m2', label: 'Área (m²)' }, { key: 'multa_estimada', label: 'Multa estimada (R$)' }],
+        completude: completude(rows, 'area_m2', 'área (m²)'),
       }
     }
     case 'fisc_recomposicao': {
@@ -937,11 +913,15 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           ? { estilo: 'amarelo', full: true, texto: `Estimativa de Economia: ${fmtMilhoes(rec.economia)}` }
           : { estilo: 'claro', full: true, texto: 'Informe o custo da recomposição por m² para estimar a economia.' },
       ]
+      // Completude medida só entre as linhas "legislação atendida" — é a
+      // única população cuja área o slide soma (`recomposicaoLegAtendida`).
+      const legAtendida = fisc.filter((r) => r.legislacao_atendida)
       return {
         ...base,
         blocos,
         dados: [{ nome: 'Legislação atendida', area_m2: rec.area, vias: rec.nVias, economia: rec.economia }],
         colunas: [{ key: 'nome', label: 'Base' }, { key: 'area_m2', label: 'Área (m²)' }, { key: 'vias', label: 'Vias (processos distintos)' }, { key: 'economia', label: 'Economia estimada (R$)' }],
+        completude: completude(legAtendida, 'area_m2', 'área (m²)'),
       }
     }
     case 'fisc_recomposicao_total':
@@ -961,6 +941,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           ? { estilo: 'amarelo', full: true, texto: `ESTIMATIVA DE ECONOMIA DA PREFEITURA COM RECAPEAMENTO ASFÁLTICO: ${fmtMilhoes(total)}` }
           : { estilo: 'claro', full: true, texto: 'Informe o custo da recomposição por m² para somar as duas estimativas.' },
       ]
+      const legAtendida = rows.filter((r) => r.legislacao_atendida)
       return {
         ...base,
         blocos,
@@ -969,6 +950,7 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
           { nome: 'Termo de Cooperação – Recapeamento NORCREST', area_m2: 1497245.78, vias: 308, economia: TERMO_NORCREST.economiaValor },
         ],
         colunas: [{ key: 'nome', label: 'Base' }, { key: 'area_m2', label: 'Área (m²)' }, { key: 'vias', label: 'Vias' }, { key: 'economia', label: 'Economia estimada (R$)' }],
+        completude: completude(legAtendida, 'area_m2', 'área (m²)'),
       }
     }
     case 'fisc_laudos_vs_nc': {
@@ -1054,32 +1036,16 @@ export function resolverDadosSlide(slide, bases = {}, opcoes = {}) {
         ],
       }
     }
-    case 'fisc_tipos_falha_kpis': {
-      // FIXA Nivelamento/Geometria/Afundamento/Trincas; o resto soma em
-      // "Demais patologias" (decisão de 03/07).
-      const k = calcularKPIsPBI(fisc)
-      const FIXAS = ['Nivelamento', 'Geometria', 'Afundamento', 'Trincas']
-      const ranking = rankingTiposFalha(fisc)
-      const kpis = FIXAS.map((nome) => ({
-        rotulo: nome,
-        valor: ranking.find((d) => d.nome === nome)?.laudos || 0,
-      }))
-      const resto = ranking
-        .filter((d) => !FIXAS.includes(d.nome))
-        .reduce((s, d) => s + d.laudos, 0)
-      kpis.push({ rotulo: 'Demais patologias', valor: resto, resto: true })
-      return {
-        ...base,
-        kpis,
-        contexto: [
-          { rotulo: 'Total de Visitas Técnicas', valor: fmtNumero(k.total) },
-          { rotulo: 'Total que Apresentaram Não-Conformidade', valor: fmtNumero(k.naoConform) },
-        ],
-      }
-    }
     case 'fisc_classificacao_viaria': {
       const dados = classificacaoViaria(fisc)
-      return { ...base, dados, colunas: [{ key: 'nome', label: 'Classificação viária' }, { key: 'total', label: 'Total' }, { key: 'leg_atendida', label: 'Leg. Atendida' }, { key: 'nao_atendida', label: 'Não Atenderam' }, { key: 'solucionados', label: 'Solucionados' }, { key: 'em_andamento', label: 'Em andamento' }] }
+      return {
+        ...base,
+        dados,
+        colunas: [{ key: 'nome', label: 'Classificação viária' }, { key: 'total', label: 'Total' }, { key: 'leg_atendida', label: 'Leg. Atendida' }, { key: 'nao_atendida', label: 'Não Atenderam' }, { key: 'solucionados', label: 'Solucionados' }, { key: 'em_andamento', label: 'Em andamento' }],
+        completude: completude(fisc, 'classificacao_viaria', 'classificação viária', (r) =>
+          ['LOCAL', 'COLETORA', 'ARTERIAL'].includes(String(r.classificacao_viaria || '').trim().toUpperCase())
+        ),
+      }
     }
     case 'fisc_por_regiao':
     case 'fisc_andamento_por_regiao': {

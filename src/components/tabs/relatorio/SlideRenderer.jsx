@@ -151,35 +151,12 @@ function IconeGenerico({ nome, className = 'w-10 h-10' }) {
           <path d="M8 14h2M14 14h2M8 18h2" />
         </svg>
       )
-    case 'nivelamento':
-      return (
-        <svg {...props}>
-          <path d="M3 17h18" />
-          <path d="M3 21h18" />
-          <path d="M6 17v-3M10 17v-5M14 17v-3M18 17v-6" />
-        </svg>
-      )
     case 'geometria':
       return (
         <svg {...props}>
           <path d="M4 20L10 4h4l6 16" />
           <path d="M8 14h8" />
           <path d="M12 8v0M12 12v0M12 17v0" strokeDasharray="1 3" />
-        </svg>
-      )
-    case 'afundamento':
-      return (
-        <svg {...props}>
-          <path d="M3 8h5c1 4 2 6 4 6s3-2 4-6h5" />
-          <path d="M3 19h18" />
-          <path d="M12 14v3M10 16l2 2 2-2" />
-        </svg>
-      )
-    case 'trincas':
-      return (
-        <svg {...props}>
-          <path d="M4 4l4 5-3 3 6 4-2 4" />
-          <path d="M14 4l2 4 4 2-3 4 2 5" />
         </svg>
       )
     default:
@@ -190,32 +167,6 @@ function IconeGenerico({ nome, className = 'w-10 h-10' }) {
         </svg>
       )
   }
-}
-
-// Mapa estilizado de SP (vetor genérico — substitui a arte do PDF nas capas).
-function MapaGenericoSP({ className = 'w-44 h-56' }) {
-  return (
-    <svg className={className} viewBox="0 0 100 130" fill="none" aria-hidden>
-      <path
-        d="M38 6l14-4 12 8 16 2 8 10-4 12 6 10-8 10-2 12-10 6 2 14-8 10-6 16-12 8-10-6 2-14-8-10 4-12-6-10 4-12-4-12 6-10-2-12z"
-        fill="currentColor"
-        opacity="0.9"
-      />
-      <path
-        d="M42 18l10 6 12-4M34 38l14 4 16-6M30 58l16 2 18-4M38 78l14-2 12 4M42 98l10 2"
-        stroke="#7dd3fc"
-        strokeWidth="1.4"
-        opacity="0.7"
-      />
-    </svg>
-  )
-}
-
-const ICONE_FALHA = {
-  Nivelamento: 'nivelamento',
-  Geometria: 'geometria',
-  Afundamento: 'afundamento',
-  Trincas: 'trincas',
 }
 
 /* ── Peças do layout do PDF ─────────────────────────────────────────────── */
@@ -363,6 +314,28 @@ function CabecalhoSlide({ slide }) {
   )
 }
 
+// Aviso de "dado parcial" (pedido do usuário em 31/07/2026): o campo-fonte de
+// alguns slides não está preenchido em 100% da base — sem isso, as linhas sem
+// o dado somem do gráfico (ou entram como zero) sem nenhum aviso. Faixas de
+// severidade escolhidas pelo usuário: ≥99% não mostra nada, 90–99% cinza
+// discreto, <90% âmbar. Entra na imagem exportada de propósito (sem
+// data-no-export) — é informação da análise, não controle de UI.
+function AvisoCompletude({ completude }) {
+  if (!completude || completude.pct >= 99) return null
+  const grave = completude.pct < 90
+  const pctFmt = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(completude.pct)
+  return (
+    <div
+      className={`mb-2 rounded-md border px-3 py-2 text-xs ${grave ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-slate-200 bg-slate-50 text-slate-600'}`}
+    >
+      {grave ? '⚠️' : 'ℹ️'} <strong>Dado parcial:</strong> {pctFmt}% dos registros
+      têm {completude.rotulo} preenchido(s) ({fmtNumero(completude.preenchidos)}{' '}
+      de {fmtNumero(completude.total)}). Os demais não têm esse dado e podem
+      estar sub-representados nesta análise.
+    </div>
+  )
+}
+
 // Corpo com coluna à direita (destaques, painel de anos, lista de %).
 function CorpoComLateral({ slide, janelaRows, children }) {
   const destaquesLado = slide.destaquePos === 'topo' ? [] : slide.destaques || []
@@ -409,12 +382,15 @@ function GraficoBarras({ dados, colunas, horizontal, destaqueNome }) {
   const chaves = chavesDeSerie(colunas, dados)
   const eixoNome = dados?.[0]?.nome !== undefined ? 'nome' : 'ano'
   const umaSerie = chaves.length === 1
+  const comLegenda = chaves.length > 1
   return (
     <ResponsiveContainer width="100%" height={horizontal ? Math.max(220, dados.length * 34) : 280}>
       <BarChart
         data={dados}
         layout={horizontal ? 'vertical' : 'horizontal'}
-        margin={{ top: 8, right: 16, bottom: 4, left: horizontal ? 40 : 0 }}
+        // Com legenda (barra_dupla, ex.: slides 12/13/29/30), mais espaço no
+        // topo para a legenda não ficar colada/sobreposta às barras.
+        margin={{ top: comLegenda ? 28 : 8, right: 16, bottom: 4, left: horizontal ? 40 : 0 }}
       >
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         {horizontal ? (
@@ -429,7 +405,9 @@ function GraficoBarras({ dados, colunas, horizontal, destaqueNome }) {
           </>
         )}
         <Tooltip content={<ChartTooltip />} wrapperStyle={{ zIndex: 50 }} />
-        {chaves.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
+        {comLegenda && (
+          <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: 11, paddingBottom: 6 }} />
+        )}
         {chaves.map((k) => (
           <Bar
             key={k}
@@ -549,44 +527,7 @@ function CartoesKpi({ kpis }) {
   )
 }
 
-// Cards de tipo de falha (slide 33): ícone genérico no lugar da foto.
-function CardsFalha({ kpis }) {
-  const principais = kpis.filter((k) => !k.resto)
-  const resto = kpis.find((k) => k.resto)
-  return (
-    <div className="flex flex-col md:flex-row gap-4 items-start">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 w-full">
-        {principais.map((k) => (
-          <div key={k.rotulo} className="border border-gray-200 shadow-[3px_3px_0_rgba(31,56,100,0.15)]">
-            <div className="flex items-stretch">
-              <div className="flex-1 bg-white px-2.5 py-1 text-xs font-bold text-navy flex items-center">
-                {k.rotulo}
-              </div>
-              <div className="bg-navy text-white px-3 py-1 text-sm font-extrabold tabular-nums flex items-center">
-                {fmtNumero(k.valor)}
-              </div>
-            </div>
-            <div className="bg-slate-50 flex items-center justify-center py-5 text-navy/70">
-              <IconeGenerico nome={ICONE_FALHA[k.rotulo] || 'grade'} className="w-14 h-14" />
-            </div>
-          </div>
-        ))}
-      </div>
-      {resto && (
-        <div className="w-full md:w-52 shrink-0 border border-navy shadow-[2px_2px_0_rgba(31,56,100,0.25)] md:mt-10">
-          <div className="bg-white px-2.5 py-1 text-xs font-bold text-navy text-center">
-            {resto.rotulo}
-          </div>
-          <div className="bg-navy text-white px-3 py-1.5 text-lg font-extrabold tabular-nums text-center">
-            {fmtNumero(resto.valor)}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// Slide 18: barras por subprefeitura + painel de regiões com mapa genérico.
+// Slide 18: barras por subprefeitura + painel de regiões.
 function CorpoRegioes({ slide }) {
   const porSub = slide.detalhe || []
   return (
@@ -602,10 +543,7 @@ function CorpoRegioes({ slide }) {
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div className="w-full md:w-60 shrink-0 flex flex-col items-center gap-2">
-        <div className="text-navy/80">
-          <MapaGenericoSP className="w-28 h-36" />
-        </div>
+      <div className="w-full md:w-60 shrink-0 flex flex-col gap-2">
         <div className="w-full space-y-1.5">
           {(slide.dados || []).map((r) => (
             <div key={r.nome} className="flex items-stretch border border-navy shadow-[2px_2px_0_rgba(31,56,100,0.25)]">
@@ -638,9 +576,6 @@ function Capa({ slide }) {
             {slide.sub}
           </div>
         )}
-      </div>
-      <div className="hidden sm:flex w-2/5 items-center justify-center text-navy">
-        <MapaGenericoSP />
       </div>
     </div>
   )
@@ -763,16 +698,17 @@ function CorpoSlide({ slide }) {
       )
     case 'kpis':
       return <CartoesKpi kpis={slide.kpis || []} />
-    case 'cards_falha':
-      return <CardsFalha kpis={slide.kpis || []} />
     case 'regioes':
       return <CorpoRegioes slide={slide} />
     case 'pizza': {
       const total = (slide.dados || []).reduce((s, d) => s + (d.valor || 0), 0)
+      // Slide 9 ("Processos por Tipo de Processo"): legenda ao lado do
+      // donut, não abaixo — pedido do usuário em 31/07/2026.
+      const legendaLado = slide.n === 9
       return (
         <CorpoComLateral slide={slide}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <DonutComparativo dados={slide.dados || []} cores={CORES_DONUT} total={total} />
+            <DonutComparativo dados={slide.dados || []} cores={CORES_DONUT} total={total} legendaLado={legendaLado} />
             {slide.detalhe && (
               <DonutComparativo
                 titulo="Solucionados × Em andamento (dentro das NC)"
@@ -966,6 +902,8 @@ export default function SlideRenderer({ slide, campos, onCampo }) {
         {!ehCapa && (slide.tituloInterno || slide.subtitulo || slide.contexto || slide.painelTexto) && (
           <CabecalhoSlide slide={slide} />
         )}
+
+        <AvisoCompletude completude={slide.completude} />
 
         {slide.aviso && (
           <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800" data-no-export>
