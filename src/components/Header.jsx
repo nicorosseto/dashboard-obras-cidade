@@ -8,12 +8,12 @@ import { abasCruzamentoPermitidas } from '../lib/permissoes.js'
 import { coresModulo } from '../lib/coresModulo.js'
 import { ehModoDemo } from '../lib/demo.js'
 
-function Logo({ src, alt }) {
+function Logo({ src, alt, className = 'h-14' }) {
   return (
     <img
       src={src}
       alt={alt}
-      className="h-14 w-auto object-contain"
+      className={`${className} w-auto object-contain`}
       onError={(e) => {
         e.currentTarget.style.display = 'none'
         const fb = e.currentTarget.nextElementSibling
@@ -23,10 +23,10 @@ function Logo({ src, alt }) {
   )
 }
 
-function LogoFallback({ texto }) {
+function LogoFallback({ texto, className = 'h-14' }) {
   return (
     <div
-      className="h-14 px-3 rounded-sm bg-white/15 items-center justify-center font-semibold text-xs uppercase tracking-wide"
+      className={`${className} px-3 rounded-sm bg-white/15 items-center justify-center font-semibold text-xs uppercase tracking-wide`}
       style={{ display: 'none' }}
     >
       {texto}
@@ -305,13 +305,16 @@ export default function Header({
           </button>
         )}
 
-        {/* Logo esquerda: Secretaria das Subprefeituras */}
+        {/* Logo esquerda: Prefeitura de São Paulo (marca oficial, versão
+            horizontal para fundo escuro — Identidade Visual PMSP, Frente 4c
+            do plano de melhorias de agosto/2026) */}
         <div className="flex items-center shrink-0">
           <Logo
-            src="/logos/secretaria-subprefeituras.png"
-            alt="Secretaria das Subprefeituras"
+            src="/logos/prefeitura-sp.png"
+            alt="Prefeitura de São Paulo"
+            className="h-7"
           />
-          <LogoFallback texto="SEC. SUBS." />
+          <LogoFallback texto="PREF. SP" className="h-7" />
         </div>
 
         {/* Ícone + título do módulo ativo */}
