@@ -305,13 +305,12 @@ export default function Header({
           </button>
         )}
 
-        {/* Logo esquerda: Secretaria das Subprefeituras */}
+        {/* Logo esquerda: Prefeitura de São Paulo (marca oficial, versão
+            horizontal para fundo escuro — Identidade Visual PMSP, Frente 4c
+            do plano de melhorias de agosto/2026) */}
         <div className="flex items-center shrink-0">
-          <Logo
-            src="/logos/secretaria-subprefeituras.png"
-            alt="Secretaria das Subprefeituras"
-          />
-          <LogoFallback texto="SEC. SUBS." />
+          <Logo src="/logos/prefeitura-sp.png" alt="Prefeitura de São Paulo" />
+          <LogoFallback texto="PREF. SP" />
         </div>
 
         {/* Ícone + título do módulo ativo */}
