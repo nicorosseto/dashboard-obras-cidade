@@ -1,8 +1,16 @@
 # Plano de execução — melhorias de agosto/2026
 
+> ✅ **CONCLUÍDO em 12/08/2026** — as 4 frentes foram implementadas e estão em
+> **produção** (promoção final PR #437). Detalhe de cada entrega em
+> `docs/progresso.md` (seções "Apresentação — Frente 1/2", "Multas — Frente 3",
+> "Identidade visual — Frente 4a/4c"). A única parte deliberadamente fora de
+> escopo foi a **PR 4b (cores)** — o usuário decidiu manter a paleta atual
+> (navy/red). Este arquivo fica como **registro histórico** do planejamento;
+> não editar para novas tarefas — abrir um plano novo se precisar.
+>
 > **Escrito em 31/07/2026** a pedido do usuário, para ser **executado na próxima
-> sessão (pelo Sonnet)**. Nada aqui foi implementado ainda. Cada frente é
-> independente e vira **1 ou mais PRs próprios** — não misturar frentes no mesmo PR.
+> sessão (pelo Sonnet)**. Cada frente é independente e virou **1 ou mais PRs
+> próprios** — não misturar frentes no mesmo PR.
 >
 > **Antes de começar qualquer frente:** rodar o protocolo de startup do `CLAUDE.md`
 > (autoria git, auditoria de pendências, leitura das regras) e criar a branch a
