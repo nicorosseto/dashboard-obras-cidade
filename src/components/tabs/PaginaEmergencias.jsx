@@ -17,12 +17,16 @@ import {
   agregaPorStatus,
   agregaPorPermissionaria,
   aplicarFiltrosEmerg,
+  contarFiltrosAtivosEmerg,
   tabelaCruzada,
   buildObrasMap,
   buildPrazoRows,
   buildVistoriaMap,
   COLUNAS_OBRAS,
 } from '../../lib/emergencias.js'
+
+import TituloTela from '../TituloTela.jsx'
+import { ABAS_EMERG, labelDaAba } from '../../lib/abasPaginas.js'
 
 // Sub-componentes extraídos para src/components/tabs/emerg/
 import SidebarEmergencias from './emerg/SidebarEmergencias.jsx'
@@ -471,11 +475,7 @@ export default function PaginaEmergencias({
     return { min: mn, max: mx }
   }, [linhas])
 
-  const filtrosAtivos = !!(
-    filtros.dataIni || filtros.dataFim || filtros.permissionarias.size > 0 ||
-    (filtros.possuiVistoria && filtros.possuiVistoria !== 'todas') || filtros.statusVistoria.size > 0 ||
-    filtros.statusSistemaGeo.size > 0
-  )
+  const filtrosAtivos = contarFiltrosAtivosEmerg(filtros) > 0
 
   const handleToggleSidebar = useCallback(() => setSidebarAberta((o) => !o), [])
   const handleSetFiltros = useCallback((f) => setFiltros(f), [])
@@ -533,7 +533,7 @@ export default function PaginaEmergencias({
         />
       )}
 
-      <div className="flex flex-1 min-w-0">
+      <div className="flex flex-1 min-w-0 overflow-hidden">
         {!carregando && totalGeral > 0 && abaAtiva !== 'historico' && (
           <SidebarEmergencias
             aberto={sidebarAberta}
@@ -551,7 +551,15 @@ export default function PaginaEmergencias({
           />
         )}
 
-        <div className="flex-1 p-4 space-y-4 min-w-0 overflow-y-auto" data-tour="conteudo-modulo">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <div className="px-4 sm:px-6 pt-3 shrink-0">
+            <TituloTela
+              titulo={labelDaAba(ABAS_EMERG, abaAtiva)}
+              corDe="#b45309"
+              corPara="#d97706"
+            />
+          </div>
+          <div className="flex-1 p-4 space-y-4 min-w-0 overflow-y-auto" data-tour="conteudo-modulo">
           {/* Barra de progresso do carregamento */}
           {carregando && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-3">
@@ -720,6 +728,7 @@ export default function PaginaEmergencias({
           {abaAtiva === 'historico' && (
             <AbaHistorico snapshots={snapshots} carregando={carregandoSnap} />
           )}
+          </div>
         </div>
       </div>
     </>

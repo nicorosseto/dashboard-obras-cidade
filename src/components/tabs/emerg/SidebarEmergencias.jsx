@@ -1,6 +1,10 @@
 import { memo, useState, useMemo } from 'react'
 import { fmtNumero, fmtData } from '../../../lib/aggregations.js'
-import { STATUS_VISTORIA_OPTS, STATUS_FIXOS_EMERG } from '../../../lib/emergencias.js'
+import {
+  STATUS_VISTORIA_OPTS,
+  STATUS_FIXOS_EMERG,
+  contarFiltrosAtivosEmerg,
+} from '../../../lib/emergencias.js'
 
 function BlocoFiltro({ titulo, children, defaultOpen = false, bloqueado = false }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -150,6 +154,11 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
   const [busca, setBusca] = useState('')
   const [norcrestAberto, setNorcrestAberto] = useState(false)
 
+  // Contagem de CRITÉRIOS de filtro ativos (não o total de linhas filtradas
+  // — usada no rótulo "Filtros · N" da sidebar recolhida; achado de
+  // 12/08/2026, ver dominio.md).
+  const filtrosCount = contarFiltrosAtivosEmerg(filtros)
+
   const permSet =
     filtros.permissionarias instanceof Set ? filtros.permissionarias : new Set()
 
@@ -203,7 +212,7 @@ const SidebarEmergencias = memo(function SidebarEmergencias({
           className="text-xs font-extrabold text-navy uppercase tracking-widest mt-1"
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
         >
-          {filtrosAtivos ? `Filtros · ${fmtNumero(totalFiltrado)}` : 'Filtros'}
+          {filtrosAtivos ? `Filtros · ${filtrosCount}` : 'Filtros'}
         </span>
       </aside>
     )

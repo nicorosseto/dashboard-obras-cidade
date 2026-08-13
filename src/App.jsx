@@ -31,7 +31,6 @@ import {
   ABAS_FISC,
   ABAS_GEO,
   ABAS_ADMIN,
-  ABAS_EMERG,
   ABAS_MULTAS,
   ABAS_GT,
   labelDaAba,
@@ -1257,41 +1256,30 @@ export default function App() {
           onAbaAdmin={() => {}}
           onAbrirConfiguracoes={handleAbrirConfiguracoes}
         />
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="px-4 sm:px-6 pt-3 shrink-0">
-            <TituloTela
-              titulo={labelDaAba(ABAS_EMERG, abaEmergencias)}
-              corDe="#b45309"
-              corPara="#d97706"
-            />
-          </div>
-          <div className="flex-1 flex overflow-hidden">
-            <ErrorBoundary modulo="Emergências">
-              <Suspense
-                fallback={
-                  <LoadingInline mensagem="Carregando Emergências..." />
-                }
-              >
-                <PaginaEmergencias
-                  user={session?.user}
-                  fiscalizacoes={todasLinhas}
-                  isAdmin={isAdmin}
-                  podeUpload={podeUploadEmerg}
-                  abaAtiva={abaEmergencias}
-                  onTotalInformadasChange={setTotalInformadasEmerg}
-                  linhas={emergLinhas}
-                  setLinhas={setEmergLinhas}
-                  obras={emergObras}
-                  setObras={setEmergObras}
-                  motivoGrupos={motivoGrupos}
-                  motivoPendentes={motivoPendentes}
-                  onSalvarMotivos={salvarClassifMotivos}
-                  carregando={emergCarregando}
-                  emgProgresso={emergProgresso}
-                />
-              </Suspense>
-            </ErrorBoundary>
-          </div>
+        <main className="flex-1 flex overflow-hidden">
+          <ErrorBoundary modulo="Emergências">
+            <Suspense
+              fallback={<LoadingInline mensagem="Carregando Emergências..." />}
+            >
+              <PaginaEmergencias
+                user={session?.user}
+                fiscalizacoes={todasLinhas}
+                isAdmin={isAdmin}
+                podeUpload={podeUploadEmerg}
+                abaAtiva={abaEmergencias}
+                onTotalInformadasChange={setTotalInformadasEmerg}
+                linhas={emergLinhas}
+                setLinhas={setEmergLinhas}
+                obras={emergObras}
+                setObras={setEmergObras}
+                motivoGrupos={motivoGrupos}
+                motivoPendentes={motivoPendentes}
+                onSalvarMotivos={salvarClassifMotivos}
+                carregando={emergCarregando}
+                emgProgresso={emergProgresso}
+              />
+            </Suspense>
+          </ErrorBoundary>
         </main>
         <Rodape />
       </div>
