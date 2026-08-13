@@ -1,9 +1,7 @@
 # Arquitetura e referência técnica — OBRAS Dashboard
 
-> Arquivo de referência linkado pelo `CLAUDE.md` raiz (via `@`). Reúne o que é
-> consulta pontual (stack, cores, pastas, comandos), para manter o `CLAUDE.md`
-> principal enxuto. **Atualize aqui** quando o stack, a estrutura ou os comandos
-> mudarem.
+> Arquivo de referência linkado pelo `CLAUDE.md` raiz. Reúne o que é consulta
+> pontual (stack, cores, pastas, comandos).
 
 ## Tecnologias (o "stack")
 
@@ -12,7 +10,7 @@
 | Interface (front-end) | **React 19 + Vite 8 (Rolldown)** | Monta as telas no navegador |
 | Estilo | **Tailwind CSS 4** | Classes utilitárias de estilo |
 | Gráficos | **Recharts** | Gráficos de barra, linha, donut |
-| Mapas | **Leaflet + react-leaflet** | Mapa choropleth de São Paulo |
+| Mapas | **Leaflet + react-leaflet** | Mapa choropleth por região |
 | Planilhas | **SheetJS (xlsx)** | Ler/exportar Excel |
 | Imagem de slide | **html-to-image** | Exporta o card de cada slide do módulo Apresentação como PNG |
 | Banco + Login | **Supabase** (PostgreSQL + Auth + RLS) | Dados e autenticação |
@@ -26,8 +24,8 @@
 - `red` (vermelho institucional): `#C00000`
 - `grey-bg` (fundo cinza): `#F2F2F2`
 
-Definidas no bloco `@theme` de `src/index.css` (desde o Tailwind 4 — Fase M4,
-PR 4 — a configuração é CSS-first; o `tailwind.config.js` foi removido).
+Definidas no bloco `@theme` de `src/index.css` (Tailwind 4 — configuração
+CSS-first, sem `tailwind.config.js`).
 
 ## Estrutura de pastas
 
@@ -45,16 +43,15 @@ dashboard-obras-cidade/
 │   │   ├── supabase.js         # Conexão com o Supabase
 │   │   ├── auth.js             # Login/logout
 │   │   ├── aggregations.js     # Cálculos, KPIs, formatação de datas
-│   │   └── cores.js            # Paleta institucional em JS (gráficos, gradientes) — Fase M5
-│   ├── hooks/                  # Hooks React de carga de dados (Frente 3, Etapa 5)
-│   │   ├── useCargaFiscalizacao.js  # fetch da vw_fiscalizacao_enriquecida
-│   │   ├── useCargaSistemaGeo.js      # fetch do sistemaGeo (cache stale-while-revalidate)
-│   │   ├── useCargaEmergencias.js   # fetch de emergencias/obras/motivos
+│   │   └── cores.js            # Paleta institucional em JS (gráficos, gradientes)
+│   ├── hooks/                  # Hooks React de carga de dados
+│   │   ├── useCargaFiscalizacao.js
+│   │   ├── useCargaSistemaGeo.js      # cache stale-while-revalidate
+│   │   ├── useCargaEmergencias.js
 │   │   └── useAvisoAtualizacao.js   # datas por módulo + polling "dados atualizados"
-│   └── data/                   # Dados estáticos (GeoJSON de SP)
-├── scripts/                    # Scripts Python de importação de dados (.py/.ipynb)
+│   └── data/                   # Dados estáticos (GeoJSON)
 ├── supabase/                   # Scripts SQL do banco
-├── public/                     # Arquivos servidos como estão (logos)
+├── public/                     # Arquivos servidos como estão
 └── (configs na raiz)           # package.json, vite.config.js, etc.
 ```
 
@@ -70,62 +67,17 @@ npm run format   # formata o código (Prettier)
 npm test         # roda os testes (Vitest, modo run)
 ```
 
-⚠️ **`npm run build` no ambiente remoto exige um `.env.local` com valores dummy**
-(desde o Vite 8 — Fase M4, PR 2). O `src/lib/supabase.js` lança erro no topo do
-módulo se faltarem `VITE_SUPABASE_URL`/`VITE_SUPABASE_PUBLISHABLE_KEY`; o
-minificador do Rolldown (Oxc) faz constant-folding dessa checagem e, sem as
-variáveis no build, **elimina a aplicação inteira como código morto** — o build
-"passa" mas o `index` sai com ~19 kB (sem app). No Vercel isso nunca ocorre (as
-variáveis existem lá). Para builds fiéis no ambiente do Claude:
+⚠️ **`npm run build` exige um `.env.local` com valores dummy** para
+compilar fora do Vercel: o módulo de conexão com o banco lança erro no
+topo se faltarem `VITE_SUPABASE_URL`/`VITE_SUPABASE_PUBLISHABLE_KEY`, e o
+minificador (Oxc/Rolldown) faz constant-folding dessa checagem — sem as
+variáveis, ele elimina a aplicação inteira como código morto (o build
+"passa" mas o bundle sai vazio, ~19 kB). Para builds fiéis fora do Vercel:
 ```bash
 printf 'VITE_SUPABASE_URL=https://exemplo-dummy.supabase.co\nVITE_SUPABASE_PUBLISHABLE_KEY=chave-dummy\n' > .env.local
 ```
-(o `.env.local` está no `.gitignore` — nunca commitá-lo). Sinal de alerta: se o
-build imprimir um chunk `index` minúsculo (~19 kB) e nenhum chunk `react`,
-faltou o `.env.local`.
 
-⚠️ **`npm run format` reformata o repositório INTEIRO, não só os arquivos
-tocados na tarefa (achado de 16/07/2026):** muitos arquivos antigos não
-seguem exatamente o estilo atual do Prettier (linhas longas sem quebra), e
-rodar `npm run format` sem escopo gera dezenas de diffs cosméticos em
-arquivos não relacionados à tarefa — poluindo a PR e arriscando conflito com
-outras branches em andamento. **Nunca rodar `npm run format` puro numa
-branch de trabalho.** Formatar só os arquivos que a tarefa de fato tocou:
-`npx prettier --write <arquivo1> <arquivo2> ...`. Se `npm run format` foi
-rodado por engano, `git diff --name-only` e reverter (`git checkout -- `)
-os arquivos fora do escopo antes de commitar.
-
-## Hook de início de sessão (`.claude/hooks/session-start.sh`)
-
-Script que o Claude Code roda **sozinho no começo de cada sessão** (configurado em
-`.claude/settings.json` → `SessionStart`). Roda de forma **síncrona** (a sessão só
-começa depois que ele termina), garantindo que tudo esteja pronto. Faz:
-
-1. **`npm install`** — instala as dependências, para `lint`/`build`/`test` rodarem sem erro.
-2. **Auditoria automática (gaps 1–3 de `auditoria.md`)** — `git fetch` + checa promoção
-   pendente e branches não promovidas; entrega o panorama como contexto da sessão.
-
-⚠️ O **Gap 4 (PRs abertos)** e a reconciliação com o diário de bordo continuam manuais
-(o hook não tem acesso ao GitHub MCP). Detalhes no protocolo de startup do `CLAUDE.md`.
-
-## MCP servers (`.mcp.json` + `.claude/settings.json`)
-
-Desde **02/07/2026** (PR #225) o projeto tem 5 **MCP servers** configurados — pontes que
-dão ao Claude ferramentas de **consulta** a sistemas externos. Definidos em `.mcp.json`
-(raiz) e habilitados em `.claude/settings.json` (`enabledMcpjsonServers`):
-
-| Server | Serve para |
-|---|---|
-| **context7** | Doc atualizada de bibliotecas (React, Recharts, Supabase-js, Tailwind…) |
-| **vercel** | Deploys, logs de build e status do projeto na Vercel |
-| **supabase-dev** | Banco de **homologação** (`obras-dev`, ref `exemplorefdevooo0001`) — **read-only** |
-| **supabase-prod** | Banco de **produção** (ref `exemplorefprodooo001`) — **read-only** |
-| **playwright** | Automação de navegador (abrir a homologação, screenshot, testar fluxo) |
-
-⚠️ Regras (detalhe completo em **`docs/mcp-servers.md`**):
-- **Supabase é READ-ONLY** — escrita de banco continua só pelos scripts SQL numerados,
-  rodados pelo usuário nos 2 bancos. O MCP serve para o Claude **conferir** schema/dados.
-- **MCPs carregam só no INÍCIO da sessão** — mexer no `.mcp.json` no meio de um chat só
-  vale no chat seguinte.
-- **Vercel e Supabase exigem OAuth uma vez**, autorizado **pelo usuário** em sessão
-  interativa (o Claude automático não completa o login). context7/playwright não exigem.
+⚠️ **`npm run format` reformata o repositório inteiro**, não só os arquivos
+tocados — evite rodar sem escopo numa branch de trabalho; prefira
+`npx prettier --write <arquivo1> <arquivo2>` nos arquivos que a tarefa
+realmente tocou.
