@@ -820,6 +820,21 @@
   conteúdo, ao lado dela. **Regra geral para telas com sidebar própria:**
   nunca colocar o `TituloTela` num wrapper que englobe a sidebar — ele
   pertence à coluna de conteúdo.
+  ⚠️ **A mesma violação apareceu de novo em Emergências (achado do usuário,
+  12/08/2026)** — dessa vez por uma razão estrutural diferente: a
+  `SidebarEmergencias` sempre morou **dentro** do componente lazy
+  `PaginaEmergencias.jsx` (não em `App.jsx`, como as demais sidebars), então
+  o `TituloTela` que o `App.jsx` renderizava um nível acima ficava
+  **fora** do wrapper flex que contém a sidebar — mesmo sintoma (título
+  "no meio do L", empurrando a sidebar), causa diferente. Corrigido movendo
+  o `TituloTela` de Emergências para **dentro** de `PaginaEmergencias.jsx`,
+  como filho do mesmo wrapper da sidebar (`labelDaAba(ABAS_EMERG, abaAtiva)`
+  computado localmente, sem precisar de prop nova vinda do `App.jsx`).
+  **Regra ampliada:** ao criar uma tela nova com sidebar própria, se a
+  sidebar for renderizada dentro de um componente lazy/filho (não
+  diretamente no `App.jsx`), o `TituloTela` **também** precisa morar
+  dentro desse mesmo componente — nunca um nível acima, mesmo que pareça
+  mais simples renderizá-lo cedo no `App.jsx`.
   ⚡ **3ª rodada de ampliação (20/07/2026):** card **"Área Total (m²)"** na
   Visão Geral (mesmo escopo/exclusão dos outros 2 KPIs — `excluirSemProcesso`)
   e colunas **Subprefeitura**/**Área (m²)** nas tabelas de Inconsistências
