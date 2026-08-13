@@ -17,6 +17,7 @@ import {
   agregaPorStatus,
   agregaPorPermissionaria,
   aplicarFiltrosEmerg,
+  contarFiltrosAtivosEmerg,
   tabelaCruzada,
   buildObrasMap,
   buildPrazoRows,
@@ -471,11 +472,7 @@ export default function PaginaEmergencias({
     return { min: mn, max: mx }
   }, [linhas])
 
-  const filtrosAtivos = !!(
-    filtros.dataIni || filtros.dataFim || filtros.permissionarias.size > 0 ||
-    (filtros.possuiVistoria && filtros.possuiVistoria !== 'todas') || filtros.statusVistoria.size > 0 ||
-    filtros.statusSistemaGeo.size > 0
-  )
+  const filtrosAtivos = contarFiltrosAtivosEmerg(filtros) > 0
 
   const handleToggleSidebar = useCallback(() => setSidebarAberta((o) => !o), [])
   const handleSetFiltros = useCallback((f) => setFiltros(f), [])

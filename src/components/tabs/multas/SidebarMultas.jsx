@@ -4,6 +4,7 @@ import {
   SITUACAO_VINCULO_LABEL,
   SITUACAO_VINCULO_COR,
   SITUACOES_VINCULO,
+  contarFiltrosAtivosMultas,
 } from '../../../lib/multas.js'
 
 // Bloco colapsável — mesmo padrão de SidebarEmergencias.jsx.
@@ -49,6 +50,11 @@ const SidebarMultas = memo(function SidebarMultas({
 }) {
   const [busca, setBusca] = useState('')
   const [norcrestAberto, setNorcrestAberto] = useState(false)
+
+  // Contagem de CRITÉRIOS de filtro ativos (não o total de linhas filtradas
+  // — usada no rótulo "Filtros · N" da sidebar recolhida; achado de
+  // 12/08/2026, ver dominio.md).
+  const filtrosCount = contarFiltrosAtivosMultas(filtros)
 
   const permSet =
     filtros.permissionarias instanceof Set ? filtros.permissionarias : new Set()
@@ -148,7 +154,7 @@ const SidebarMultas = memo(function SidebarMultas({
           className="text-xs font-extrabold text-red uppercase tracking-widest mt-1"
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
         >
-          {filtrosAtivos ? `Filtros · ${fmtNumero(totalFiltrado)}` : 'Filtros'}
+          {filtrosAtivos ? `Filtros · ${filtrosCount}` : 'Filtros'}
         </span>
       </aside>
     )

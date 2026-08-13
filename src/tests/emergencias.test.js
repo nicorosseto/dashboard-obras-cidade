@@ -18,6 +18,7 @@ import {
   statusVistoriaDe,
   buildVistoriaMap,
   aplicarFiltrosEmerg,
+  contarFiltrosAtivosEmerg,
   agregaPorStatus,
   agregaPorPermissionaria,
   agregaStatusComOutros,
@@ -479,6 +480,47 @@ describe('aplicarFiltrosEmerg', () => {
     const res = aplicarFiltrosEmerg(rows, f)
     expect(res).toHaveLength(2)
     expect(res.every((r) => r.permissionaria.startsWith('NORCREST'))).toBe(true)
+  })
+})
+
+// ── contarFiltrosAtivosEmerg ─────────────────────────────────────────────
+// Achado de 12/08/2026: a sidebar recolhida usava o total de LINHAS
+// filtradas (pode ter 5 dígitos) no lugar da contagem de CRITÉRIOS de
+// filtro ativos (padrão 0-6) no rótulo vertical "Filtros · N", quebrando o
+// layout da faixa estreita. Testa a contagem certa.
+describe('contarFiltrosAtivosEmerg', () => {
+  it('zero quando não há filtro ativo', () => {
+    expect(contarFiltrosAtivosEmerg(FILTROS_VAZIOS_EMERG)).toBe(0)
+  })
+
+  it('soma datas + tamanho dos Sets', () => {
+    const f = {
+      ...FILTROS_VAZIOS_EMERG,
+      dataIni: '2024-01-01',
+      permissionarias: new Set(['NORCREST', 'HARGROVE']),
+    }
+    expect(contarFiltrosAtivosEmerg(f)).toBe(3)
+  })
+
+  it('conta possuiVistoria só quando != "todas"', () => {
+    expect(
+      contarFiltrosAtivosEmerg({ ...FILTROS_VAZIOS_EMERG, possuiVistoria: 'todas' })
+    ).toBe(0)
+    expect(
+      contarFiltrosAtivosEmerg({ ...FILTROS_VAZIOS_EMERG, possuiVistoria: 'sim' })
+    ).toBe(1)
+  })
+
+  it('conta critérios de filtro, não linhas da base (mesmo com Sets grandes)', () => {
+    const f = {
+      dataIni: '2024-01-01',
+      dataFim: '2024-12-31',
+      permissionarias: new Set(['NORCREST', 'HARGROVE', 'WINSLOW']),
+      possuiVistoria: 'sim',
+      statusVistoria: new Set(['Realizada']),
+      statusSistemaGeo: new Set(['NC', 'Em Andamento']),
+    }
+    expect(contarFiltrosAtivosEmerg(f)).toBe(9)
   })
 })
 

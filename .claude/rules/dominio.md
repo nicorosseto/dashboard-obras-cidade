@@ -559,6 +559,29 @@
   Substitui os dicionários `STATUS_NOME`/`STATUS_UNIFICADO` do notebook. O seed
   é **gerado a partir do notebook** (47 status do formato atual); ao mudar o
   catálogo, manter os dois alinhados até o D1 fazer o notebook/tela lerem do banco.
+- **Sidebar recolhida — rótulo "Filtros · N" é a CONTAGEM DE CRITÉRIOS ativos,
+  nunca o total de linhas filtradas (achado do usuário em 12/08/2026):** a
+  faixa estreita (`w-14`) de cada sidebar de filtros, quando recolhida, mostra
+  um texto vertical `Filtros · N` (via `writingMode: vertical-rl`) — o `N`
+  precisa ser um número **pequeno** (quantos filtros estão marcados: 0 a
+  ~10), não a contagem de registros que passam pelo filtro (pode ter 5+
+  dígitos). `Sidebar.jsx`/`SidebarSistemaGeo.jsx`/`SidebarCruzamento.jsx`
+  sempre fizeram isso certo (computam um `totalAtivos` **internamente**, a
+  partir do próprio `filtros` que já recebem). Mas `SidebarEmergencias.jsx`,
+  `SidebarGt.jsx` e `SidebarMultas.jsx` foram copiados de um padrão que usava
+  `totalFiltrado` (a contagem de LINHAS, prop vinda de fora) nesse mesmo
+  lugar — com filtro ativo e uma base grande, o texto virava algo como
+  "Filtros · 8.234", estourava a largura fixa da faixa e quebrava/desalinhava
+  o layout ao lado. Corrigido nos 3: cada sidebar agora calcula sua própria
+  contagem de critérios **internamente**, a partir do `filtros` que já
+  recebe como prop (`contarFiltrosAtivosMultas`/`contarFiltrosAtivosGt`/
+  nova `contarFiltrosAtivosEmerg`, todas exportadas do `lib/` do módulo,
+  testadas) — nunca de uma prop externa que possa ser miswired de novo.
+  **Regra para toda sidebar nova:** o rótulo do modo recolhido usa uma
+  contagem de critérios computada ali dentro, igual ao padrão do
+  `Sidebar.jsx` original — nunca reaproveitar `totalFiltrado`/`totalGeral`
+  (esses dois continuam certos no badge do cabeçalho expandido, "N de M",
+  que tem espaço de sobra).
 - **Filtro de Status do Sistema Geo (sidebar):** marcar um grupo unificado marca
   automaticamente todos os seus sub-status; o filtro casa pelo status
   **individual** (desmarcar um sub-status tira essas linhas do gráfico).

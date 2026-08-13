@@ -825,6 +825,26 @@ export const FILTROS_VAZIOS_EMERG = {
   statusSistemaGeo: new Set(),
 }
 
+// Contagem de CRITÉRIOS de filtro ativos (não confundir com o total de linhas
+// filtradas — usada no rótulo "Filtros · N" da sidebar recolhida; ver achado
+// de 12/08/2026 em dominio.md sobre esse bug).
+export function contarFiltrosAtivosEmerg(filtros) {
+  const permSet =
+    filtros.permissionarias instanceof Set ? filtros.permissionarias : new Set()
+  const stVistSet =
+    filtros.statusVistoria instanceof Set ? filtros.statusVistoria : new Set()
+  const stGeoSet =
+    filtros.statusSistemaGeo instanceof Set ? filtros.statusSistemaGeo : new Set()
+  return (
+    (filtros.dataIni ? 1 : 0) +
+    (filtros.dataFim ? 1 : 0) +
+    permSet.size +
+    (filtros.possuiVistoria && filtros.possuiVistoria !== 'todas' ? 1 : 0) +
+    stVistSet.size +
+    stGeoSet.size
+  )
+}
+
 export function aplicarFiltrosEmerg(rows, filtros, vistoriaMap = null) {
   const { dataIni, dataFim, permissionarias, possuiVistoria, statusVistoria, statusSistemaGeo } = filtros
   const permSet = permissionarias instanceof Set ? permissionarias : new Set()

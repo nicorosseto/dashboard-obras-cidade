@@ -1,6 +1,10 @@
 import { memo, useMemo, useState } from 'react'
 import { fmtNumero } from '../../../lib/aggregations.js'
-import { STATUS_GRUPO_LABEL, STATUS_GRUPO_COR } from '../../../lib/gtObras.js'
+import {
+  STATUS_GRUPO_LABEL,
+  STATUS_GRUPO_COR,
+  contarFiltrosAtivosGt,
+} from '../../../lib/gtObras.js'
 import { INDIGO } from '../../../lib/cores.js'
 
 // Bloco colapsável — mesmo padrão de SidebarMultas.jsx.
@@ -44,6 +48,11 @@ const SidebarGt = memo(function SidebarGt({
 }) {
   const [busca, setBusca] = useState('')
   const [norcrestAberto, setNorcrestAberto] = useState(false)
+
+  // Contagem de CRITÉRIOS de filtro ativos (não o total de linhas filtradas
+  // — usada no rótulo "Filtros · N" da sidebar recolhida; achado de
+  // 12/08/2026, ver dominio.md).
+  const filtrosCount = contarFiltrosAtivosGt(filtros)
 
   const permSet =
     filtros.permissionarias instanceof Set ? filtros.permissionarias : new Set()
@@ -139,7 +148,7 @@ const SidebarGt = memo(function SidebarGt({
           className="text-xs font-extrabold uppercase tracking-widest mt-1"
           style={{ color: INDIGO, writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
         >
-          {filtrosAtivos ? `Filtros · ${fmtNumero(totalFiltrado)}` : 'Filtros'}
+          {filtrosAtivos ? `Filtros · ${filtrosCount}` : 'Filtros'}
         </span>
       </aside>
     )
